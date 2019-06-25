@@ -1,7 +1,7 @@
 """ bcforms
 
-:Author: Name <email>
-:Date: 2019-6-25
+:Author: Jonathan Karr <karr@mssm.edu>
+:Date: 2019-06-25
 :Copyright: 2019, Karr Lab
 :License: MIT
 """

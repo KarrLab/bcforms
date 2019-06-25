@@ -1,4 +1,7 @@
 static_analyses:
   ignore_files: []
-downstream_dependencies: []
-email_notifications: []
+downstream_dependencies:
+- wc_kb
+- wc_lang
+email_notifications:
+- karr@mssm.edu

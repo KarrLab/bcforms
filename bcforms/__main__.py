@@ -17,6 +17,7 @@ class BaseController(cement.Controller):
     class Meta:
         label = 'base'
         description = "bcforms"
+        help = "bcforms"
         arguments = [
             (['-v', '--version'], dict(action='version', version=bcforms.__version__)),
         ]

@@ -35,3 +35,10 @@ class BcFormTestCase(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             bc_form.crosslinks = None
+
+    # more tests after setting up class structure to store subunits and crosslinks
+    def test_from_str(self):
+
+        bc_form_1 = core.BcForm().from_str('2 * abc_a + 3 * abc_b')
+
+        bc_form_2 = core.BcForm().from_str('bmp2_a + bmp2_a | crosslink: [left-bond-atom: bmp2_a(1)-362S1 | left-displaced-atom: bmp2_a(1)-362H1 | right-bond-atom: bmp2_a(2)-362S1 | right-displaced-atom: bmp2_a(2)-362H1]')

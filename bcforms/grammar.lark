@@ -1,0 +1,23 @@
+start: complex (ATTR_SEP global_attr)*
+complex: component (PLUS_SEP component)*
+component: coefficient? subunit
+coefficient: INT STAR_SEP
+subunit: NAME
+global_attr: crosslink
+crosslink: "crosslink" FIELD_SEP "[" WS* crosslink_atom (ATTR_SEP crosslink_atom)* WS* "]"
+crosslink_atom: crosslink_atom_type FIELD_SEP subunit subunit_idx? "-" monomer_position atom_element atom_position atom_charge?
+crosslink_atom_type: /(left|right)/ "-" /(bond|displaced)/ "-atom"
+monomer_position: /[0-9]+/
+subunit_idx: /\([0-9]+\)/
+atom_element: /[A-Z][a-z]?/
+atom_position: /[0-9]+/
+atom_charge: /[\+\-][0-9]+/
+
+NAME: /(?!(^|\b)(\d+(\.\d*)?(\b|$))|(\.\d+$)|(0[x][0-9a-f]+(\b|$))|([0-9]+e[0-9]+(\b|$)))[a-z0-9_]+/
+PLUS_SEP: WS* "+" WS*
+STAR_SEP: WS* "*" WS*
+ATTR_SEP: WS* "|" WS*
+FIELD_SEP: WS* ":" WS*
+
+%import common.INT
+%import common.WS

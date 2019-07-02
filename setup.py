@@ -12,6 +12,7 @@ dirname = os.path.dirname(__file__)
 package_data = {
     name: [
         'VERSION',
+        'grammar.lark',
     ],
 }
 
@@ -43,6 +44,7 @@ setuptools.setup(
     ],
     entry_points={
         'console_scripts': [
+            'bcforms = bcforms.__main__:main',
         ],
     },
 )

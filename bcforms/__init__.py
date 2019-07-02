@@ -4,4 +4,4 @@ import pkg_resources
 with open(pkg_resources.resource_filename('bcforms', 'VERSION'), 'r') as file:
     __version__ = file.read().strip()
 
-from .core import BcForm
+from .core import Atom, Crosslink, BcForm

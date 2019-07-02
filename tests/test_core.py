@@ -73,6 +73,12 @@ class CrosslinkTestCase(unittest.TestCase):
         self.assertEqual(crosslink.left_displaced_atoms, [])
         self.assertEqual(crosslink.right_displaced_atoms, [])
 
+        crosslink = core.Crosslink([], [], [], [])
+        self.assertEqual(crosslink.left_bond_atoms, [])
+        self.assertEqual(crosslink.right_bond_atoms, [])
+        self.assertEqual(crosslink.left_displaced_atoms, [])
+        self.assertEqual(crosslink.right_displaced_atoms, [])
+
     def test_set_left_bond_atoms(self):
         crosslink = core.Crosslink()
         atom = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
@@ -107,6 +113,10 @@ class BcFormTestCase(unittest.TestCase):
 
     def test_init(self):
         bc_form = core.BcForm()
+        self.assertEqual(bc_form.subunits, [])
+        self.assertEqual(bc_form.crosslinks, [])
+
+        bc_form = core.BcForm([],[])
         self.assertEqual(bc_form.subunits, [])
         self.assertEqual(bc_form.crosslinks, [])
 
@@ -161,6 +171,12 @@ class BcFormTestCase(unittest.TestCase):
         self.assertEqual(bc_form.subunits[1]['id'], 'abc_b')
         self.assertEqual(bc_form.subunits[1]['stoichiometry'], 3)
         self.assertEqual(bc_form.crosslinks, [])
+
+        with self.assertRaises(ValueError):
+            bad_form = core.BcForm().from_set([{'stoichiometry':2}, {'id': 'abc_b', 'stoichiometry': 3}])
+        with self.assertRaises(ValueError):
+            bad_form = core.BcForm().from_set([{'id':'abc'}, {'id': 'abc_b', 'stoichiometry': 3}])
+
 
     def test_clean(self):
 

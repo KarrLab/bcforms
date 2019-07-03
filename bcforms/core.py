@@ -408,6 +408,32 @@ class BcForm(object):
             raise ValueError('`value` must be an instance of `list`')
         self._crosslinks = value
 
+    def __str__(self):
+        s = ''
+
+        # subunits
+        for i in range(len(self.subunits)-1):
+            s += str(self.subunits[i]['stoichiometry']) + ' * '+ self.subunits[i]['id'] + ' + '
+        s += str(self.subunits[-1]['stoichiometry']) + ' * '+ self.subunits[-1]['id']
+
+        # crosslinks
+        atom_types = ['left_bond_atoms', 'left_displaced_atoms', 'right_bond_atoms', 'right_displaced_atoms']
+        for crosslink in self.crosslinks:
+            s += ' | crosslink: ['
+            for atom_type in atom_types:
+                for atom in getattr(crosslink, atom_type):
+                    if atom.charge == 0:
+                        charge = ''
+                    else:
+                        charge = '%+d' % atom.charge
+
+                    s += ' {}: {}({})-{}{}{}{} |'.format('-'.join(atom_type.split('_'))[:-1], atom.subunit, atom.subunit_idx, atom.monomer, atom.element, atom.position, charge)
+
+            s = s[:-1]+']'
+
+
+        return s
+
     # read the grammar file
     # _grammar_filename = 'grammar.lark'
     _grammar_filename = pkg_resources.resource_filename('bcforms', 'grammar.lark')
@@ -647,3 +673,28 @@ class BcForm(object):
                 charge -= atom.charge
 
         return charge
+
+    def validate(self):
+        """ check if the BcForm is valid
+            for now, check if the crosslinking subunit is in the subunit list
+            and if the subunit_idx is valid
+
+            Returns:
+                :obj:`list` of :obj:`str`: list of errors, if any
+
+        """
+        errors = []
+
+        # crosslinks
+        atom_types = ['left_bond_atoms', 'left_displaced_atoms', 'right_bond_atoms', 'right_displaced_atoms']
+        for i_crosslink, crosslink in enumerate(self.crosslinks):
+            for atom_type in atom_types:
+                for i_atom, atom in enumerate(getattr(crosslink, atom_type)):
+                    # check if subunit is present
+                    if atom.subunit not in [subunit['id'] for subunit in self.subunits]:
+                        errors.append("'{}[{}]' of crosslink {} must belong to a subunit in self.subunits".format(atom_type, i_atom, i_crosslink+1))
+                    # check subunit index
+                    elif atom.subunit_idx > next(subunit for subunit in self.subunits if subunit['id']==atom.subunit)['stoichiometry']:
+                        errors.append("'{}[{}]' of crosslink {} must belong to a subunit whose index is valid in terms of the stoichiometry of the subunit".format(atom_type, i_atom, i_crosslink+1))
+
+        return errors

@@ -620,14 +620,19 @@ class BcForm(object):
         Returns:
             :obj:`EmpiricalFormula`: the empirical formula of the BcForm
 
-        """
+        Raises:
+            :obj:`ValueError`: subunit_formulas must include all subunits
 
+        """
 
         formula = EmpiricalFormula()
 
         # subunits
         for subunit in self.subunits:
-            formula += subunit_formulas[subunit['id']] * subunit['stoichiometry']
+            if subunit['id'] not in subunit_formulas:
+                raise ValueError('subunit_formulas must include all subunits')
+            else:
+                formula += subunit_formulas[subunit['id']] * subunit['stoichiometry']
         # crosslinks
         for crosslink in self.crosslinks:
             for atom in itertools.chain(crosslink.left_displaced_atoms, crosslink.right_displaced_atoms):
@@ -642,11 +647,18 @@ class BcForm(object):
 
         Returns:
             :obj:`float`: the molecular weight of the BcForm
+
+        Raises:
+            :obj:`ValueError`: subunit_mol_wts must include all subunits
+
         """
         mol_wt = 0.0
         # subunits
         for subunit in self.subunits:
-            mol_wt += subunit_mol_wts[subunit['id']] * subunit['stoichiometry']
+            if subunit['id'] not in subunit_mol_wts:
+                raise ValueError('subunit_mol_wts must include all subunits')
+            else:
+                mol_wt += subunit_mol_wts[subunit['id']] * subunit['stoichiometry']
         # crosslinks
         for crosslink in self.crosslinks:
             for atom in itertools.chain(crosslink.left_displaced_atoms, crosslink.right_displaced_atoms):
@@ -662,11 +674,18 @@ class BcForm(object):
 
         Returns:
             :obj:`int`: the total charge of the BcForm
+
+        Raises:
+            :obj:`ValueError`: subunit_charges must include all subunits
+
         """
         charge = 0
         # subunits
         for subunit in self.subunits:
-            charge += subunit_charges[subunit['id']] * subunit['stoichiometry']
+            if subunit['id'] not in subunit_charges:
+                raise ValueError('subunit_charges must include all subunits')
+            else:
+                charge += subunit_charges[subunit['id']] * subunit['stoichiometry']
         # crosslinks
         for crosslink in self.crosslinks:
             for atom in itertools.chain(crosslink.left_displaced_atoms, crosslink.right_displaced_atoms):

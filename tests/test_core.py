@@ -142,12 +142,12 @@ class BcFormTestCase(unittest.TestCase):
     def test_str(self):
 
         s1 = '2 * abc_a + 3 * abc_b'
-        bc_form1 = core.BcForm().from_str(s1)
-        self.assertEqual(s1, str(bc_form1))
+        bc_form_1 = core.BcForm().from_str(s1)
+        self.assertEqual(s1, str(bc_form_1))
 
         s2 = '2 * bmp2_a | crosslink: [ left-bond-atom: bmp2_a(1)-362S1 | left-displaced-atom: bmp2_a(1)-362H1 | right-bond-atom: bmp2_a(2)-362S1 | right-displaced-atom: bmp2_a(2)-362H1 ]'
-        bc_form2 = core.BcForm().from_str(s2)
-        self.assertEqual(s2, str(bc_form2))
+        bc_form_2 = core.BcForm().from_str(s2)
+        self.assertEqual(s2, str(bc_form_2))
 
     def test_from_str(self):
 
@@ -200,6 +200,8 @@ class BcFormTestCase(unittest.TestCase):
 
         bc_form_1 = core.BcForm().from_str('abc_a + abc_b')
         self.assertEqual(bc_form_1.get_formula({'abc_a': EmpiricalFormula('C5H10O'), 'abc_b': EmpiricalFormula('C3H5O')}), EmpiricalFormula('C8H15O2'))
+        with self.assertRaises(ValueError):
+            bc_form_1.get_formula({'abc_a': EmpiricalFormula('C5H10O')})
 
         bc_form_2 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1+1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
         self.assertEqual(bc_form_2.get_formula({'abc_a': EmpiricalFormula('C5H10O'), 'abc_b': EmpiricalFormula('C3H5O')}), EmpiricalFormula('C8H13O'))
@@ -208,6 +210,8 @@ class BcFormTestCase(unittest.TestCase):
 
         bc_form_1 = core.BcForm().from_str('abc_a + abc_b')
         self.assertAlmostEqual(bc_form_1.get_mol_wt({'abc_a': EmpiricalFormula('C5H10O').get_molecular_weight(), 'abc_b': EmpiricalFormula('C3H5O').get_molecular_weight()}), 143, places=0)
+        with self.assertRaises(ValueError):
+            bc_form_1.get_mol_wt({'abc_a': EmpiricalFormula('C5H10O').get_molecular_weight()})
 
         bc_form_2 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1+1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
         self.assertAlmostEqual(bc_form_2.get_mol_wt({'abc_a': EmpiricalFormula('C5H10O').get_molecular_weight(), 'abc_b': EmpiricalFormula('C3H5O').get_molecular_weight()}), 125, places=0)
@@ -216,17 +220,19 @@ class BcFormTestCase(unittest.TestCase):
 
         bc_form_1 = core.BcForm().from_str('abc_a + abc_b')
         self.assertEqual(bc_form_1.get_charge({'abc_a': 1, 'abc_b': -1}), 0)
+        with self.assertRaises(ValueError):
+            bc_form_1.get_mol_wt({'abc_a': 1})
 
         bc_form_2 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1+1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
         self.assertEqual(bc_form_2.get_charge({'abc_a': 1, 'abc_b': -1}), -1)
 
     def test_validate(self):
 
-        bc_form1 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
-        self.assertEqual(len(bc_form1.validate()), 0)
+        bc_form_1 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
+        self.assertEqual(len(bc_form_1.validate()), 0)
 
-        bc_form2 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_c(1)-2O1 | left-displaced-atom: abc_d(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
-        self.assertEqual(len(bc_form2.validate()), 2)
+        bc_form_2 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_c(1)-2O1 | left-displaced-atom: abc_d(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
+        self.assertEqual(len(bc_form_2.validate()), 2)
 
-        bc_form3 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a(2)-2O1 | left-displaced-atom: abc_b(2)-2H1 | right-bond-atom: abc_b(3)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
-        self.assertEqual(len(bc_form3.validate()), 3)
+        bc_form_3 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a(2)-2O1 | left-displaced-atom: abc_b(2)-2H1 | right-bond-atom: abc_b(3)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
+        self.assertEqual(len(bc_form_3.validate()), 3)

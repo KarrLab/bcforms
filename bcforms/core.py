@@ -9,6 +9,8 @@
 
 import pkg_resources
 import lark
+from wc_utils.util.chem import EmpiricalFormula
+import itertools
 
 class Atom(object):
     """ atom in crosslink
@@ -476,7 +478,6 @@ class BcForm(object):
                 bond = Crosslink()
                 for arg in args:
                     if isinstance(arg, tuple):
-                        print(arg)
                         atom_type, atom = arg
                         atom_type_list = getattr(bond, atom_type+"s")
                         atom_type_list.append(atom)
@@ -583,3 +584,66 @@ class BcForm(object):
                         subunit_cleaned['stoichiometry'] += subunit['stoichiometry']
 
         self.subunits = subunits_cleaned
+
+    def get_formula(self, subunit_formulas):
+        """ get the Empirical Formula of the BcForm complex
+
+        Args:
+            subunit_formulas (:obj:`dict`): dictionary of subunit ids and empirical formulas
+
+        Returns:
+            :obj:`EmpiricalFormula`: the empirical formula of the BcForm
+
+        """
+
+
+        formula = EmpiricalFormula()
+
+        # subunits
+        for subunit in self.subunits:
+            formula += subunit_formulas[subunit['id']] * subunit['stoichiometry']
+        # crosslinks
+        for crosslink in self.crosslinks:
+            for atom in itertools.chain(crosslink.left_displaced_atoms, crosslink.right_displaced_atoms):
+                formula[atom.element] -= 1
+        return formula
+
+    def get_mol_wt(self, subunit_mol_wts):
+        """ get the molecular weight of the BcForm complex
+
+        Args:
+            subunit_formulas (:obj:`dict`): dictionary of subunit ids and molecular weights
+
+        Returns:
+            :obj:`float`: the molecular weight of the BcForm
+        """
+        mol_wt = 0.0
+        # subunits
+        for subunit in self.subunits:
+            mol_wt += subunit_mol_wts[subunit['id']] * subunit['stoichiometry']
+        # crosslinks
+        for crosslink in self.crosslinks:
+            for atom in itertools.chain(crosslink.left_displaced_atoms, crosslink.right_displaced_atoms):
+                mol_wt -= EmpiricalFormula(atom.element).get_molecular_weight()
+
+        return mol_wt
+
+    def get_charge(self, subunit_charges):
+        """ get the total charges of the BcForm complex
+
+        Args:
+            subunit_formulas (:obj:`dict`): dictionary of subunit ids and charges
+
+        Returns:
+            :obj:`int`: the total charge of the BcForm
+        """
+        charge = 0
+        # subunits
+        for subunit in self.subunits:
+            charge += subunit_charges[subunit['id']] * subunit['stoichiometry']
+        # crosslinks
+        for crosslink in self.crosslinks:
+            for atom in itertools.chain(crosslink.left_displaced_atoms, crosslink.right_displaced_atoms):
+                charge -= atom.charge
+
+        return charge

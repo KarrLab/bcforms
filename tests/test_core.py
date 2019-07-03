@@ -9,6 +9,7 @@
 
 from bcforms import core
 import unittest
+from wc_utils.util.chem import EmpiricalFormula
 
 class AtomTestCase(unittest.TestCase):
 
@@ -184,3 +185,27 @@ class BcFormTestCase(unittest.TestCase):
         self.assertEqual(len(bc_form.subunits), 1)
         self.assertEqual(bc_form.subunits[0]['id'], 'abc')
         self.assertEqual(bc_form.subunits[0]['stoichiometry'], 3)
+
+    def test_get_formula(self):
+
+        bc_form_1 = core.BcForm().from_str('abc_a + abc_b')
+        self.assertEqual(bc_form_1.get_formula({'abc_a': EmpiricalFormula('C5H10O'), 'abc_b': EmpiricalFormula('C3H5O')}), EmpiricalFormula('C8H15O2'))
+
+        bc_form_2 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1+1 | right-bond-atom: abc_b(1)-3O1 | right-displaced-atom: abc_b(1)-3H1]')
+        self.assertEqual(bc_form_2.get_formula({'abc_a': EmpiricalFormula('C5H10O'), 'abc_b': EmpiricalFormula('C3H5O')}), EmpiricalFormula('C8H13O2'))
+
+    def test_get_mol_wt(self):
+
+        bc_form_1 = core.BcForm().from_str('abc_a + abc_b')
+        self.assertAlmostEqual(bc_form_1.get_mol_wt({'abc_a': EmpiricalFormula('C5H10O').get_molecular_weight(), 'abc_b': EmpiricalFormula('C3H5O').get_molecular_weight()}), 143, places=0)
+
+        bc_form_2 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1+1 | right-bond-atom: abc_b(1)-3O1 | right-displaced-atom: abc_b(1)-3H1]')
+        self.assertAlmostEqual(bc_form_2.get_mol_wt({'abc_a': EmpiricalFormula('C5H10O').get_molecular_weight(), 'abc_b': EmpiricalFormula('C3H5O').get_molecular_weight()}), 141, places=0)
+
+    def test_get_charge(self):
+
+        bc_form_1 = core.BcForm().from_str('abc_a + abc_b')
+        self.assertEqual(bc_form_1.get_charge({'abc_a': 1, 'abc_b': -1}), 0)
+
+        bc_form_2 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1+1 | right-bond-atom: abc_b(1)-3O1 | right-displaced-atom: abc_b(1)-3H1]')
+        self.assertEqual(bc_form_2.get_charge({'abc_a': 1, 'abc_b': -1}), -1)

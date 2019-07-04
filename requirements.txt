@@ -2,3 +2,4 @@ cement >= 3.0.0 # for command line programs
 setuptools # for pkg_resources module
 bpforms[all]
 wc_utils[all]
+lark_parser >= 0.6.6

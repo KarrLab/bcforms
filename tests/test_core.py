@@ -69,6 +69,17 @@ class AtomTestCase(unittest.TestCase):
         atom = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
         self.assertEqual(str(atom), 'abc(1)-10H1')
 
+    def test_is_equal(self):
+
+        atom_1 = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
+        atom_2 = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
+        atom_3 = core.Atom(subunit='def', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
+
+        self.assertTrue(atom_1.is_equal(atom_1))
+        self.assertFalse(atom_1.is_equal('atom'))
+        self.assertTrue(atom_1.is_equal(atom_2))
+        self.assertFalse(atom_1.is_equal(atom_3))
+
 class CrosslinkTestCase(unittest.TestCase):
 
     def test_init(self):
@@ -121,6 +132,33 @@ class CrosslinkTestCase(unittest.TestCase):
 
         self.assertEqual(str(crosslink), 'crosslink: [ left-bond-atom: abc(1)-10H1 | right-bond-atom: def(1)-10H1 ]')
 
+    def test_is_equal(self):
+        atom_1 = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
+        atom_2 = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
+        atom_3 = core.Atom(subunit='def', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
+
+        crosslink_1 = core.Crosslink()
+        crosslink_1.left_bond_atoms.append(atom_1)
+        crosslink_1.right_bond_atoms.append(atom_2)
+
+        crosslink_2 = core.Crosslink()
+        crosslink_2.left_bond_atoms.append(atom_1)
+        crosslink_2.right_bond_atoms.append(atom_2)
+
+        crosslink_3 = core.Crosslink()
+        crosslink_3.left_bond_atoms.append(atom_1)
+        crosslink_3.right_bond_atoms.append(atom_2)
+        crosslink_3.right_bond_atoms.append(atom_3)
+
+        crosslink_4 = core.Crosslink()
+        crosslink_4.left_bond_atoms.append(atom_1)
+        crosslink_4.right_bond_atoms.append(atom_3)
+
+        self.assertTrue(crosslink_1.is_equal(crosslink_1))
+        self.assertFalse(crosslink_1.is_equal(atom_1))
+        self.assertTrue(crosslink_1.is_equal(crosslink_2))
+        self.assertFalse(crosslink_1.is_equal(crosslink_3))
+        self.assertFalse(crosslink_1.is_equal(crosslink_4))
 
 class BcFormTestCase(unittest.TestCase):
 
@@ -248,3 +286,19 @@ class BcFormTestCase(unittest.TestCase):
 
         bc_form_3 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a(2)-2O1 | left-displaced-atom: abc_b(2)-2H1 | right-bond-atom: abc_b(3)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
         self.assertEqual(len(bc_form_3.validate()), 3)
+
+    def test_is_equal(self):
+
+        bc_form_1 = core.BcForm().from_str('abc_a + abc_a + 3 * abc_b')
+        bc_form_2 = core.BcForm().from_str('3 * abc_b + 2 * abc_a')
+        bc_form_3 = core.BcForm().from_str('abc_a + abc_a + 3 * abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
+        bc_form_4 = core.BcForm().from_str('abc_a + abc_a + 3 * abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | right-bond-atom: abc_b(1)-3C1 | left-displaced-atom: abc_a(1)-2H1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
+        bc_form_5 = core.BcForm().from_str('abc_a + abc_a + 3 * abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1]')
+
+
+        self.assertTrue(bc_form_1.is_equal(bc_form_1))
+        self.assertFalse(bc_form_1.is_equal('form'))
+        self.assertTrue(bc_form_1.is_equal(bc_form_2))
+        self.assertFalse(bc_form_1.is_equal(bc_form_3))
+        self.assertTrue(bc_form_3.is_equal(bc_form_4))
+        self.assertFalse(bc_form_3.is_equal(bc_form_5))

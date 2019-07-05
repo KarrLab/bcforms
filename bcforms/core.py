@@ -198,6 +198,30 @@ class Atom(object):
 
         return '{}({})-{}{}{}{}'.format(self.subunit, self.subunit_idx, self.monomer, self.element, self.position, charge)
 
+    def is_equal(self, other):
+        """ check if two Atoms are semantically equal
+
+        Args:
+            other (:obj:`Atom`): another Atom
+
+        Returns:
+            :obj:`bool`: :obj:`True`, if the Atoms have the same structure
+
+        """
+        if self is other:
+            return True
+        if self.__class__ != other.__class__:
+            return False
+
+        attrs = ['subunit', 'subunit_idx', 'element', 'position', 'monomer', 'charge']
+
+        for attr in attrs:
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+
+        return True
+
+
 class Crosslink(object):
     """ crosslink between subunits
 
@@ -348,6 +372,34 @@ class Crosslink(object):
         s = s[:-1]+']'
         return s
 
+    def is_equal(self, other):
+        """ check if two Crosslinks are semantically equal
+
+        Args:
+            other (:obj:`Crosslink`): another Crosslink
+
+        Returns:
+            :obj:`bool`: :obj:`True`, if the Crosslinks have the same structure
+
+        """
+
+        if self is other:
+            return True
+        if self.__class__ != other.__class__:
+            return False
+
+        attrs = ['left_bond_atoms', 'left_displaced_atoms', 'right_bond_atoms', 'right_displaced_atoms']
+
+        for attr in attrs:
+            self_atoms = getattr(self, attr)
+            other_atoms = getattr(other, attr)
+            if len(self_atoms) != len(other_atoms):
+                return False
+            for i in range(len(self_atoms)):
+                if not self_atoms[i].is_equal(other_atoms[i]):
+                    return False
+
+        return True
 
 class BcForm(object):
     """ Biocomplex form
@@ -723,3 +775,88 @@ class BcForm(object):
                         errors.append("'{}[{}]' of crosslink {} must belong to a subunit whose index is valid in terms of the stoichiometry of the subunit".format(atom_type, i_atom, i_crosslink+1))
 
         return errors
+
+    def is_equal(self, other):
+        """ check if two BcForms are semantically equal
+
+        Args:
+            other (:obj:`BcForm`): another BcForm
+
+        Returns:
+            :obj:`bool`: :obj:`True`, if the BcForms have the same structure
+
+        """
+
+        if self is other:
+            return True
+        if self.__class__ != other.__class__:
+            return False
+
+        # test subunit
+        if len(self.subunits) != len(other.subunits):
+            return False
+        if sorted(sorted(d.items()) for d in self.subunits) != sorted(sorted(d.items()) for d in other.subunits):
+            return False
+
+        # test crosslink
+        if len(self.crosslinks) != len(other.crosslinks):
+            return False
+        for self_crosslink in self.crosslinks:
+            found = False
+            for other_crosslink in other.crosslinks:
+                if self_crosslink.is_equal(other_crosslink):
+                    found = True
+                    break
+            if not found:
+                return False
+
+        return True
+
+
+# if __name__ == '__main__':
+    # atom_1 = Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
+    # atom_2 = Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
+    # atom_3 = Atom(subunit='def', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
+
+    # print(atom_1.is_equal(atom_1))
+    # print(atom_1.is_equal('atom'))
+    # print(atom_1.is_equal(atom_2))
+    # print(atom_1.is_equal(atom_3))
+
+    # crosslink_1 = Crosslink()
+    # crosslink_1.left_bond_atoms.append(atom_1)
+    # crosslink_1.right_bond_atoms.append(atom_2)
+    #
+    # crosslink_2 = Crosslink()
+    # crosslink_2.left_bond_atoms.append(atom_1)
+    # crosslink_2.right_bond_atoms.append(atom_2)
+    #
+    # crosslink_3 = Crosslink()
+    # crosslink_3.left_bond_atoms.append(atom_1)
+    # crosslink_3.right_bond_atoms.append(atom_2)
+    # crosslink_3.right_bond_atoms.append(atom_3)
+    #
+    # crosslink_4 = Crosslink()
+    # crosslink_4.left_bond_atoms.append(atom_1)
+    # crosslink_4.right_bond_atoms.append(atom_3)
+    #
+    #
+    # print(crosslink_1.is_equal(crosslink_1))
+    # print(crosslink_1.is_equal(atom_1))
+    # print(crosslink_1.is_equal(crosslink_2))
+    # print(crosslink_1.is_equal(crosslink_3))
+    # print(crosslink_1.is_equal(crosslink_4))
+
+    # bc_form_1 = BcForm().from_str('abc_a + abc_a + 3 * abc_b')
+    # bc_form_2 = BcForm().from_str('3 * abc_b + 2 * abc_a')
+    # bc_form_3 = BcForm().from_str('abc_a + abc_a + 3 * abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
+    # bc_form_4 = BcForm().from_str('abc_a + abc_a + 3 * abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | right-bond-atom: abc_b(1)-3C1 | left-displaced-atom: abc_a(1)-2H1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
+    # bc_form_5 = BcForm().from_str('abc_a + abc_a + 3 * abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1]')
+    #
+    #
+    # print(bc_form_1.is_equal(bc_form_1))
+    # print(bc_form_1.is_equal('form'))
+    # print(bc_form_1.is_equal(bc_form_2))
+    # print(bc_form_1.is_equal(bc_form_3))
+    # print(bc_form_3.is_equal(bc_form_4))
+    # print(bc_form_3.is_equal(bc_form_5))

@@ -189,6 +189,14 @@ class Atom(object):
             raise ValueError('`value` must be an int')
         self._charge = value
 
+    def __str__(self):
+
+        if self.charge == 0:
+            charge = ''
+        else:
+            charge = '%+d' % self.charge
+
+        return '{}({})-{}{}{}{}'.format(self.subunit, self.subunit_idx, self.monomer, self.element, self.position, charge)
 
 class Crosslink(object):
     """ crosslink between subunits
@@ -330,6 +338,16 @@ class Crosslink(object):
             raise ValueError('`value` must be an instance of `list`')
         self._right_displaced_atoms = value
 
+    def __str__(self):
+        s = 'crosslink: ['
+        atom_types = ['left_bond_atoms', 'left_displaced_atoms', 'right_bond_atoms', 'right_displaced_atoms']
+        for atom_type in atom_types:
+            for atom in getattr(self, atom_type):
+                s += ' {}: {} |'.format('-'.join(atom_type.split('_'))[:-1], str(atom))
+
+        s = s[:-1]+']'
+        return s
+
 
 class BcForm(object):
     """ Biocomplex form
@@ -417,20 +435,8 @@ class BcForm(object):
         s += str(self.subunits[-1]['stoichiometry']) + ' * '+ self.subunits[-1]['id']
 
         # crosslinks
-        atom_types = ['left_bond_atoms', 'left_displaced_atoms', 'right_bond_atoms', 'right_displaced_atoms']
         for crosslink in self.crosslinks:
-            s += ' | crosslink: ['
-            for atom_type in atom_types:
-                for atom in getattr(crosslink, atom_type):
-                    if atom.charge == 0:
-                        charge = ''
-                    else:
-                        charge = '%+d' % atom.charge
-
-                    s += ' {}: {}({})-{}{}{}{} |'.format('-'.join(atom_type.split('_'))[:-1], atom.subunit, atom.subunit_idx, atom.monomer, atom.element, atom.position, charge)
-
-            s = s[:-1]+']'
-
+            s += ' | ' + str(crosslink)
 
         return s
 

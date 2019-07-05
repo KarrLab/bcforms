@@ -65,6 +65,10 @@ class AtomTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             atom.charge = None
 
+    def test_str(self):
+        atom = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
+        self.assertEqual(str(atom), 'abc(1)-10H1')
+
 class CrosslinkTestCase(unittest.TestCase):
 
     def test_init(self):
@@ -108,6 +112,14 @@ class CrosslinkTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             crosslink.right_displaced_atoms = None
 
+    def test_str(self):
+        crosslink = core.Crosslink()
+        atom_1 = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
+        crosslink.left_bond_atoms.append(atom_1)
+        atom_2 = core.Atom(subunit='def', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
+        crosslink.right_bond_atoms.append(atom_2)
+
+        self.assertEqual(str(crosslink), 'crosslink: [ left-bond-atom: abc(1)-10H1 | right-bond-atom: def(1)-10H1 ]')
 
 
 class BcFormTestCase(unittest.TestCase):

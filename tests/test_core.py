@@ -66,8 +66,10 @@ class AtomTestCase(unittest.TestCase):
             atom.charge = None
 
     def test_str(self):
-        atom = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
-        self.assertEqual(str(atom), 'abc(1)-10H1')
+        atom_1 = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
+        self.assertEqual(str(atom_1), 'abc(1)-10H1')
+        atom_2 = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=1)
+        self.assertEqual(str(atom_2), 'abc(1)-10H1+1')
 
     def test_is_equal(self):
 
@@ -294,7 +296,8 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_3 = core.BcForm().from_str('abc_a + abc_a + 3 * abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
         bc_form_4 = core.BcForm().from_str('abc_a + abc_a + 3 * abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | right-bond-atom: abc_b(1)-3C1 | left-displaced-atom: abc_a(1)-2H1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
         bc_form_5 = core.BcForm().from_str('abc_a + abc_a + 3 * abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1]')
-
+        bc_form_6 = core.BcForm().from_str('2 * abc_a')
+        bc_form_7 = core.BcForm().from_str('4 * abc_a + 3 * abc_b')
 
         self.assertTrue(bc_form_1.is_equal(bc_form_1))
         self.assertFalse(bc_form_1.is_equal('form'))
@@ -302,3 +305,5 @@ class BcFormTestCase(unittest.TestCase):
         self.assertFalse(bc_form_1.is_equal(bc_form_3))
         self.assertTrue(bc_form_3.is_equal(bc_form_4))
         self.assertFalse(bc_form_3.is_equal(bc_form_5))
+        self.assertFalse(bc_form_1.is_equal(bc_form_6))
+        self.assertFalse(bc_form_1.is_equal(bc_form_7))

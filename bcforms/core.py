@@ -1,4 +1,4 @@
-""" bcforms
+""" BcForms
 
 :Author: Mike Zheng <xzheng20@colby.edu>
 :Author: Jonathan Karr <karr@mssm.edu>
@@ -7,17 +7,18 @@
 :License: MIT
 """
 
-import pkg_resources
-import lark
-from wc_utils.util.chem import EmpiricalFormula
 import itertools
+import lark
+import pkg_resources
+from wc_utils.util.chem import EmpiricalFormula
+
 
 class Atom(object):
-    """ atom in crosslink
+    """ Atom in a crosslink
 
     Attributes:
         subunit (:obj:`str`): id of subunit
-        subunit_idx (:obj:`int`): index of the subunit for homo..mers
+        subunit_idx (:obj:`int`): index of the subunit for homomers
         element (:obj:`str`): code of the element
         position (:obj:`int`): position of the atom within the compound
         monomer (:obj:`int`): index of parent monomer
@@ -25,17 +26,16 @@ class Atom(object):
 
     """
 
-    def __init__(self, subunit, subunit_idx, element, position, monomer, charge=0):
+    def __init__(self, subunit, element, position, monomer, charge=0, subunit_idx=None):
         """
 
         Args:
-            subunit (:obj:`str`): id of subunit
-            subunit_idx (:obj:`int`, optional): index of the subunit for homo..mers
+            subunit (:obj:`str`): id of subunit            
             element (:obj:`str`): code of the element
             position (:obj:`int`): position of the atom within the compound
             monomer (:obj:`int`): index of parent monomer
             charge (:obj:`int`, optional): charge of the atom
-
+            subunit_idx (:obj:`int`, optional): index of the subunit for homomers
         """
 
         self.subunit = subunit
@@ -47,7 +47,7 @@ class Atom(object):
 
     @property
     def subunit(self):
-        """ get the subunit the atom belongs to
+        """ Get the subunit that the atom belongs to
 
         Returns:
             :obj:`str`: subunit
@@ -57,13 +57,13 @@ class Atom(object):
 
     @subunit.setter
     def subunit(self, value):
-        """ set the subunit the atom belongs to
+        """ Set the subunit that the atom belongs to
 
         Args:
-            :obj:`str`: subunit
+            value (:obj:`str`): subunit
 
         Raises:
-            :obj:`ValueError`: if `value` is not an instance of `str`
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`str`
         """
         if not isinstance(value, str):
             raise ValueError('`value` must be an instance of `str`')
@@ -71,7 +71,7 @@ class Atom(object):
 
     @property
     def subunit_idx(self):
-        """ get the subunit_idx of the subunit the atom belongs to
+        """ Get the index of the homomer of the subunit that the atom belongs to
 
         Returns:
             :obj:`int`: subunit_idx
@@ -81,21 +81,21 @@ class Atom(object):
 
     @subunit_idx.setter
     def subunit_idx(self, value):
-        """ set the subunit the atom belongs to
+        """ Set the index of the homomer of the subunit that the atom belongs to
 
         Args:
-            :obj:`int`: subunit
+            value (:obj:`int`): subunit
 
         Raises:
-            :obj:`ValueError`: if `value` is not a positive int'
+            :obj:`ValueError`: if :obj:`value` is not None or a positive integer
         """
-        if (not isinstance(value, int) or value<1):
-            raise ValueError('`value` must be a positive int')
+        if value is not None and (not isinstance(value, int) or value < 1):
+            raise ValueError('`value` must be a None or a positive integer')
         self._subunit_idx = value
 
     @property
     def element(self):
-        """ get the element of the atom
+        """ Get the element of the atom
 
         Returns:
             :obj:`str`: element
@@ -105,13 +105,13 @@ class Atom(object):
 
     @element.setter
     def element(self, value):
-        """ set the element of the atom
+        """ Set the element of the atom
 
         Args:
-            :obj:`str`: element
+            value (:obj:`str`): element
 
         Raises:
-            :obj:`ValueError`: if `value` is not an instance of `str`
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`str`
         """
         if not isinstance(value, str):
             raise ValueError('`value` must be an instance of `str`')
@@ -119,7 +119,7 @@ class Atom(object):
 
     @property
     def position(self):
-        """ get the position of the atom in the compound
+        """ Get the position of the atom in the compound
 
         Returns:
             :obj:`int`: position
@@ -129,21 +129,21 @@ class Atom(object):
 
     @position.setter
     def position(self, value):
-        """ set the position of the atom in the compound
+        """ Set the position of the atom in the compound
 
         Args:
-            :obj:`int`: position
+            value (:obj:`int`): position
 
         Raises:
-            :obj:`ValueError`: if `value` is not a positive int'
+            :obj:`ValueError`: if :obj:`value` is not a positive :obj:`int`
         """
-        if (not isinstance(value, int) or value<1):
-            raise ValueError('`value` must be a positive int')
+        if not isinstance(value, int) or value < 1:
+            raise ValueError('`value` must be a positive integer')
         self._position = value
 
     @property
     def monomer(self):
-        """ get the position in the subunit of the monomer the atom belongs to
+        """ Get the position in the subunit of the monomer that the atom belongs to
 
         Returns:
             :obj:`int`: monomer position
@@ -153,21 +153,21 @@ class Atom(object):
 
     @monomer.setter
     def monomer(self, value):
-        """ set the position in the subunit of the monomer the atom belongs to
+        """ Set the position in the subunit of the monomer that the atom belongs to
 
         Args:
-            :obj:`int`: monomer position
+            value (:obj:`int`): monomer position
 
         Raises:
-            :obj:`ValueError`: if `value` is not a positive int'
+            :obj:`ValueError`: if `value` is not a positive integer
         """
-        if (not isinstance(value, int) or value<1):
-            raise ValueError('`value` must be a positive int')
+        if not isinstance(value, int) or value < 1:
+            raise ValueError('`value` must be a positive integer')
         self._monomer = value
 
     @property
     def charge(self):
-        """ get the charge of the atom
+        """ Get the charge of the atom
 
         Returns:
             :obj:`int`: charge
@@ -177,35 +177,45 @@ class Atom(object):
 
     @charge.setter
     def charge(self, value):
-        """ set the charge of the atom
+        """ Set the charge of the atom
 
         Args:
-            :obj:`int`: charge
+            value (:obj:`int`): charge
 
         Raises:
-            :obj:`ValueError`: if `value` is not an int'
+            :obj:`ValueError`: if `value` is not an integer
         """
         if not isinstance(value, int):
-            raise ValueError('`value` must be an int')
+            raise ValueError('`value` must be an integer')
         self._charge = value
 
     def __str__(self):
+        """ Generate a string representation
+
+        Returns:
+            :obj:`str`: string representation
+        """
 
         if self.charge == 0:
             charge = ''
         else:
-            charge = '%+d' % self.charge
+            charge = '{:+d}'.format(self.charge)
 
-        return '{}({})-{}{}{}{}'.format(self.subunit, self.subunit_idx, self.monomer, self.element, self.position, charge)
+        if self.subunit_idx is None:
+            subunit_idx = ''
+        else:
+            subunit_idx = '(' + str(self.subunit_idx) + ')'
+        return '{}{}-{}{}{}{}'.format(self.subunit, subunit_idx, self.monomer, self.element, self.position, charge)
 
     def is_equal(self, other):
-        """ check if two Atoms are semantically equal
+        """ Check if two atoms are semantically equal (belong to the same subunit/monomer and 
+        have the same element, position, and charge)
 
         Args:
-            other (:obj:`Atom`): another Atom
+            other (:obj:`Atom`): another atom
 
         Returns:
-            :obj:`bool`: :obj:`True`, if the Atoms have the same structure
+            :obj:`bool`: :obj:`True`, if the atoms are semantically equal
 
         """
         if self is other:
@@ -223,13 +233,13 @@ class Atom(object):
 
 
 class Crosslink(object):
-    """ crosslink between subunits
+    """ A crosslink between subunits
 
     Attributes:
-        left_bond_atoms (:obj:`list`): atoms from the left subunit that bond with the right subunit
-        right_bond_atoms (:obj:`list`): atoms from the right subunit that bond with the left subunit
-        left_displaced_atoms (:obj:`list`): atoms from the left subunit displaced by the crosslink
-        right_displaced_atoms (:obj:`list`): atoms from the right subunit displaced by the crosslink
+        left_bond_atoms (:obj:`list` of :obj:`Atom`): atoms from the left subunit that bond with the right subunit
+        right_bond_atoms (:obj:`list` of :obj:`Atom`): atoms from the right subunit that bond with the left subunit
+        left_displaced_atoms (:obj:`list` of :obj:`Atom`): atoms from the left subunit displaced by the crosslink
+        right_displaced_atoms (:obj:`list` of :obj:`Atom`): atoms from the right subunit displaced by the crosslink
     """
 
     def __init__(self, left_bond_atoms=None, right_bond_atoms=None, left_displaced_atoms=None, right_displaced_atoms=None):
@@ -264,23 +274,23 @@ class Crosslink(object):
 
     @property
     def left_bond_atoms(self):
-        """ get the left_bond_atoms
+        """ Get the left bond atoms
 
         Returns:
-            :obj:`list`: left_bond_atoms
+            :obj:`list` of :obj:`Atom`: left bond atoms
 
         """
         return self._left_bond_atoms
 
     @left_bond_atoms.setter
     def left_bond_atoms(self, value):
-        """ set the left_bond_atoms
+        """ Set the left bond atoms
 
         Args:
-            :obj:`list`: left_bond_atoms
+            value (:obj:`list` of :obj:`Atom`): left bond atoms
 
         Raises:
-            :obj:`ValueError`: if `value` is not an instance of `list`
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`list`
 
         """
         if not isinstance(value, list):
@@ -289,23 +299,23 @@ class Crosslink(object):
 
     @property
     def right_bond_atoms(self):
-        """ get the right_bond_atoms
+        """ Get the right bond atoms
 
         Returns:
-            :obj:`list`: right_bond_atoms
+            :obj:`list` of :obj:`Atom`: right bond atoms
 
         """
         return self._right_bond_atoms
 
     @right_bond_atoms.setter
     def right_bond_atoms(self, value):
-        """ set the right_bond_atoms
+        """ Set the right bond atoms
 
         Args:
-            :obj:`list`: right_bond_atoms
+            value (:obj:`list` of :obj:`Atom`): right bond atoms
 
         Raises:
-            :obj:`ValueError`: if `value` is not an instance of `list`
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`list`
 
         """
         if not isinstance(value, list):
@@ -314,23 +324,23 @@ class Crosslink(object):
 
     @property
     def left_displaced_atoms(self):
-        """ get the left_displaced_atoms
+        """ Get the left displaced atoms
 
         Returns:
-            :obj:`list`: left_displaced_atoms
+            :obj:`list` of :obj:`Atom`: left displaced atoms
 
         """
         return self._left_displaced_atoms
 
     @left_displaced_atoms.setter
     def left_displaced_atoms(self, value):
-        """ set the left_displaced_atoms
+        """ Set the left displaced atoms
 
         Args:
-            :obj:`list`: left_displaced_atoms
+            value (:obj:`list` of :obj:`Atom`): left displaced atoms
 
         Raises:
-            :obj:`ValueError`: if `value` is not an instance of `list`
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`list`
 
         """
         if not isinstance(value, list):
@@ -339,23 +349,23 @@ class Crosslink(object):
 
     @property
     def right_displaced_atoms(self):
-        """ get the right_displaced_atoms
+        """ Get the right displaced atoms
 
         Returns:
-            :obj:`list`: right_displaced_atoms
+            :obj:`list` of :obj:`Atom`: right displaced atoms
 
         """
         return self._right_displaced_atoms
 
     @right_displaced_atoms.setter
     def right_displaced_atoms(self, value):
-        """ set the right_displaced_atoms
+        """ Set the right displaced atoms
 
         Args:
-            :obj:`list`: right_displaced_atoms
+            value (:obj:`list` of :obj:`Atom`): right displaced atoms
 
         Raises:
-            :obj:`ValueError`: if `value` is not an instance of `list`
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`list`
 
         """
         if not isinstance(value, list):
@@ -363,23 +373,28 @@ class Crosslink(object):
         self._right_displaced_atoms = value
 
     def __str__(self):
+        """Generate a string representation
+
+        Returns:
+            :obj:`str`: string representation
+        """
         s = 'crosslink: ['
         atom_types = ['left_bond_atoms', 'left_displaced_atoms', 'right_bond_atoms', 'right_displaced_atoms']
         for atom_type in atom_types:
             for atom in getattr(self, atom_type):
-                s += ' {}: {} |'.format('-'.join(atom_type.split('_'))[:-1], str(atom))
+                s += ' {}: {} |'.format(atom_type[:-1].replace('_', '-'), str(atom))
 
         s = s[:-1]+']'
         return s
 
     def is_equal(self, other):
-        """ check if two Crosslinks are semantically equal
+        """ Check if two crosslinks are semantically equal (have the same bond atoms)
 
         Args:
-            other (:obj:`Crosslink`): another Crosslink
+            other (:obj:`Crosslink`): another crosslink
 
         Returns:
-            :obj:`bool`: :obj:`True`, if the Crosslinks have the same structure
+            :obj:`bool`: :obj:`True`, if the crosslinks are semantically equal
 
         """
 
@@ -395,18 +410,19 @@ class Crosslink(object):
             other_atoms = getattr(other, attr)
             if len(self_atoms) != len(other_atoms):
                 return False
-            for i in range(len(self_atoms)):
-                if not self_atoms[i].is_equal(other_atoms[i]):
+            for self_atom, other_atom in zip(self_atoms, other_atoms):
+                if not self_atom.is_equal(other_atom):
                     return False
 
         return True
 
+
 class BcForm(object):
-    """ Biocomplex form
+    """ A form of a macromolecular complex
 
     Attributes:
-        subunits (:obj:`list`): subunits composition of the Biocomplex
-        crosslinks (:obj:`list`): crosslinks in the Biocomplex
+        subunits (:obj:`list` of :obj:`Subunit`): subunit composition of the complex
+        crosslinks (:obj:`list` :obj:`Crosslink`): crosslinks in the complex
 
     """
 
@@ -414,15 +430,16 @@ class BcForm(object):
         """
 
         Args:
-            subunits (:obj:`list`): subunits composition of the Biocomplex
-            crosslinks (:obj:`list`): crosslinks in the Biocomplex
+            subunits (:obj:`list` of :obj:`Subunit`, optional): subunit composition of the complex
+            crosslinks (:obj:`list` of :obj:`Crosslink`, optional): crosslinks in the complex
 
-            _parser (:obj:`lark.Lark`): lark grammar parser used in from_str
+            _parser (:obj:`lark.Lark`): lark grammar parser used in `from_str`
         """
         if subunits is None:
             self.subunits = []
         else:
             self.subunits = subunits
+
         if crosslinks is None:
             self.crosslinks = []
         else:
@@ -430,23 +447,23 @@ class BcForm(object):
 
     @property
     def subunits(self):
-        """ get the subunits of BcForm
+        """ Get the subunits
 
         Returns:
-            :obj:`list`: subunits
+            :obj:`list` of :obj:`Subunit`: subunits
 
         """
         return self._subunits
 
     @subunits.setter
     def subunits(self, value):
-        """ set the subunits of BcForm
+        """ Set the subunits
 
         Args:
-            :obj:`list`: subunits
+            value (:obj:`list` of :obj:`Subunit`): subunits
 
         Raises:
-            :obj:`ValueError`: if `value` is not an instance of `list`
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`list`
 
         """
         if not isinstance(value, list):
@@ -455,23 +472,23 @@ class BcForm(object):
 
     @property
     def crosslinks(self):
-        """ get the crosslinks of BcForm
+        """ Get the crosslinks
 
         Returns:
-            :obj:`list`: crosslinks
+            :obj:`list` of :obj:`Crosslink`: crosslinks
 
         """
         return self._crosslinks
 
     @crosslinks.setter
     def crosslinks(self, value):
-        """ set the crosslinks of BcForm
+        """ Set the crosslinks
 
         Args:
-            :obj:`list`: crosslinks
+            value (:obj:`list` of :obj:`Crosslink`): crosslinks
 
         Raises:
-            :obj:`ValueError`: if `value` is not an instance of `list`
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`list`
 
         """
         if not isinstance(value, list):
@@ -479,17 +496,23 @@ class BcForm(object):
         self._crosslinks = value
 
     def __str__(self):
+        """ Generate a string representation
+
+        Returns:
+            :obj:`str`: string representation of complex
+        """
         s = ''
 
         # subunits
-        for i in range(len(self.subunits)-1):
-            s += str(self.subunits[i]['stoichiometry']) + ' * '+ self.subunits[i]['id'] + ' + '
-        s += str(self.subunits[-1]['stoichiometry']) + ' * '+ self.subunits[-1]['id']
+        for subunit in self.subunits:
+            s += str(subunit['stoichiometry']) + ' * ' + subunit['id'] + ' + '
+        s = s[:-3]
 
         # crosslinks
         for crosslink in self.crosslinks:
             s += ' | ' + str(crosslink)
 
+        # return string representation
         return s
 
     # read the grammar file
@@ -500,17 +523,17 @@ class BcForm(object):
         _parser = lark.Lark(file.read())
 
     def from_str(self, string):
-        """ create a Biocomplex from a string representation
+        """ Set a complex from a string representation
 
         Args:
-            string: (:obj:`str`): string representation of a Biocomplex
+            string (:obj:`str`): string representation of a complex
 
         Returns:
-            :obj:`BcForm`: the BcForm object of the string
+            :obj:`BcForm`: structured BcForm representation of the string
         """
 
-        # class that process the parsetree
         class ParseTreeTransformer(lark.Transformer):
+            # Class that processes the parsetree
 
             def __init__(self, bc_form):
                 super(ParseTreeTransformer, self).__init__()
@@ -520,7 +543,7 @@ class BcForm(object):
             def start(self, *args):
                 self.bc_form.subunits = args[0]
                 self.bc_form.crosslinks = []
-                if len(args)>2:
+                if len(args) > 2:
                     # exists global attr (crosslink)
                     self.bc_form.crosslinks = list(args[2::2])
                 return self.bc_form
@@ -575,13 +598,13 @@ class BcForm(object):
                 monomer = int(args[4][1])
                 element = args[5][1]
                 position = int(args[6][1])
-                if len(args)>7:
+                if len(args) > 7:
                     charge = int(args[7][1])
                 else:
                     charge = 0
 
-                return (atom_type, Atom(subunit=subunit, subunit_idx=subunit_idx, element=element, position=position, monomer=monomer, charge=charge))
-
+                return (atom_type, Atom(subunit=subunit, subunit_idx=subunit_idx, element=element,
+                                        position=position, monomer=monomer, charge=charge))
 
             @lark.v_args(inline=True)
             def crosslink_atom_type(self, *args):
@@ -607,7 +630,6 @@ class BcForm(object):
             def atom_charge(self, *args):
                 return ('atom_charge', args[0].value)
 
-
         tree = self._parser.parse(string)
         # print(tree.pretty())
         parse_tree_transformer = ParseTreeTransformer(self)
@@ -615,21 +637,30 @@ class BcForm(object):
         bc_form.clean()
         return bc_form
 
-    def from_set(self, set):
-        """ create a Biocomplex from a set representation. Cannot represent crosslinks
+    def from_set(self, subunits):
+        """ Set the subunits from a list of subunits 
+
+        Note: this method does not support crosslinks
 
         Args:
-            set: (:obj:`list`): set representation of a Biocomplex (ex. [{'id': 'ABC_A', 'stoichiometry': 2}, {'id': 'ABC_B', 'stoichiometry': 3}])
+            subunits: (:obj:`list`): list representation of a complex. For example::
+
+                [
+                    {'id': 'ABC_A', 'stoichiometry': 2}, 
+                    {'id': 'ABC_B', 'stoichiometry': 3},
+                ]
 
         Returns:
-            :obj:`BcForm`: the BcForm object of the string
+            :obj:`BcForm`: this complex
 
         Raises:
-            :obj:`ValueError`: subunit has no 'id'
-            :obj:`ValueError`: subunit has no 'stoichiometry'
+            :obj:`ValueError`: subunit has no 'id' key
+            :obj:`ValueError`: subunit has no 'stoichiometry' key
         """
-        bc_form = BcForm()
-        for subunit in set:
+        self.subunits = []
+        self.crosslinks = []
+
+        for subunit in subunits:
             new_subunit = {}
 
             # process id of subunit
@@ -644,17 +675,18 @@ class BcForm(object):
             else:
                 raise ValueError('`subunit` has no `stoichiometry`')
 
-            bc_form.subunits.append(new_subunit)
+            self.subunits.append(new_subunit)
 
-        bc_form.clean()
+        self.clean()
 
-        return bc_form
+        return self
 
     def clean(self):
-        """ clean up the subunits and the crosslinks
+        """ Clean up the subunits and the crosslinks
+
+        For example, convert `1 * a + 1 * a` to `2 * a`
 
         """
-        # convert 1*a + 1*a to 2*a
         subunits_cleaned = []
         subunit_unique_ids = []
         for subunit in self.subunits:
@@ -666,11 +698,12 @@ class BcForm(object):
                 for subunit_cleaned in subunits_cleaned:
                     if subunit_cleaned['id'] == id:
                         subunit_cleaned['stoichiometry'] += subunit['stoichiometry']
+                        break
 
         self.subunits = subunits_cleaned
 
     def get_formula(self, subunit_formulas):
-        """ get the Empirical Formula of the BcForm complex
+        """ Get the empirical formula
 
         Args:
             subunit_formulas (:obj:`dict`): dictionary of subunit ids and empirical formulas
@@ -679,7 +712,7 @@ class BcForm(object):
             :obj:`EmpiricalFormula`: the empirical formula of the BcForm
 
         Raises:
-            :obj:`ValueError`: subunit_formulas must include all subunits
+            :obj:`ValueError`: subunit formulas does not include all subunits
 
         """
 
@@ -698,7 +731,7 @@ class BcForm(object):
         return formula
 
     def get_mol_wt(self, subunit_mol_wts):
-        """ get the molecular weight of the BcForm complex
+        """ Get the molecular weight
 
         Args:
             subunit_formulas (:obj:`dict`): dictionary of subunit ids and molecular weights
@@ -707,7 +740,7 @@ class BcForm(object):
             :obj:`float`: the molecular weight of the BcForm
 
         Raises:
-            :obj:`ValueError`: subunit_mol_wts must include all subunits
+            :obj:`ValueError`: subunit_mol_wts does not include all subunits
 
         """
         mol_wt = 0.0
@@ -725,7 +758,7 @@ class BcForm(object):
         return mol_wt
 
     def get_charge(self, subunit_charges):
-        """ get the total charges of the BcForm complex
+        """ Get the total charge
 
         Args:
             subunit_formulas (:obj:`dict`): dictionary of subunit ids and charges
@@ -734,30 +767,33 @@ class BcForm(object):
             :obj:`int`: the total charge of the BcForm
 
         Raises:
-            :obj:`ValueError`: subunit_charges must include all subunits
+            :obj:`ValueError`: subunit_charges does not include all subunits
 
         """
         charge = 0
+
         # subunits
         for subunit in self.subunits:
             if subunit['id'] not in subunit_charges:
                 raise ValueError('subunit_charges must include all subunits')
             else:
                 charge += subunit_charges[subunit['id']] * subunit['stoichiometry']
+
         # crosslinks
         for crosslink in self.crosslinks:
             for atom in itertools.chain(crosslink.left_displaced_atoms, crosslink.right_displaced_atoms):
                 charge -= atom.charge
 
+        # return the total charge
         return charge
 
     def validate(self):
-        """ check if the BcForm is valid
-            for now, check if the crosslinking subunit is in the subunit list
-            and if the subunit_idx is valid
+        """ Check if the BcForm is valid
 
-            Returns:
-                :obj:`list` of :obj:`str`: list of errors, if any
+        * Check if the crosslinking subunit is in the subunit list and if the `subunit_idx` is valid
+
+        Returns:
+            :obj:`list` of :obj:`str`: list of errors, if any
 
         """
         errors = []
@@ -769,21 +805,24 @@ class BcForm(object):
                 for i_atom, atom in enumerate(getattr(crosslink, atom_type)):
                     # check if subunit is present
                     if atom.subunit not in [subunit['id'] for subunit in self.subunits]:
-                        errors.append("'{}[{}]' of crosslink {} must belong to a subunit in self.subunits".format(atom_type, i_atom, i_crosslink+1))
+                        errors.append("'{}[{}]' of crosslink {} must belong to a subunit in self.subunits".format(
+                            atom_type, i_atom, i_crosslink + 1))
                     # check subunit index
-                    elif atom.subunit_idx > next(subunit for subunit in self.subunits if subunit['id']==atom.subunit)['stoichiometry']:
-                        errors.append("'{}[{}]' of crosslink {} must belong to a subunit whose index is valid in terms of the stoichiometry of the subunit".format(atom_type, i_atom, i_crosslink+1))
+                    elif atom.subunit_idx > next(subunit for subunit in self.subunits if subunit['id'] == atom.subunit)['stoichiometry']:
+                        errors.append("'{}[{}]' of crosslink {} must belong to a subunit whose index is "
+                                      "valid in terms of the stoichiometry of the subunit".format(
+                                          atom_type, i_atom, i_crosslink + 1))
 
         return errors
 
     def is_equal(self, other):
-        """ check if two BcForms are semantically equal
+        """ Check if two complexes are semantically equal (same subunits and crosslinks)
 
         Args:
-            other (:obj:`BcForm`): another BcForm
+            other (:obj:`BcForm`): another complex
 
         Returns:
-            :obj:`bool`: :obj:`True`, if the BcForms have the same structure
+            :obj:`bool`: :obj:`True`, if the complexes are semantically equal
 
         """
 
@@ -792,13 +831,13 @@ class BcForm(object):
         if self.__class__ != other.__class__:
             return False
 
-        # test subunit
+        # test subunits
         if len(self.subunits) != len(other.subunits):
             return False
         if sorted(sorted(d.items()) for d in self.subunits) != sorted(sorted(d.items()) for d in other.subunits):
             return False
 
-        # test crosslink
+        # test crosslinks
         if len(self.crosslinks) != len(other.crosslinks):
             return False
         for self_crosslink in self.crosslinks:

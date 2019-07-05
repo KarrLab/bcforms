@@ -33,8 +33,6 @@ class AtomTestCase(unittest.TestCase):
         atom.subunit_idx = 2
         with self.assertRaises(ValueError):
             atom.subunit_idx = -1
-        with self.assertRaises(ValueError):
-            atom.subunit_idx = None
 
     def test_set_element(self):
         atom = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
@@ -200,6 +198,12 @@ class BcFormTestCase(unittest.TestCase):
         s2 = '2 * bmp2_a | crosslink: [ left-bond-atom: bmp2_a(1)-362S1 | left-displaced-atom: bmp2_a(1)-362H1 | right-bond-atom: bmp2_a(2)-362S1 | right-displaced-atom: bmp2_a(2)-362H1 ]'
         bc_form_2 = core.BcForm().from_str(s2)
         self.assertEqual(s2, str(bc_form_2))
+
+        bc_form_3 = core.BcForm()
+        bc_form_3.subunits.append({'id': 'bmp2_a', 'stoichiometry': 1})
+        bc_form_3.crosslinks.append(core.Crosslink(left_bond_atoms=[
+            core.Atom(subunit='bmp2_a', subunit_idx=None, element='H', position=1, monomer=10, charge=0)]))
+        self.assertEqual(str(bc_form_3), '1 * bmp2_a | crosslink: [ left-bond-atom: bmp2_a-10H1 ]')
 
     def test_from_str(self):
 

@@ -8,8 +8,65 @@
 """
 
 from bcforms import core
+import openbabel
 import unittest
 from wc_utils.util.chem import EmpiricalFormula
+import bpforms
+import bpforms.core
+import bpforms.alphabet.protein
+
+class SubunitTestCase(unittest.TestCase):
+
+    def test_init(self):
+        subunit_1 = core.Subunit(id='abc', stoichiometry=2)
+        self.assertEqual(subunit_1.id, 'abc')
+        self.assertEqual(subunit_1.stoichiometry, 2)
+        self.assertIsNone(subunit_1.structure)
+
+        subunit_2 = core.Subunit(id='abc', stoichiometry=2, structure=bpforms.alphabet.protein.ProteinForm().from_str('AA'))
+        self.assertEqual(subunit_2.id, 'abc')
+        self.assertEqual(subunit_2.stoichiometry, 2)
+        self.assertEqual(len(subunit_2.structure), 2)
+
+    def test_set_id(self):
+        subunit = core.Subunit(id='abc', stoichiometry=2)
+        subunit.id = 'def'
+        self.assertEqual(subunit.id, 'def')
+        with self.assertRaises(ValueError):
+            subunit.id = None
+
+    def test_set_stoichiometry(self):
+        subunit = core.Subunit(id='abc', stoichiometry=3)
+        subunit.stoichiometry = 3
+        self.assertEqual(subunit.stoichiometry, 3)
+        with self.assertRaises(ValueError):
+            subunit.stoichiometry = None
+
+    def test_set_structure(self):
+        subunit = core.Subunit(id='abc', stoichiometry=3)
+        subunit.structure = bpforms.alphabet.protein.ProteinForm().from_str('AA')
+        subunit.structure = openbabel.OBMol()
+        subunit.structure = None
+        with self.assertRaises(ValueError):
+            subunit.structure = 123
+
+    def test_str(self):
+        subunit = core.Subunit(id='abc', stoichiometry=3)
+        self.assertEqual(str(subunit), '3 * abc')
+
+    def test_equal(self):
+
+        subunit_1 = core.Subunit(id='abc', stoichiometry=3)
+        subunit_2 = core.Subunit(id='abc', stoichiometry=3)
+        subunit_3 = core.Subunit(id='def', stoichiometry=3)
+        subunit_4 = core.Subunit(id='abc', stoichiometry=2)
+
+        self.assertFalse(subunit_1.is_equal('abc'))
+        self.assertTrue(subunit_1.is_equal(subunit_1))
+        self.assertTrue(subunit_1.is_equal(subunit_2))
+        self.assertFalse(subunit_1.is_equal(subunit_3))
+        self.assertFalse(subunit_1.is_equal(subunit_4))
+
 
 class AtomTestCase(unittest.TestCase):
 
@@ -208,7 +265,7 @@ class BcFormTestCase(unittest.TestCase):
         self.assertEqual(s2, str(bc_form_2))
 
         bc_form_3 = core.BcForm()
-        bc_form_3.subunits.append({'id': 'bmp2_a', 'stoichiometry': 1})
+        bc_form_3.subunits.append(core.Subunit(id='bmp2_a', stoichiometry=1))
         bc_form_3.crosslinks.append(core.Crosslink(left_bond_atoms=[
             core.Atom(subunit='bmp2_a', subunit_idx=None, element='H', position=1, monomer=10, charge=0)]))
         self.assertEqual(str(bc_form_3), '1 * bmp2_a | crosslink: [ left-bond-atom: bmp2_a-10H1 ]')
@@ -218,10 +275,10 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_1 = core.BcForm().from_str('2 * abc_a + 3 * abc_b')
 
         self.assertEqual(len(bc_form_1.subunits), 2)
-        self.assertEqual(bc_form_1.subunits[0]['id'], 'abc_a')
-        self.assertEqual(bc_form_1.subunits[0]['stoichiometry'], 2)
-        self.assertEqual(bc_form_1.subunits[1]['id'], 'abc_b')
-        self.assertEqual(bc_form_1.subunits[1]['stoichiometry'], 3)
+        self.assertEqual(bc_form_1.subunits[0].id, 'abc_a')
+        self.assertEqual(bc_form_1.subunits[0].stoichiometry, 2)
+        self.assertEqual(bc_form_1.subunits[1].id, 'abc_b')
+        self.assertEqual(bc_form_1.subunits[1].stoichiometry, 3)
         self.assertEqual(bc_form_1.crosslinks, [])
 
         bc_form_2 = core.BcForm().from_str('bmp2_a + bmp2_a | crosslink: [left-bond-atom: bmp2_a(1)-362S1 | left-displaced-atom: bmp2_a(1)-362H1 | right-bond-atom: bmp2_a(2)-362S1 | right-displaced-atom: bmp2_a(2)-362H1]')
@@ -252,10 +309,10 @@ class BcFormTestCase(unittest.TestCase):
         bc_form = core.BcForm().from_set([{'id': 'abc_a', 'stoichiometry': 2}, {'id': 'abc_b', 'stoichiometry': 3}])
 
         self.assertEqual(len(bc_form.subunits), 2)
-        self.assertEqual(bc_form.subunits[0]['id'], 'abc_a')
-        self.assertEqual(bc_form.subunits[0]['stoichiometry'], 2)
-        self.assertEqual(bc_form.subunits[1]['id'], 'abc_b')
-        self.assertEqual(bc_form.subunits[1]['stoichiometry'], 3)
+        self.assertEqual(bc_form.subunits[0].id, 'abc_a')
+        self.assertEqual(bc_form.subunits[0].stoichiometry, 2)
+        self.assertEqual(bc_form.subunits[1].id, 'abc_b')
+        self.assertEqual(bc_form.subunits[1].stoichiometry, 3)
         self.assertEqual(bc_form.crosslinks, [])
 
         with self.assertRaises(ValueError):
@@ -268,8 +325,8 @@ class BcFormTestCase(unittest.TestCase):
 
         bc_form = core.BcForm().from_str('abc + abc + abc')
         self.assertEqual(len(bc_form.subunits), 1)
-        self.assertEqual(bc_form.subunits[0]['id'], 'abc')
-        self.assertEqual(bc_form.subunits[0]['stoichiometry'], 3)
+        self.assertEqual(bc_form.subunits[0].id, 'abc')
+        self.assertEqual(bc_form.subunits[0].stoichiometry, 3)
 
     def test_get_formula(self):
 

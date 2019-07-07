@@ -9,8 +9,132 @@
 
 import itertools
 import lark
+import openbabel
 import pkg_resources
 from wc_utils.util.chem import EmpiricalFormula
+import bpforms
+import bpforms.core
+import bpforms.alphabet.protein
+
+class Subunit(object):
+    """ Subunit in a BcForm macromolecular complex
+
+    Attributes:
+        id (:obj:`str`): id of the subunit
+        stoichiometry (:obj:`int`): stoichiometry of the subunit
+        structure (:obj:`bpforms.BpForm` or :obj:`openbabel.OBMol`, optional): structure of the subunit
+    """
+
+    def __init__(self, id, stoichiometry, structure=None):
+        """
+
+        Args:
+            id (:obj:`str`): id of the subunit
+            stoichiometry (:obj:`int`): stoichiometry of the subunit
+            structure (:obj:`bpforms.BpForm` or :obj:`openbabel.OBMol`, optional): structure of the subunit
+
+        """
+        self.id = id
+        self.stoichiometry = stoichiometry
+        self.structure = structure
+
+    @property
+    def id(self):
+        """ Get the id of the subunit
+
+        Returns:
+            :obj:`str`: id of the subunit
+
+        """
+        return self._id
+
+    @id.setter
+    def id(self, value):
+        """ Set the id of the subunit
+
+        Args:
+            value (:obj:`str`): id of the subunit
+
+        Raises:
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`str`
+        """
+        if not isinstance(value, str):
+            raise ValueError('`value` must be an instance of `str`')
+        self._id = value
+
+    @property
+    def stoichiometry(self):
+        """ Get the stoichiometry of the subunit
+
+        Returns:
+            :obj:`int`: stoichiometry of the subunit
+
+        """
+        return self._stoichiometry
+
+    @stoichiometry.setter
+    def stoichiometry(self, value):
+        """ Set the stoichiometry of the subunit
+
+        Args:
+            value (:obj:`int`): stoichiometry of the subunit
+
+        Raises:
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`int`
+        """
+        if not isinstance(value, int):
+            raise ValueError('`value` must be an instance of `int`')
+        self._stoichiometry = value
+
+    @property
+    def structure(self):
+        """ Get the structure of the subunit
+
+        Returns:
+            :obj:`bpforms.BpForm` or :obj:`openbabel.OBMol` or None: structure of the subunit
+
+        """
+        return self._structure
+
+    @structure.setter
+    def structure(self, value):
+        """ Set the structure of the subunit
+
+        Args:
+            value (:obj:`bpforms.BpForm` or :obj:`openbabel.OBMol` or None): structure of the subunit
+
+        Raises:
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`bpforms.BpForm` or :obj:`openbabel.OBMol` or None
+        """
+        if not isinstance(value, bpforms.BpForm) and not isinstance(value, openbabel.OBMol) and value is not None:
+            raise ValueError('`value` must be an instance of `bpforms.BpForm` or `openbabel.OBMol` or None')
+        self._structure = value
+
+    def __str__(self):
+        return str(self.stoichiometry) + ' * ' + self.id
+
+    def is_equal(self, other):
+        """ Check if two Subunits are semantically equal
+
+        Args:
+            other (:obj:`Subunit`): another Subunit
+
+        Returns:
+            :obj:`bool`: :obj:`True`, if the Subunits are semantically equal
+
+        """
+        if self is other:
+            return True
+        if self.__class__ != other.__class__:
+            return False
+
+        attrs = ['id', 'stoichiometry']
+
+        for attr in attrs:
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+
+        return True
 
 
 class Atom(object):
@@ -510,7 +634,7 @@ class BcForm(object):
 
         # subunits
         for subunit in self.subunits:
-            s += str(subunit['stoichiometry']) + ' * ' + subunit['id'] + ' + '
+            s += str(subunit) + ' + '
         s = s[:-3]
 
         # crosslinks
@@ -556,7 +680,7 @@ class BcForm(object):
             # complex
             @lark.v_args(inline=True)
             def complex(self, *args):
-                return [x for x in args if type(x) == dict]
+                return [Subunit(id=x['id'], stoichiometry=x['stoichiometry']) for x in args if type(x) == dict]
 
             @lark.v_args(inline=True)
             def component(self, *args):
@@ -685,7 +809,7 @@ class BcForm(object):
             else:
                 raise ValueError('`subunit` has no `stoichiometry`')
 
-            self.subunits.append(new_subunit)
+            self.subunits.append(Subunit(id=new_subunit['id'], stoichiometry=new_subunit['stoichiometry']))
 
         self.clean()
 
@@ -700,12 +824,12 @@ class BcForm(object):
         subunits_cleaned = []
         subunit_unique_ids = []
         for subunit in self.subunits:
-            id = subunit['id']
+            id = subunit.id
             if id not in subunit_unique_ids:
                 subunit_unique_ids.append(id)
                 subunits_cleaned.append(subunit)
             else:
-                next(subunit_cleaned for subunit_cleaned in subunits_cleaned if subunit_cleaned['id'] == id)['stoichiometry'] += subunit['stoichiometry']
+                next(subunit_cleaned for subunit_cleaned in subunits_cleaned if subunit_cleaned.id == id).stoichiometry += subunit.stoichiometry
 
         self.subunits = subunits_cleaned
 
@@ -727,10 +851,10 @@ class BcForm(object):
 
         # subunits
         for subunit in self.subunits:
-            if subunit['id'] not in subunit_formulas:
+            if subunit.id not in subunit_formulas:
                 raise ValueError('subunit_formulas must include all subunits')
             else:
-                formula += subunit_formulas[subunit['id']] * subunit['stoichiometry']
+                formula += subunit_formulas[subunit.id] * subunit.stoichiometry
         # crosslinks
         for crosslink in self.crosslinks:
             for atom in itertools.chain(crosslink.left_displaced_atoms, crosslink.right_displaced_atoms):
@@ -753,10 +877,10 @@ class BcForm(object):
         mol_wt = 0.0
         # subunits
         for subunit in self.subunits:
-            if subunit['id'] not in subunit_mol_wts:
+            if subunit.id not in subunit_mol_wts:
                 raise ValueError('subunit_mol_wts must include all subunits')
             else:
-                mol_wt += subunit_mol_wts[subunit['id']] * subunit['stoichiometry']
+                mol_wt += subunit_mol_wts[subunit.id] * subunit.stoichiometry
         # crosslinks
         for crosslink in self.crosslinks:
             for atom in itertools.chain(crosslink.left_displaced_atoms, crosslink.right_displaced_atoms):
@@ -781,10 +905,10 @@ class BcForm(object):
 
         # subunits
         for subunit in self.subunits:
-            if subunit['id'] not in subunit_charges:
+            if subunit.id not in subunit_charges:
                 raise ValueError('subunit_charges must include all subunits')
             else:
-                charge += subunit_charges[subunit['id']] * subunit['stoichiometry']
+                charge += subunit_charges[subunit.id] * subunit.stoichiometry
 
         # crosslinks
         for crosslink in self.crosslinks:
@@ -811,15 +935,15 @@ class BcForm(object):
             for atom_type in atom_types:
                 for i_atom, atom in enumerate(getattr(crosslink, atom_type)):
                     # check if subunit is present
-                    if atom.subunit not in [subunit['id'] for subunit in self.subunits]:
+                    if atom.subunit not in [subunit.id for subunit in self.subunits]:
                         errors.append("'{}[{}]' of crosslink {} must belong to a subunit in self.subunits".format(
                             atom_type, i_atom, i_crosslink + 1))
                     # check subunit index
                     elif atom.subunit_idx is None:
-                        if next(subunit for subunit in self.subunits if subunit['id'] == atom.subunit)['stoichiometry'] > 1:
+                        if next(subunit for subunit in self.subunits if subunit.id == atom.subunit).stoichiometry > 1:
                             errors.append("crosslink {} contains multiple subunit '{}', so the subunit_idx of atom '{}[{}]' cannot be None".format(
                             i_crosslink + 1, atom.subunit, atom_type, i_atom))
-                    elif atom.subunit_idx > next(subunit for subunit in self.subunits if subunit['id'] == atom.subunit)['stoichiometry']:
+                    elif atom.subunit_idx > next(subunit for subunit in self.subunits if subunit.id == atom.subunit).stoichiometry:
                         errors.append("'{}[{}]' of crosslink {} must belong to a subunit whose index is "
                                       "valid in terms of the stoichiometry of the subunit".format(
                                           atom_type, i_atom, i_crosslink + 1))
@@ -845,8 +969,14 @@ class BcForm(object):
         # test subunits
         if len(self.subunits) != len(other.subunits):
             return False
-        if sorted(sorted(d.items()) for d in self.subunits) != sorted(sorted(d.items()) for d in other.subunits):
-            return False
+        for self_subunit in self.subunits:
+            found = False
+            for other_subunit in other.subunits:
+                if self_subunit.is_equal(other_subunit):
+                    found = True
+                    break
+            if not found:
+                return False
 
         # test crosslinks
         if len(self.crosslinks) != len(other.crosslinks):

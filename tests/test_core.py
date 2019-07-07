@@ -84,6 +84,10 @@ class AtomTestCase(unittest.TestCase):
         self.assertTrue(atom_1.is_equal(atom_2))
         self.assertFalse(atom_1.is_equal(atom_3))
 
+        atom_4 = core.Atom(subunit='abc', subunit_idx=3, element='H', position=1, monomer=10, charge=0)
+        atom_5 = core.Atom(subunit='abc', subunit_idx=None, element='H', position=1, monomer=10, charge=0)
+        self.assertFalse(atom_4.is_equal(atom_5))
+
 class CrosslinkTestCase(unittest.TestCase):
 
     def test_init(self):

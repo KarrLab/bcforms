@@ -705,10 +705,7 @@ class BcForm(object):
                 subunit_unique_ids.append(id)
                 subunits_cleaned.append(subunit)
             else:
-                for subunit_cleaned in subunits_cleaned:
-                    if subunit_cleaned['id'] == id:
-                        subunit_cleaned['stoichiometry'] += subunit['stoichiometry']
-                        break
+                next(subunit_cleaned for subunit_cleaned in subunits_cleaned if subunit_cleaned['id'] == id)['stoichiometry'] += subunit['stoichiometry']
 
         self.subunits = subunits_cleaned
 

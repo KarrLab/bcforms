@@ -30,7 +30,7 @@ class Atom(object):
         """
 
         Args:
-            subunit (:obj:`str`): id of subunit            
+            subunit (:obj:`str`): id of subunit
             element (:obj:`str`): code of the element
             position (:obj:`int`): position of the atom within the compound
             monomer (:obj:`int`): index of parent monomer
@@ -74,7 +74,7 @@ class Atom(object):
         """ Get the index of the homomer of the subunit that the atom belongs to
 
         Returns:
-            :obj:`int`: subunit_idx
+            :obj:`int`: subunit_idx or None
 
         """
         return self._subunit_idx
@@ -208,7 +208,7 @@ class Atom(object):
         return '{}{}-{}{}{}{}'.format(self.subunit, subunit_idx, self.monomer, self.element, self.position, charge)
 
     def is_equal(self, other):
-        """ Check if two atoms are semantically equal (belong to the same subunit/monomer and 
+        """ Check if two atoms are semantically equal (belong to the same subunit/monomer and
         have the same element, position, and charge)
 
         Args:
@@ -223,11 +223,16 @@ class Atom(object):
         if self.__class__ != other.__class__:
             return False
 
-        attrs = ['subunit', 'subunit_idx', 'element', 'position', 'monomer', 'charge']
+        attrs = ['subunit', 'element', 'position', 'monomer', 'charge']
 
         for attr in attrs:
             if getattr(self, attr) != getattr(other, attr):
                 return False
+
+        self_subunit_idx = self.subunit_idx if self.subunit_idx is not None else 1
+        other_subunit_idx = other.subunit_idx if other.subunit_idx is not None else 1
+        if self_subunit_idx != other_subunit_idx:
+            return False
 
         return True
 
@@ -592,14 +597,19 @@ class BcForm(object):
 
             @lark.v_args(inline=True)
             def crosslink_atom(self, *args):
+                num_optional_args = 0
                 atom_type = args[0][1]
                 subunit = args[2][1]
-                subunit_idx = int(args[3][1])
-                monomer = int(args[4][1])
-                element = args[5][1]
-                position = int(args[6][1])
-                if len(args) > 7:
-                    charge = int(args[7][1])
+                if args[3][0] == 'subunit_idx':
+                    subunit_idx = int(args[3][1])
+                else:
+                    subunit_idx = None
+                    num_optional_args += 1
+                monomer = int(args[4-num_optional_args][1])
+                element = args[5-num_optional_args][1]
+                position = int(args[6-num_optional_args][1])
+                if len(args) > 7-num_optional_args:
+                    charge = int(args[7-num_optional_args][1])
                 else:
                     charge = 0
 
@@ -638,7 +648,7 @@ class BcForm(object):
         return bc_form
 
     def from_set(self, subunits):
-        """ Set the subunits from a list of subunits 
+        """ Set the subunits from a list of subunits
 
         Note: this method does not support crosslinks
 
@@ -646,7 +656,7 @@ class BcForm(object):
             subunits: (:obj:`list`): list representation of a complex. For example::
 
                 [
-                    {'id': 'ABC_A', 'stoichiometry': 2}, 
+                    {'id': 'ABC_A', 'stoichiometry': 2},
                     {'id': 'ABC_B', 'stoichiometry': 3},
                 ]
 
@@ -808,6 +818,10 @@ class BcForm(object):
                         errors.append("'{}[{}]' of crosslink {} must belong to a subunit in self.subunits".format(
                             atom_type, i_atom, i_crosslink + 1))
                     # check subunit index
+                    elif atom.subunit_idx is None:
+                        if next(subunit for subunit in self.subunits if subunit['id'] == atom.subunit)['stoichiometry'] > 1:
+                            errors.append("crosslink {} contains multiple subunit '{}', so the subunit_idx of atom '{}[{}]' cannot be None".format(
+                            i_crosslink + 1, atom.subunit, atom_type, i_atom))
                     elif atom.subunit_idx > next(subunit for subunit in self.subunits if subunit['id'] == atom.subunit)['stoichiometry']:
                         errors.append("'{}[{}]' of crosslink {} must belong to a subunit whose index is "
                                       "valid in terms of the stoichiometry of the subunit".format(

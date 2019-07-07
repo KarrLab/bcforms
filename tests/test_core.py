@@ -14,13 +14,17 @@ from wc_utils.util.chem import EmpiricalFormula
 class AtomTestCase(unittest.TestCase):
 
     def test_init(self):
-        atom = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
-        self.assertEqual(atom.subunit, 'abc')
-        self.assertEqual(atom.subunit_idx, 1)
-        self.assertEqual(atom.element, 'H')
-        self.assertEqual(atom.position, 1)
-        self.assertEqual(atom.monomer, 10)
-        self.assertEqual(atom.charge, 0)
+        atom_1 = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
+        self.assertEqual(atom_1.subunit, 'abc')
+        self.assertEqual(atom_1.subunit_idx, 1)
+        self.assertEqual(atom_1.element, 'H')
+        self.assertEqual(atom_1.position, 1)
+        self.assertEqual(atom_1.monomer, 10)
+        self.assertEqual(atom_1.charge, 0)
+
+        atom_2 = core.Atom(subunit='abc', subunit_idx=None, element='H', position=1, monomer=10, charge=0)
+        self.assertIsNone(atom_2.subunit_idx)
+
 
     def test_set_subunit(self):
         atom = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
@@ -228,6 +232,17 @@ class BcFormTestCase(unittest.TestCase):
         self.assertEqual(len(bc_form_2.crosslinks[0].right_displaced_atoms), 1)
         self.assertEqual(bc_form_2.crosslinks[0].right_displaced_atoms[0].element, 'H')
 
+        bc_form_3 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a-2O1 | left-displaced-atom: abc_a-2H1 | right-bond-atom: abc_b-3C1 | right-displaced-atom: abc_b-3H1 | right-displaced-atom: abc_b-3O1]')
+        self.assertIsNone(bc_form_3.crosslinks[0].left_bond_atoms[0].subunit_idx)
+        self.assertEqual(bc_form_3.crosslinks[0].left_bond_atoms[0].charge, 0)
+
+        bc_form_4 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a-2O1+1 | left-displaced-atom: abc_a-2H1 | right-bond-atom: abc_b-3C1 | right-displaced-atom: abc_b-3H1 | right-displaced-atom: abc_b-3O1]')
+        self.assertIsNone(bc_form_4.crosslinks[0].left_bond_atoms[0].subunit_idx)
+        self.assertEqual(len(bc_form_4.crosslinks[0].left_bond_atoms), 1)
+        self.assertEqual(bc_form_4.crosslinks[0].left_bond_atoms[0].element, 'O')
+        self.assertEqual(bc_form_4.crosslinks[0].left_bond_atoms[0].charge, 1)
+
+
     def test_from_set(self):
 
         bc_form = core.BcForm().from_set([{'id': 'abc_a', 'stoichiometry': 2}, {'id': 'abc_b', 'stoichiometry': 3}])
@@ -293,6 +308,12 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_3 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a(2)-2O1 | left-displaced-atom: abc_b(2)-2H1 | right-bond-atom: abc_b(3)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
         self.assertEqual(len(bc_form_3.validate()), 3)
 
+        bc_form_4 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a-2O1 | left-displaced-atom: abc_a-2H1 | right-bond-atom: abc_b-3C1 | right-displaced-atom: abc_b-3H1 | right-displaced-atom: abc_b-3O1]')
+        self.assertEqual(len(bc_form_4.validate()), 0)
+
+        bc_form_5 = core.BcForm().from_str('2 * abc_a + abc_b | crosslink: [left-bond-atom: abc_a-2O1 | left-displaced-atom: abc_a-2H1 | right-bond-atom: abc_b-3C1 | right-displaced-atom: abc_b-3H1 | right-displaced-atom: abc_b-3O1]')
+        self.assertEqual(len(bc_form_5.validate()), 2)
+
     def test_is_equal(self):
 
         bc_form_1 = core.BcForm().from_str('abc_a + abc_a + 3 * abc_b')
@@ -303,6 +324,9 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_6 = core.BcForm().from_str('2 * abc_a')
         bc_form_7 = core.BcForm().from_str('4 * abc_a + 3 * abc_b')
 
+        bc_form_8 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a-2O1 | left-displaced-atom: abc_a-2H1 | right-bond-atom: abc_b-3C1 | right-displaced-atom: abc_b-3H1 | right-displaced-atom: abc_b-3O1]')
+        bc_form_9 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
+
         self.assertTrue(bc_form_1.is_equal(bc_form_1))
         self.assertFalse(bc_form_1.is_equal('form'))
         self.assertTrue(bc_form_1.is_equal(bc_form_2))
@@ -311,3 +335,5 @@ class BcFormTestCase(unittest.TestCase):
         self.assertFalse(bc_form_3.is_equal(bc_form_5))
         self.assertFalse(bc_form_1.is_equal(bc_form_6))
         self.assertFalse(bc_form_1.is_equal(bc_form_7))
+
+        self.assertTrue(bc_form_8.is_equal(bc_form_9))

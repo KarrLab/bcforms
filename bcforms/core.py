@@ -222,6 +222,29 @@ class Subunit(object):
             # get charge from formula
             return charge * self.stoichiometry
 
+    def get_structure(self):
+        """ Get an OpenBabel molecule of the structure
+
+        Returns:
+            :obj:`openbabel.OBMol`: OpenBabel molecule of the structure
+
+        Raises:
+            :obj:`ValueError`: Subunit structure is None
+
+        """
+        if self.structure is None:
+            raise ValueError('Structure is None')
+        elif isinstance(self.structure, openbabel.OBMol):
+            structure = self.structure
+        else:
+            # structure is a BpForm object
+            structure = self.structure.get_structure()
+
+        mol = openbabel.OBMol()
+        for i in range(self.stoichiometry):
+            mol += structure
+        return mol
+
 
 class Atom(object):
     """ Atom in a crosslink
@@ -230,7 +253,7 @@ class Atom(object):
         subunit (:obj:`str`): id of subunit
         subunit_idx (:obj:`int`): index of the subunit for homomers
         element (:obj:`str`): code of the element
-        position (:obj:`int`): position of the atom within the compound
+        position (:obj:`int`): SMILES position of the atom within the compound
         monomer (:obj:`int`): index of parent monomer
         charge (:obj:`int`, optional): charge of the atom
 
@@ -242,7 +265,7 @@ class Atom(object):
         Args:
             subunit (:obj:`str`): id of subunit
             element (:obj:`str`): code of the element
-            position (:obj:`int`): position of the atom within the compound
+            position (:obj:`int`): SMILES position of the atom within the compound
             monomer (:obj:`int`): index of parent monomer
             charge (:obj:`int`, optional): charge of the atom
             subunit_idx (:obj:`int`, optional): index of the subunit for homomers
@@ -1159,3 +1182,103 @@ class BcForm(object):
             raise ValueError('Invalid attribute')
 
         setattr(subunit, attribute, value)
+
+    def get_structure(self):
+        """ Get an OpenBabel molecule of the structure
+
+        Returns:
+            :obj:`openbabel.OBMol`: OpenBabel molecule of the structure
+
+        """
+        mol = openbabel.OBMol()
+
+        i_atoms = [0]
+        n_atoms = []
+        n_monomers_atoms = []
+
+        # subunits
+        for subunit in self.subunits:
+            structure = subunit.get_structure()
+            mol += structure
+            i_atoms.append(i_atoms[-1]+structure.NumAtoms())
+            n_atoms.append(int(structure.NumAtoms()/subunit.stoichiometry))
+
+            n_monomer_atom = [0]
+            if isinstance(subunit.structure, bpforms.BpForm):
+                for i in range(len(subunit.structure)):
+                    # print(OpenBabelUtils.export(subunit.structure[i].structure, 'smiles', options=[]))
+                    n_monomer_atom.append(n_monomer_atom[-1]+subunit.structure[i].structure.NumAtoms())
+
+            n_monomers_atoms.append(n_monomer_atom)
+
+        # crosslinks
+        # get the atoms
+        crosslinks_atoms = []
+        for crosslink in self.crosslinks:
+            crosslink_atoms = {}
+            crosslinks_atoms.append(crosslink_atoms)
+            for atom_type in ['left_bond_atoms', 'right_bond_atoms', 'left_displaced_atoms', 'right_displaced_atoms']:
+                crosslink_atoms[atom_type] = []
+                for atom_md in getattr(crosslink, atom_type):
+                    # calculate the index of the crosslinking atom in the molecule
+                    i_subunit = [i for i in range(len(self.subunits)) if self.subunits[i].id == atom_md.subunit][0]
+                    subunit_idx = 1 if atom_md.subunit_idx is None else atom_md.subunit_idx
+                    # print(atom_md.monomer-1)
+                    # print(n_monomers_atoms[i_subunit][atom_md.monomer-1])
+                    i_atom = i_atoms[i_subunit] + n_atoms[i_subunit]*(subunit_idx-1) + n_monomers_atoms[i_subunit][atom_md.monomer-1] + atom_md.position
+                    # get the atom
+                    atom = mol.GetAtom(i_atom)
+                    # print(atom_type, atom_md.element, atom.GetAtomicNum())
+                    crosslink_atoms[atom_type].append(atom)
+
+        # make the crosslink bonds
+        for atoms in crosslinks_atoms:
+            for l_atom, r_atom in zip(atoms['left_bond_atoms'], atoms['right_bond_atoms']):
+                bond = openbabel.OBBond()
+                bond.SetBegin(l_atom)
+                bond.SetEnd(r_atom)
+                bond.SetBondOrder(1)
+                assert mol.AddBond(bond)
+            for atom in itertools.chain(atoms['left_displaced_atoms'], atoms['right_displaced_atoms']):
+                if atom:
+                    assert mol.DeleteAtom(atom, True)
+
+        return mol
+
+
+if __name__ == '__main__':
+    print('Example: no crosslink')
+    print('should be: C[C@H]([NH3+])C(=O)[O-].C[C@H]([NH3+])C(=O)[O-]')
+    bc_form_1 = BcForm().from_str('2*a')
+    assert len(bc_form_1.validate())==0
+    bc_form_1.set_subunit_attribute('a', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('A'))
+    print('   is    :',OpenBabelUtils.export(bc_form_1.get_structure(), 'smiles', options=[]))
+    print()
+
+    print('Example: "mini homodimer AA"')
+    print('Linking C[C@H]([NH3+])C(=O)[O-] and C[C@H]([NH3+])C(=O)[O-]')
+    print('should be: C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-]')
+    bc_form_2 = BcForm().from_str('2*a | crosslink: [left-bond-atom: a(1)-1C8 | left-displaced-atom: a(1)-1O10 | right-bond-atom: a(2)-1N4 | right-displaced-atom: a(2)-1H5 | right-displaced-atom: a(2)-1H6]')
+    assert len(bc_form_2.validate())==0
+    bc_form_2.set_subunit_attribute('a', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('A'))
+    print('   is    :',OpenBabelUtils.export(bc_form_2.get_structure(), 'smiles', options=[]))
+    print()
+
+    print('Example: "mini heterodimer AG"')
+    print('Linking C[C@H]([NH3+])C(=O)[O-] and C([NH3+])C(=O)[O-]')
+    print('should be: C[C@H]([NH3+])C(=O)NCC(=O)[O-]')
+    bc_form_3 = BcForm().from_str('a+g | crosslink: [left-bond-atom: a-1C8 | left-displaced-atom: a-1O10 | right-bond-atom: g-1N2 | right-displaced-atom: g-1H3 | right-displaced-atom: g-1H4]')
+    assert len(bc_form_3.validate())==0
+    bc_form_3.set_subunit_attribute('a', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('A'))
+    bc_form_3.set_subunit_attribute('g', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('G'))
+    print('   is    :',OpenBabelUtils.export(bc_form_3.get_structure(), 'smiles', options=[]))
+    print()
+
+    print('Example: "a more realistic example AGGA, where subunits are composed of multiple monomers"')
+    print('Linking C[C@H]([NH3+])C(=O)NCC(=O)[O-] and C([NH3+])C(=O)N[C@@H](C)C(=O)[O-]')
+    print('should be: C[C@H]([NH3+])C(=O)NCC(=O)NCC(=O)N[C@@H](C)C(=O)[O-]')
+    bc_form_4 = BcForm().from_str('ag+ga | crosslink: [left-bond-atom: ag-2C6 | left-displaced-atom: ag-2O8 | right-bond-atom: ga-1N2 | right-displaced-atom: ga-1H3 | right-displaced-atom: ga-1H4]')
+    assert len(bc_form_4.validate())==0
+    bc_form_4.set_subunit_attribute('ag', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AG'))
+    bc_form_4.set_subunit_attribute('ga', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('GA'))
+    print('   is    :',OpenBabelUtils.export(bc_form_4.get_structure(), 'smiles', options=[]))

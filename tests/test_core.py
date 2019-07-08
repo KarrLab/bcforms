@@ -75,7 +75,6 @@ class SubunitTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             subunit_2.get_formula()
 
-
         mol = openbabel.OBMol()
         a = mol.NewAtom()
         a.SetAtomicNum(12)
@@ -118,6 +117,23 @@ class SubunitTestCase(unittest.TestCase):
 
         subunit_4 = core.Subunit(id='aa', stoichiometry=1, structure=bpforms.alphabet.protein.ProteinForm().from_str('AA'))
         self.assertEqual(subunit_4.get_charge(), 0)
+
+    def test_get_structure(self):
+
+        subunit_1 = core.Subunit(id='aa', stoichiometry=2, structure=bpforms.alphabet.protein.ProteinForm().from_str('AA'))
+        self.assertEqual(OpenBabelUtils.export(subunit_1.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-].C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-]')
+
+        ob_mol = openbabel.OBMol()
+        conversion = openbabel.OBConversion()
+        conversion.SetInFormat('smi')
+        conversion.ReadString(ob_mol, 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-]')
+        subunit_2 = core.Subunit(id='aa', stoichiometry=1, structure=ob_mol)
+        self.assertEqual(OpenBabelUtils.export(subunit_2.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-]')
+
+        subunit_3 = core.Subunit(id='aa', stoichiometry=1)
+        with self.assertRaises(ValueError):
+            subunit_3.get_structure()
+
 
 class AtomTestCase(unittest.TestCase):
 

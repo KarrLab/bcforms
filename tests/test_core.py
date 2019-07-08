@@ -391,9 +391,16 @@ class BcFormTestCase(unittest.TestCase):
     def test_clean(self):
 
         bc_form = core.BcForm().from_str('abc + abc + abc')
-        self.assertEqual(len(bc_form.subunits), 1)
+        bc_form_sub = core.BcForm().from_str('def + def')
+        bc_form.subunits.append(bc_form_sub)
+        bc_form.clean()
+        self.assertEqual(len(bc_form.subunits), 2)
         self.assertEqual(bc_form.subunits[0].id, 'abc')
         self.assertEqual(bc_form.subunits[0].stoichiometry, 3)
+        self.assertEqual(len(bc_form.subunits[1].subunits), 1)
+        self.assertEqual(bc_form.subunits[1].subunits[0].id, 'def')
+        self.assertEqual(bc_form.subunits[1].subunits[0].stoichiometry, 2)
+
 
     def test_get_formula(self):
 
@@ -409,6 +416,21 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_3.set_subunit_attribute('aa', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AA'))
         self.assertEqual(bc_form_3.get_formula(), EmpiricalFormula('C12H24N4O6'))
 
+        bc_form_4 = core.BcForm().from_str('abc_a + abc_b')
+        bc_form_4.subunits.append(bc_form_2)
+        with self.assertRaises(ValueError):
+            bc_form_4.get_formula({'abc_a': EmpiricalFormula('C5H10O'), 'abc_b': EmpiricalFormula('C3H5O')})
+
+        bc_form_5 = core.BcForm().from_str('abc_a + abc_b')
+        bc_form_5.subunits.append(bc_form_3)
+        self.assertEqual(bc_form_5.get_formula({'abc_a': EmpiricalFormula('C5H10O'), 'abc_b': EmpiricalFormula('C3H5O')}), EmpiricalFormula('C20H39N4O8'))
+
+        bc_form_6 = core.BcForm().from_str('2 * aa')
+        bc_form_6.set_subunit_attribute('aa', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AA'))
+        bc_form_6.subunits.append(bc_form_3)
+        self.assertEqual(bc_form_6.get_formula(), EmpiricalFormula('C24H48N8O12'))
+
+
     def test_get_mol_wt(self):
 
         bc_form_1 = core.BcForm().from_str('abc_a + abc_b')
@@ -422,6 +444,20 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_3 = core.BcForm().from_str('3 * aa')
         bc_form_3.set_subunit_attribute('aa', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AA'))
         self.assertAlmostEqual(bc_form_3.get_mol_wt(), 480.519, places=3)
+
+        bc_form_4 = core.BcForm().from_str('abc_a + abc_b')
+        bc_form_4.subunits.append(bc_form_2)
+        with self.assertRaises(ValueError):
+            bc_form_4.get_mol_wt({'abc_a': EmpiricalFormula('C5H10O').get_molecular_weight(), 'abc_b': EmpiricalFormula('C3H5O').get_molecular_weight()})
+
+        bc_form_5 = core.BcForm().from_str('abc_a + abc_b')
+        bc_form_5.subunits.append(bc_form_3)
+        self.assertAlmostEqual(bc_form_5.get_mol_wt({'abc_a': EmpiricalFormula('C5H10O').get_molecular_weight(), 'abc_b': EmpiricalFormula('C3H5O').get_molecular_weight()}), EmpiricalFormula('C26H51N6O11').get_molecular_weight())
+
+        bc_form_6 = core.BcForm().from_str('2 * aa')
+        bc_form_6.set_subunit_attribute('aa', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AA'))
+        bc_form_6.subunits.append(bc_form_3)
+        self.assertEqual(bc_form_6.get_mol_wt(), EmpiricalFormula('C30H60N10O15').get_molecular_weight())
 
 
     def test_get_charge(self):
@@ -437,6 +473,21 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_3 = core.BcForm().from_str('2 * aa')
         bc_form_3.set_subunit_attribute('aa', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AA'))
         self.assertEqual(bc_form_3.get_charge(), 0)
+
+        bc_form_4 = core.BcForm().from_str('abc_a + abc_b')
+        bc_form_4.subunits.append(bc_form_2)
+        with self.assertRaises(ValueError):
+            bc_form_4.get_charge({'abc_a': 1, 'abc_b': -1})
+
+        bc_form_5 = core.BcForm().from_str('abc_a + abc_b')
+        bc_form_5.subunits.append(bc_form_3)
+        self.assertEqual(bc_form_5.get_charge({'abc_a': 1, 'abc_b': -1}), 0)
+
+        bc_form_6 = core.BcForm().from_str('2 * aa')
+        bc_form_6.set_subunit_attribute('aa', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AA'))
+        bc_form_6.subunits.append(bc_form_3)
+        self.assertEqual(bc_form_6.get_charge(), 0)
+
 
     def test_validate(self):
 
@@ -455,6 +506,10 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_5 = core.BcForm().from_str('2 * abc_a + abc_b | crosslink: [left-bond-atom: abc_a-2O1 | left-displaced-atom: abc_a-2H1 | right-bond-atom: abc_b-3C1 | right-displaced-atom: abc_b-3H1 | right-displaced-atom: abc_b-3O1]')
         self.assertEqual(len(bc_form_5.validate()), 2)
 
+        bc_form_6 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_c(1)-2O1 | left-displaced-atom: abc_d(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
+        bc_form_6.subunits.append(bc_form_3)
+        self.assertEqual(len(bc_form_6.validate()), 5)
+
     def test_is_equal(self):
 
         bc_form_1 = core.BcForm().from_str('abc_a + abc_a + 3 * abc_b')
@@ -468,6 +523,13 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_8 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a-2O1 | left-displaced-atom: abc_a-2H1 | right-bond-atom: abc_b-3C1 | right-displaced-atom: abc_b-3H1 | right-displaced-atom: abc_b-3O1]')
         bc_form_9 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
 
+        bc_form_10 = core.BcForm().from_str('3 * abc_b + 2 * abc_a')
+        bc_form_10.subunits.append(bc_form_3)
+        bc_form_11 = core.BcForm().from_str('3 * abc_b + 2 * abc_a')
+        bc_form_11.subunits.append(bc_form_1)
+        bc_form_12 = core.BcForm().from_str('3 * abc_b + 2 * abc_a')
+        bc_form_12.subunits.append(core.BcForm().from_str('abc_a + abc_a + 3 * abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]'))
+
         self.assertTrue(bc_form_1.is_equal(bc_form_1))
         self.assertFalse(bc_form_1.is_equal('form'))
         self.assertTrue(bc_form_1.is_equal(bc_form_2))
@@ -479,9 +541,14 @@ class BcFormTestCase(unittest.TestCase):
 
         self.assertTrue(bc_form_8.is_equal(bc_form_9))
 
+        self.assertFalse(bc_form_10.is_equal(bc_form_11))
+        self.assertTrue(bc_form_10.is_equal(bc_form_12))
+
     def test_get_subunit_attribute(self):
 
         bc_form = core.BcForm().from_str('aa')
+        bc_form_sub = core.BcForm().from_str('def')
+        bc_form.subunits.append(bc_form_sub)
         bc_form.subunits[0].structure = bpforms.alphabet.protein.ProteinForm().from_str('AA')
         self.assertEqual(bc_form.get_subunit_attribute('aa', 'stoichiometry'), 1)
         self.assertTrue(bc_form.get_subunit_attribute('aa', 'structure').is_equal(bpforms.alphabet.protein.ProteinForm().from_str('AA')))
@@ -493,6 +560,8 @@ class BcFormTestCase(unittest.TestCase):
     def test_set_subunit_attribute(self):
 
         bc_form = core.BcForm().from_str('aa')
+        bc_form_sub = core.BcForm().from_str('def')
+        bc_form.subunits.append(bc_form_sub)
         bc_form.set_subunit_attribute('aa', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AA'))
         self.assertTrue(bc_form.subunits[0].structure.is_equal(bpforms.alphabet.protein.ProteinForm().from_str('AA')))
         bc_form.set_subunit_attribute('aa', 'stoichiometry', 2)

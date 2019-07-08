@@ -10,7 +10,7 @@
 from bcforms import core
 import openbabel
 import unittest
-from wc_utils.util.chem import EmpiricalFormula
+from wc_utils.util.chem import EmpiricalFormula, OpenBabelUtils
 import bpforms
 import bpforms.core
 import bpforms.alphabet.protein
@@ -67,6 +67,57 @@ class SubunitTestCase(unittest.TestCase):
         self.assertFalse(subunit_1.is_equal(subunit_3))
         self.assertFalse(subunit_1.is_equal(subunit_4))
 
+    def test_get_formula(self):
+        subunit_1 = core.Subunit(id='abc', stoichiometry=2)
+        self.assertEqual(subunit_1.get_formula(formula=EmpiricalFormula('CH4')), EmpiricalFormula('C2H8'))
+
+        subunit_2 = core.Subunit(id='abc', stoichiometry=2)
+        with self.assertRaises(ValueError):
+            subunit_2.get_formula()
+
+
+        mol = openbabel.OBMol()
+        a = mol.NewAtom()
+        a.SetAtomicNum(12)
+        subunit_3 = core.Subunit(id='mg', stoichiometry=1, structure=mol)
+        self.assertEqual(subunit_3.get_formula(), EmpiricalFormula('Mg'))
+
+        subunit_4 = core.Subunit(id='aa', stoichiometry=1, structure=bpforms.alphabet.protein.ProteinForm().from_str('AA'))
+        self.assertEqual(subunit_4.get_formula(), EmpiricalFormula('C6H12N2O3'))
+
+    def test_get_mol_wt(self):
+        subunit_1 = core.Subunit(id='abc', stoichiometry=2)
+        self.assertEqual(subunit_1.get_mol_wt(mol_wt=32.0), 64.0)
+
+        subunit_2 = core.Subunit(id='abc', stoichiometry=2)
+        with self.assertRaises(ValueError):
+            subunit_2.get_mol_wt()
+
+        mol = openbabel.OBMol()
+        a = mol.NewAtom()
+        a.SetAtomicNum(12)
+        subunit_3 = core.Subunit(id='mg', stoichiometry=1, structure=mol)
+        self.assertAlmostEqual(subunit_3.get_mol_wt(), 24, places=0)
+
+        subunit_4 = core.Subunit(id='aa', stoichiometry=2, structure=bpforms.alphabet.protein.ProteinForm().from_str('AA'))
+        self.assertAlmostEqual(subunit_4.get_mol_wt(), 320.346, places=3)
+
+    def test_get_charge(self):
+        subunit_1 = core.Subunit(id='abc', stoichiometry=2)
+        self.assertEqual(subunit_1.get_charge(charge=1), 2)
+
+        subunit_2 = core.Subunit(id='abc', stoichiometry=2)
+        with self.assertRaises(ValueError):
+            subunit_2.get_charge()
+
+        mol = openbabel.OBMol()
+        a = mol.NewAtom()
+        a.SetAtomicNum(12)
+        subunit_3 = core.Subunit(id='mg', stoichiometry=2, structure=mol)
+        self.assertEqual(subunit_3.get_charge(), 0)
+
+        subunit_4 = core.Subunit(id='aa', stoichiometry=1, structure=bpforms.alphabet.protein.ProteinForm().from_str('AA'))
+        self.assertEqual(subunit_4.get_charge(), 0)
 
 class AtomTestCase(unittest.TestCase):
 
@@ -338,6 +389,10 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_2 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1+1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
         self.assertEqual(bc_form_2.get_formula({'abc_a': EmpiricalFormula('C5H10O'), 'abc_b': EmpiricalFormula('C3H5O')}), EmpiricalFormula('C8H13O'))
 
+        bc_form_3 = core.BcForm().from_str('2 * aa')
+        bc_form_3.set_subunit_attribute('aa', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AA'))
+        self.assertEqual(bc_form_3.get_formula(), EmpiricalFormula('C12H24N4O6'))
+
     def test_get_mol_wt(self):
 
         bc_form_1 = core.BcForm().from_str('abc_a + abc_b')
@@ -348,6 +403,11 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_2 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1+1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
         self.assertAlmostEqual(bc_form_2.get_mol_wt({'abc_a': EmpiricalFormula('C5H10O').get_molecular_weight(), 'abc_b': EmpiricalFormula('C3H5O').get_molecular_weight()}), 125, places=0)
 
+        bc_form_3 = core.BcForm().from_str('3 * aa')
+        bc_form_3.set_subunit_attribute('aa', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AA'))
+        self.assertAlmostEqual(bc_form_3.get_mol_wt(), 480.519, places=3)
+
+
     def test_get_charge(self):
 
         bc_form_1 = core.BcForm().from_str('abc_a + abc_b')
@@ -357,6 +417,10 @@ class BcFormTestCase(unittest.TestCase):
 
         bc_form_2 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1+1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]')
         self.assertEqual(bc_form_2.get_charge({'abc_a': 1, 'abc_b': -1}), -1)
+
+        bc_form_3 = core.BcForm().from_str('2 * aa')
+        bc_form_3.set_subunit_attribute('aa', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AA'))
+        self.assertEqual(bc_form_3.get_charge(), 0)
 
     def test_validate(self):
 
@@ -398,3 +462,26 @@ class BcFormTestCase(unittest.TestCase):
         self.assertFalse(bc_form_1.is_equal(bc_form_7))
 
         self.assertTrue(bc_form_8.is_equal(bc_form_9))
+
+    def test_get_subunit_attribute(self):
+
+        bc_form = core.BcForm().from_str('aa')
+        bc_form.subunits[0].structure = bpforms.alphabet.protein.ProteinForm().from_str('AA')
+        self.assertEqual(bc_form.get_subunit_attribute('aa', 'stoichiometry'), 1)
+        self.assertTrue(bc_form.get_subunit_attribute('aa', 'structure').is_equal(bpforms.alphabet.protein.ProteinForm().from_str('AA')))
+        with self.assertRaises(ValueError):
+            bc_form.get_subunit_attribute('bb', 'stoichiometry')
+        with self.assertRaises(ValueError):
+            bc_form.get_subunit_attribute('aa', 'invalidattr')
+
+    def test_set_subunit_attribute(self):
+
+        bc_form = core.BcForm().from_str('aa')
+        bc_form.set_subunit_attribute('aa', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AA'))
+        self.assertTrue(bc_form.subunits[0].structure.is_equal(bpforms.alphabet.protein.ProteinForm().from_str('AA')))
+        bc_form.set_subunit_attribute('aa', 'stoichiometry', 2)
+        self.assertEqual(bc_form.subunits[0].stoichiometry, 2)
+        with self.assertRaises(ValueError):
+            bc_form.set_subunit_attribute('bb', 'stoichiometry', 4)
+        with self.assertRaises(ValueError):
+            bc_form.set_subunit_attribute('aa', 'invalidattr', 'b')

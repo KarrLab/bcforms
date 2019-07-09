@@ -1,6 +1,6 @@
-cement >= 3.0.0 # for command line programs
-setuptools # for pkg_resources module
 bpforms[all]
-wc_utils[all]
+cement >= 3.0.0 # for command line programs
 lark_parser >= 0.6.6
 openbabel
+setuptools # for pkg_resources module
+wc_utils[all]

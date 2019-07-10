@@ -227,23 +227,52 @@ class Subunit(object):
 
         Returns:
             :obj:`openbabel.OBMol`: OpenBabel molecule of the structure
+            :obj:`dict` of obj:`dict`: dictionary which maps subunit_idx to
+                atom_maps
 
         Raises:
             :obj:`ValueError`: Subunit structure is None
 
         """
+
         if self.structure is None:
             raise ValueError('Structure is None')
-        elif isinstance(self.structure, openbabel.OBMol):
-            structure = self.structure
-        else:
-            # structure is a BpForm object
-            structure = self.structure.get_structure()[0]
 
+        # join the subunits
         mol = openbabel.OBMol()
+        subunit_atom_map = {}
+        subunit_idx = 1
         for i in range(self.stoichiometry):
+
+            # get structure
+            atom_map = {}
+            if isinstance(self.structure, openbabel.OBMol):
+                structure = self.structure
+                for i_atom in range(structure.NumAtoms()):
+                    atom_map[i_atom+1] = structure.GetAtom(i_atom+1)
+            else:
+                # structure is a BpForm object
+                structure, atom_map = self.structure.get_structure()[0:2]
+
+            num_atoms = structure.NumAtoms()
+
             mol += structure
-        return mol
+            if isinstance(self.structure, openbabel.OBMol):
+                for i_atom, atom in atom_map.items():
+                    atom_map[i_atom] = mol.GetAtom(atom.GetIdx())
+
+            else:
+                for monomer in atom_map.values():
+                    for atom_type in monomer.values():
+                        for i_atom, atom in atom_type.items():
+                            if atom:
+                                atom_type[i_atom] = mol.GetAtom(atom.GetIdx()+num_atoms*(subunit_idx-1))
+                            # print(i_atom, atom.GetAtomicNum(), atom_type[i_atom].GetIdx())
+
+            subunit_atom_map[subunit_idx] = atom_map
+            subunit_idx += 1
+
+        return mol, subunit_atom_map
 
 
 class Atom(object):
@@ -255,11 +284,13 @@ class Atom(object):
         element (:obj:`str`): code of the element
         position (:obj:`int`): SMILES position of the atom within the compound
         monomer (:obj:`int`): index of parent monomer
-        charge (:obj:`int`, optional): charge of the atom
+        charge (:obj:`int`): charge of the atom
+        component_type (:obj:`str`): type of component the atom belongs to:
+            either 'monomer' or 'backbone'
 
     """
 
-    def __init__(self, subunit, element, position, monomer, charge=0, subunit_idx=None):
+    def __init__(self, subunit, element, position, monomer, charge=0, subunit_idx=None, component_type=None):
         """
 
         Args:
@@ -269,6 +300,8 @@ class Atom(object):
             monomer (:obj:`int`): index of parent monomer
             charge (:obj:`int`, optional): charge of the atom
             subunit_idx (:obj:`int`, optional): index of the subunit for homomers
+            component_type (:obj:`str`, optional): type of component the atom belongs to:
+                either 'monomer' or 'backbone'
         """
 
         self.subunit = subunit
@@ -277,6 +310,14 @@ class Atom(object):
         self.position = position
         self.monomer = monomer
         self.charge = charge
+        if component_type == 'm':
+            self.component_type = 'monomer'
+        elif component_type == 'b':
+            self.component_type = 'backbone'
+        elif component_type is None:
+            self.component_type = 'monomer'
+        else:
+            self.component_type = component_type
 
     @property
     def subunit(self):
@@ -421,6 +462,29 @@ class Atom(object):
         if not isinstance(value, int):
             raise ValueError('`value` must be an integer')
         self._charge = value
+
+    @property
+    def component_type(self):
+        """ Get the type of component the atom belongs to
+
+        Returns:
+            :obj:`str`: component type
+
+        """
+        return self._component_type
+
+    @component_type.setter
+    def component_type(self, value):
+        """ Set the type of component the atom belongs to
+
+        Raises:
+            :obj:`ValueError`: component_type must be either 'monomer' or 'backbone'
+
+        """
+        if value not in ['monomer', 'backbone']:
+            raise ValueError('`component_type` must be either "monomer" or "backbone"')
+        else:
+            self._component_type = value
 
     def __str__(self):
         """ Generate a string representation
@@ -842,12 +906,23 @@ class BcForm(object):
                 element = args[5-num_optional_args][1]
                 position = int(args[6-num_optional_args][1])
                 if len(args) > 7-num_optional_args:
-                    charge = int(args[7-num_optional_args][1])
+                    if args[7-num_optional_args][0] == 'atom_component_type':
+                        atom_component_type = args[7-num_optional_args][1]
+                    else:
+                        atom_component_type = None
+                        num_optional_args += 1
+                else:
+                    atom_component_type = None
+                if len(args) > 8-num_optional_args:
+                    if args[8-num_optional_args][0] == 'atom_charge':
+                        charge = int(args[8-num_optional_args][1])
+                    else:
+                        charge = 0
                 else:
                     charge = 0
 
                 return (atom_type, Atom(subunit=subunit, subunit_idx=subunit_idx, element=element,
-                                        position=position, monomer=monomer, charge=charge))
+                                        position=position, monomer=monomer, charge=charge, component_type=atom_component_type))
 
             @lark.v_args(inline=True)
             def crosslink_atom_type(self, *args):
@@ -872,6 +947,10 @@ class BcForm(object):
             @lark.v_args(inline=True)
             def atom_charge(self, *args):
                 return ('atom_charge', args[0].value)
+
+            @lark.v_args(inline=True)
+            def atom_component_type(self, *args):
+                return ('atom_component_type', args[0].value)
 
         tree = self._parser.parse(string)
         # print(tree.pretty())
@@ -1217,24 +1296,33 @@ class BcForm(object):
     def get_structure(self):
         """ Get an OpenBabel molecule of the structure
 
-        * get_structure as of now only works for cases where there is no crosslink
-        in the complex or if the subunits are BpForms of single amino acid
-
         Returns:
             :obj:`openbabel.OBMol`: OpenBabel molecule of the structure
 
         """
         mol = openbabel.OBMol()
 
-        i_atoms = [0]
-        n_atoms = []
+        atom_maps = []
+        n_atoms = [0]
 
         # subunits
-        for subunit in self.subunits:
-            structure = subunit.get_structure()
+        for i_subunit, subunit in enumerate(self.subunits):
+            structure, atom_map = subunit.get_structure()
             mol += structure
-            i_atoms.append(i_atoms[-1]+structure.NumAtoms())
-            n_atoms.append(int(structure.NumAtoms()/subunit.stoichiometry))
+
+            n_atoms.append(n_atoms[-1]+structure.NumAtoms())
+
+            for subunit_map in atom_map.values():
+                for monomer in subunit_map.values():
+                    for atom_type in monomer.values():
+                        for i_atom, atom in atom_type.items():
+                            if atom:
+                                atom_type[i_atom] = mol.GetAtom(atom.GetIdx()+n_atoms[i_subunit])
+            atom_maps.append(atom_map)
+
+        # print(atom_maps)
+        # for i in range(mol.NumAtoms()):
+        #     print(mol.GetAtom(i+1), mol.GetAtom(i+1).GetAtomicNum())
 
         # crosslinks
         # get the atoms
@@ -1245,15 +1333,12 @@ class BcForm(object):
             for atom_type in ['left_bond_atoms', 'right_bond_atoms', 'left_displaced_atoms', 'right_displaced_atoms']:
                 crosslink_atoms[atom_type] = []
                 for atom_md in getattr(crosslink, atom_type):
-                    # calculate the index of the crosslinking atom in the molecule
                     i_subunit = [i for i in range(len(self.subunits)) if self.subunits[i].id == atom_md.subunit][0]
                     subunit_idx = 1 if atom_md.subunit_idx is None else atom_md.subunit_idx
-                    # print(atom_md.monomer-1)
-                    # print(n_monomers_atoms[i_subunit][atom_md.monomer-1])
-                    i_atom = i_atoms[i_subunit] + n_atoms[i_subunit]*(subunit_idx-1) + atom_md.position
-                    # get the atom
-                    atom = mol.GetAtom(i_atom)
+                    atom = atom_maps[i_subunit][subunit_idx][atom_md.monomer][atom_md.component_type][atom_md.position]
                     crosslink_atoms[atom_type].append((atom, atom_md.charge))
+
+        # print(OpenBabelUtils.export(mol, format='smiles', options=[]))
 
         # make the crosslink bonds
         for atoms in crosslinks_atoms:

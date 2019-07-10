@@ -121,14 +121,16 @@ class SubunitTestCase(unittest.TestCase):
     def test_get_structure(self):
 
         subunit_1 = core.Subunit(id='aa', stoichiometry=2, structure=bpforms.alphabet.protein.ProteinForm().from_str('AA'))
-        self.assertEqual(OpenBabelUtils.export(subunit_1.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-].C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-]')
+        self.assertEqual(OpenBabelUtils.export(subunit_1.get_structure()[0], 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-].C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-]')
+        self.assertTrue(isinstance(subunit_1.get_structure()[1][2], dict))
 
         ob_mol = openbabel.OBMol()
         conversion = openbabel.OBConversion()
         conversion.SetInFormat('smi')
         conversion.ReadString(ob_mol, 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-]')
         subunit_2 = core.Subunit(id='aa', stoichiometry=1, structure=ob_mol)
-        self.assertEqual(OpenBabelUtils.export(subunit_2.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-]')
+        self.assertEqual(OpenBabelUtils.export(subunit_2.get_structure()[0], 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-]')
+        self.assertEqual(len(subunit_2.get_structure()[1][1]),16)
 
         subunit_3 = core.Subunit(id='aa', stoichiometry=1)
         with self.assertRaises(ValueError):
@@ -138,13 +140,14 @@ class SubunitTestCase(unittest.TestCase):
 class AtomTestCase(unittest.TestCase):
 
     def test_init(self):
-        atom_1 = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
+        atom_1 = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0, component_type='monomer')
         self.assertEqual(atom_1.subunit, 'abc')
         self.assertEqual(atom_1.subunit_idx, 1)
         self.assertEqual(atom_1.element, 'H')
         self.assertEqual(atom_1.position, 1)
         self.assertEqual(atom_1.monomer, 10)
         self.assertEqual(atom_1.charge, 0)
+        self.assertEqual(atom_1.component_type, 'monomer')
 
         atom_2 = core.Atom(subunit='abc', subunit_idx=None, element='H', position=1, monomer=10, charge=0)
         self.assertIsNone(atom_2.subunit_idx)
@@ -190,6 +193,13 @@ class AtomTestCase(unittest.TestCase):
         atom.charge = 2
         with self.assertRaises(ValueError):
             atom.charge = None
+
+    def test_set_component_type(self):
+
+        atom = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
+        atom.component_type = 'backbone'
+        with self.assertRaises(ValueError):
+            atom.component_type = 'm'
 
     def test_str(self):
         atom_1 = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
@@ -369,6 +379,18 @@ class BcFormTestCase(unittest.TestCase):
         self.assertEqual(len(bc_form_4.crosslinks[0].left_bond_atoms), 1)
         self.assertEqual(bc_form_4.crosslinks[0].left_bond_atoms[0].element, 'O')
         self.assertEqual(bc_form_4.crosslinks[0].left_bond_atoms[0].charge, 1)
+
+        bc_form_5 = core.BcForm().from_str('abc_a + abc_b | crosslink: [left-bond-atom: abc_a-2O1m+1 | left-displaced-atom: abc_a-2H1m | right-bond-atom: abc_b-3C1 | right-displaced-atom: abc_b-3H1+1 | right-displaced-atom: abc_b-3O1b-1]')
+        self.assertEqual(bc_form_5.crosslinks[0].left_bond_atoms[0].component_type, 'monomer')
+        self.assertEqual(bc_form_5.crosslinks[0].left_bond_atoms[0].charge, 1)
+        self.assertEqual(bc_form_5.crosslinks[0].left_displaced_atoms[0].component_type, 'monomer')
+        self.assertEqual(bc_form_5.crosslinks[0].left_displaced_atoms[0].charge, 0)
+        self.assertEqual(bc_form_5.crosslinks[0].right_bond_atoms[0].component_type, 'monomer')
+        self.assertEqual(bc_form_5.crosslinks[0].right_bond_atoms[0].charge, 0)
+        self.assertEqual(bc_form_5.crosslinks[0].right_displaced_atoms[0].component_type, 'monomer')
+        self.assertEqual(bc_form_5.crosslinks[0].right_displaced_atoms[0].charge, 1)
+        self.assertEqual(bc_form_5.crosslinks[0].right_displaced_atoms[1].component_type, 'backbone')
+        self.assertEqual(bc_form_5.crosslinks[0].right_displaced_atoms[1].charge, -1)
 
 
     def test_from_set(self):
@@ -581,14 +603,14 @@ class BcFormTestCase(unittest.TestCase):
 
         # mini "homodimer" AA
         # linking C[C@H]([NH3+])C(=O)[O-] and C[C@H]([NH3+])C(=O)[O-]
-        bc_form_2 = core.BcForm().from_str('2*a | crosslink: [left-bond-atom: a(1)-1C8 | left-displaced-atom: a(1)-1O10-1 | right-bond-atom: a(2)-1N4-1 | right-displaced-atom: a(2)-1H5+1 | right-displaced-atom: a(2)-1H6]')
+        bc_form_2 = core.BcForm().from_str('2*a | crosslink: [left-bond-atom: a(1)-1C8 | left-displaced-atom: a(1)-1O1b | right-bond-atom: a(2)-1N4-1 | right-displaced-atom: a(2)-1H5+1 | right-displaced-atom: a(2)-1H6]')
         self.assertTrue(len(bc_form_2.validate())==0)
         bc_form_2.set_subunit_attribute('a', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('A'))
         self.assertEqual(OpenBabelUtils.export(bc_form_2.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-]')
 
         # mini "heterodimer" AG
         # linking C[C@H]([NH3+])C(=O)[O-] and C([NH3+])C(=O)[O-]
-        bc_form_3 = core.BcForm().from_str('a+g | crosslink: [left-bond-atom: a-1C8 | left-displaced-atom: a-1O10-1 | right-bond-atom: g-1N2-1 | right-displaced-atom: g-1H3+1 | right-displaced-atom: g-1H4]')
+        bc_form_3 = core.BcForm().from_str('a+g | crosslink: [left-bond-atom: a-1C8 | left-displaced-atom: a-1O1b | right-bond-atom: g-1N2-1 | right-displaced-atom: g-1H3+1 | right-displaced-atom: g-1H4]')
         self.assertTrue(len(bc_form_3.validate())==0)
         bc_form_3.set_subunit_attribute('a', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('A'))
         bc_form_3.set_subunit_attribute('g', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('G'))
@@ -597,8 +619,16 @@ class BcFormTestCase(unittest.TestCase):
 
         # a more realistic example AGGA, where subunits are composed of multiple monomers
         # linking C[C@H]([NH3+])C(=O)NCC(=O)[O-] and C([NH3+])C(=O)N[C@@H](C)C(=O)[O-]
-        bc_form_4 = core.BcForm().from_str('ag+ga | crosslink: [left-bond-atom: ag-2C6 | left-displaced-atom: ag-2O8-1 | right-bond-atom: ga-1N2-1 | right-displaced-atom: ga-1H3+1 | right-displaced-atom: ga-1H4]')
+        bc_form_4 = core.BcForm().from_str('ag+ga | crosslink: [left-bond-atom: ag-2C6 | left-displaced-atom: ag-2O1b | right-bond-atom: ga-1N2-1 | right-displaced-atom: ga-1H3+1 | right-displaced-atom: ga-1H4]')
         self.assertTrue(len(bc_form_4.validate())==0)
         bc_form_4.set_subunit_attribute('ag', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AG'))
         bc_form_4.set_subunit_attribute('ga', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('GA'))
-        # self.assertEqual(OpenBabelUtils.export(bc_form_4.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)NCC(=O)NCC(=O)N[C@@H](C)C(=O)[O-]')
+        self.assertEqual(OpenBabelUtils.export(bc_form_4.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)NCC(=O)NCC(=O)N[C@@H](C)C(=O)[O-]')
+
+        # a more realistic example ACCMGAGA, where subunits are composed of multiple monomers
+        # linking ACCM and 2*GA
+        bc_form_5 = core.BcForm().from_str('accm+2*ga | crosslink: [left-bond-atom: accm-4C11 | left-displaced-atom: accm-4O1b | right-bond-atom: ga(1)-1N2-1 | right-displaced-atom: ga(1)-1H3+1 | right-displaced-atom: ga(1)-1H4] | crosslink: [left-bond-atom: ga(1)-2C8 | left-displaced-atom: ga(1)-2O1b | right-bond-atom: ga(2)-1N2-1 | right-displaced-atom: ga(2)-1H3+1 | right-displaced-atom: ga(2)-1H4]')
+        self.assertTrue(len(bc_form_5.validate())==0)
+        bc_form_5.set_subunit_attribute('accm', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('ACCM'))
+        bc_form_5.set_subunit_attribute('ga', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('GA'))
+        self.assertEqual(OpenBabelUtils.export(bc_form_5.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](CS)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCSC)C(=O)NCC(=O)N[C@@H](C)C(=O)NCC(=O)N[C@@H](C)C(=O)[O-]')

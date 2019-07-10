@@ -248,8 +248,10 @@ class Subunit(object):
             atom_map = {}
             if isinstance(self.structure, openbabel.OBMol):
                 structure = self.structure
+                atom_map[1] = {}
+                atom_map[1]['monomer'] = {}
                 for i_atom in range(structure.NumAtoms()):
-                    atom_map[i_atom+1] = structure.GetAtom(i_atom+1)
+                    atom_map[1]['monomer'][i_atom+1] = structure.GetAtom(i_atom+1)
             else:
                 # structure is a BpForm object
                 structure, atom_map = self.structure.get_structure()[0:2]
@@ -257,17 +259,12 @@ class Subunit(object):
             num_atoms = structure.NumAtoms()
 
             mol += structure
-            if isinstance(self.structure, openbabel.OBMol):
-                for i_atom, atom in atom_map.items():
-                    atom_map[i_atom] = mol.GetAtom(atom.GetIdx())
-
-            else:
-                for monomer in atom_map.values():
-                    for atom_type in monomer.values():
-                        for i_atom, atom in atom_type.items():
-                            if atom:
-                                atom_type[i_atom] = mol.GetAtom(atom.GetIdx()+num_atoms*(subunit_idx-1))
-                            # print(i_atom, atom.GetAtomicNum(), atom_type[i_atom].GetIdx())
+            for monomer in atom_map.values():
+                for atom_type in monomer.values():
+                    for i_atom, atom in atom_type.items():
+                        if atom:
+                            atom_type[i_atom] = mol.GetAtom(atom.GetIdx()+num_atoms*(subunit_idx-1))
+                        # print(i_atom, atom.GetAtomicNum(), atom_type[i_atom].GetIdx())
 
             subunit_atom_map[subunit_idx] = atom_map
             subunit_idx += 1
@@ -1320,10 +1317,13 @@ class BcForm(object):
                                 atom_type[i_atom] = mol.GetAtom(atom.GetIdx()+n_atoms[i_subunit])
             atom_maps.append(atom_map)
 
+        mol.AddHydrogens()
+
         # print(atom_maps)
         # for i in range(mol.NumAtoms()):
         #     print(mol.GetAtom(i+1), mol.GetAtom(i+1).GetAtomicNum())
 
+        bonding_hydrogens = []
         # crosslinks
         # get the atoms
         crosslinks_atoms = []
@@ -1336,6 +1336,8 @@ class BcForm(object):
                     i_subunit = [i for i in range(len(self.subunits)) if self.subunits[i].id == atom_md.subunit][0]
                     subunit_idx = 1 if atom_md.subunit_idx is None else atom_md.subunit_idx
                     atom = atom_maps[i_subunit][subunit_idx][atom_md.monomer][atom_md.component_type][atom_md.position]
+                    if atom_md.element == 'H' and atom.GetAtomicNum() != 1:
+                        atom = get_hydrogen_atom(atom, bonding_hydrogens, (i_subunit, subunit_idx-1, atom_md.monomer-1, atom_md.component_type))
                     crosslink_atoms[atom_type].append((atom, atom_md.charge))
 
         # print(OpenBabelUtils.export(mol, format='smiles', options=[]))
@@ -1361,3 +1363,20 @@ class BcForm(object):
                     r_atom.SetFormalCharge(r_atom.GetFormalCharge() + r_atom_charge)
 
         return mol
+
+def get_hydrogen_atom(parent_atom, bonding_hydrogens, i_monomer):
+    """ Get a hydrogen atom attached to a parent atom
+    Args:
+        parent_atom (:obj:`openbabel.OBAtom`): parent atom
+        bonding_hydrogens (:obj:`list`): hydrogens that have already been gotten
+        i_monomer (:obj:`int`): index of parent monomer in sequence
+    Returns:
+        :obj:`openbabel.OBAtom`: hydrogen atom
+    """
+    for other_atom in openbabel.OBAtomAtomIter(parent_atom):
+        if other_atom.GetAtomicNum() == 1:
+            tmp = (i_monomer, other_atom.GetIdx())
+            if tmp not in bonding_hydrogens:  # hydrogen
+                bonding_hydrogens.append(tmp)
+                return other_atom
+    return None

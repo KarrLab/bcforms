@@ -130,7 +130,7 @@ class SubunitTestCase(unittest.TestCase):
         conversion.ReadString(ob_mol, 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-]')
         subunit_2 = core.Subunit(id='aa', stoichiometry=1, structure=ob_mol)
         self.assertEqual(OpenBabelUtils.export(subunit_2.get_structure()[0], 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-]')
-        self.assertEqual(len(subunit_2.get_structure()[1][1]),16)
+        self.assertEqual(len(subunit_2.get_structure()[1][1][1]['monomer']),16)
 
         subunit_3 = core.Subunit(id='aa', stoichiometry=1)
         with self.assertRaises(ValueError):
@@ -632,3 +632,15 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_5.set_subunit_attribute('accm', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('ACCM'))
         bc_form_5.set_subunit_attribute('ga', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('GA'))
         self.assertEqual(OpenBabelUtils.export(bc_form_5.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](CS)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCSC)C(=O)NCC(=O)N[C@@H](C)C(=O)NCC(=O)N[C@@H](C)C(=O)[O-]')
+
+        # mini "heterodimer" + small molecule AG+CH4
+        bc_form_6 = core.BcForm().from_str('a+g+small | crosslink: [left-bond-atom: a-1C8 | left-displaced-atom: a-1O1b | right-bond-atom: g-1N2-1 | right-displaced-atom: g-1H3+1 | right-displaced-atom: g-1H4] | crosslink: [left-bond-atom: g-1C1 | left-displaced-atom: g-1H1 | right-bond-atom: small-1C1 | right-displaced-atom: small-1H1 ]')
+        self.assertTrue(len(bc_form_6.validate())==0)
+        bc_form_6.set_subunit_attribute('a', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('A'))
+        bc_form_6.set_subunit_attribute('g', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('G'))
+        ob_mol = openbabel.OBMol()
+        conversion = openbabel.OBConversion()
+        conversion.SetInFormat('smi')
+        conversion.ReadString(ob_mol, 'C')
+        bc_form_6.set_subunit_attribute('small', 'structure', ob_mol)
+        self.assertEqual(OpenBabelUtils.export(bc_form_6.get_structure(), 'smiles', options=['canonical']), OpenBabelUtils.export(bpforms.alphabet.protein.ProteinForm().from_str('AA').get_structure()[0], 'smiles', options=['canonical']))

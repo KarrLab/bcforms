@@ -257,12 +257,14 @@ class Subunit(object):
                 structure, atom_map = self.structure.get_structure()[0:2]
 
             num_atoms = structure.NumAtoms()
+            total_atoms = sum(sum(len(y) for y in x.values()) for x in atom_map.values())
 
             mol += structure
             for monomer in atom_map.values():
                 for atom_type in monomer.values():
                     for i_atom, atom in atom_type.items():
-                        if atom:
+                        # print(i_atom, atom.GetIdx())
+                        if atom and atom.GetIdx() < total_atoms:
                             atom_type[i_atom] = mol.GetAtom(atom.GetIdx()+num_atoms*(subunit_idx-1))
                         # print(i_atom, atom.GetAtomicNum(), atom_type[i_atom].GetIdx())
 

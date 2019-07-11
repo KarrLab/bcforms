@@ -264,7 +264,7 @@ class Subunit(object):
                 for atom_type in monomer.values():
                     for i_atom, atom in atom_type.items():
                         # print(i_atom, atom.GetIdx())
-                        if atom and atom.GetIdx() < total_atoms:
+                        if atom and atom.GetIdx() <= total_atoms:
                             atom_type[i_atom] = mol.GetAtom(atom.GetIdx()+num_atoms*(subunit_idx-1))
                         # print(i_atom, atom.GetAtomicNum(), atom_type[i_atom].GetIdx())
 
@@ -1310,12 +1310,13 @@ class BcForm(object):
             mol += structure
 
             n_atoms.append(n_atoms[-1]+structure.NumAtoms())
+            total_atoms = sum(sum(sum(len(z) for z in y.values()) for y in x.values()) for x in atom_map.values())
 
             for subunit_map in atom_map.values():
                 for monomer in subunit_map.values():
                     for atom_type in monomer.values():
                         for i_atom, atom in atom_type.items():
-                            if atom:
+                            if atom and atom.GetIdx() <= total_atoms:
                                 atom_type[i_atom] = mol.GetAtom(atom.GetIdx()+n_atoms[i_subunit])
             atom_maps.append(atom_map)
 

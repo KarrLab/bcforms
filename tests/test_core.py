@@ -23,7 +23,7 @@ class SubunitTestCase(unittest.TestCase):
         self.assertEqual(subunit_1.stoichiometry, 2)
         self.assertIsNone(subunit_1.structure)
 
-        subunit_2 = core.Subunit(id='abc', stoichiometry=2, structure=bpforms.alphabet.protein.ProteinForm().from_str('AA'))
+        subunit_2 = core.Subunit(id='abc', stoichiometry=2, structure=bpforms.ProteinForm().from_str('AA'))
         self.assertEqual(subunit_2.id, 'abc')
         self.assertEqual(subunit_2.stoichiometry, 2)
         self.assertEqual(len(subunit_2.structure), 2)
@@ -44,7 +44,7 @@ class SubunitTestCase(unittest.TestCase):
 
     def test_set_structure(self):
         subunit = core.Subunit(id='abc', stoichiometry=3)
-        subunit.structure = bpforms.alphabet.protein.ProteinForm().from_str('AA')
+        subunit.structure = bpforms.ProteinForm().from_str('AA')
         subunit.structure = openbabel.OBMol()
         subunit.structure = None
         with self.assertRaises(ValueError):
@@ -81,8 +81,8 @@ class SubunitTestCase(unittest.TestCase):
         subunit_3 = core.Subunit(id='mg', stoichiometry=1, structure=mol)
         self.assertEqual(subunit_3.get_formula(), EmpiricalFormula('Mg'))
 
-        subunit_4 = core.Subunit(id='aa', stoichiometry=1, structure=bpforms.alphabet.protein.ProteinForm().from_str('AA'))
-        self.assertEqual(subunit_4.get_formula(), EmpiricalFormula('C6H12N2O3'))
+        subunit_4 = core.Subunit(id='aa', stoichiometry=1, structure=bpforms.ProteinForm().from_str('AA'))
+        self.assertEqual(subunit_4.get_formula(), EmpiricalFormula('C6H13N2O3'))
 
     def test_get_mol_wt(self):
         subunit_1 = core.Subunit(id='abc', stoichiometry=2)
@@ -98,8 +98,8 @@ class SubunitTestCase(unittest.TestCase):
         subunit_3 = core.Subunit(id='mg', stoichiometry=1, structure=mol)
         self.assertAlmostEqual(subunit_3.get_mol_wt(), 24, places=0)
 
-        subunit_4 = core.Subunit(id='aa', stoichiometry=2, structure=bpforms.alphabet.protein.ProteinForm().from_str('AA'))
-        self.assertAlmostEqual(subunit_4.get_mol_wt(), 320.346, places=3)
+        subunit_4 = core.Subunit(id='aa', stoichiometry=2, structure=bpforms.ProteinForm().from_str('AA'))
+        self.assertAlmostEqual(subunit_4.get_mol_wt(), 322.362, places=3)
 
     def test_get_charge(self):
         subunit_1 = core.Subunit(id='abc', stoichiometry=2)
@@ -115,13 +115,13 @@ class SubunitTestCase(unittest.TestCase):
         subunit_3 = core.Subunit(id='mg', stoichiometry=2, structure=mol)
         self.assertEqual(subunit_3.get_charge(), 0)
 
-        subunit_4 = core.Subunit(id='aa', stoichiometry=1, structure=bpforms.alphabet.protein.ProteinForm().from_str('AA'))
-        self.assertEqual(subunit_4.get_charge(), 0)
+        subunit_4 = core.Subunit(id='aa', stoichiometry=1, structure=bpforms.ProteinForm().from_str('AA'))
+        self.assertEqual(subunit_4.get_charge(), 1)
 
     def test_get_structure(self):
 
-        subunit_1 = core.Subunit(id='aa', stoichiometry=2, structure=bpforms.alphabet.protein.ProteinForm().from_str('AA'))
-        self.assertEqual(OpenBabelUtils.export(subunit_1.get_structure()[0], 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-].C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-]')
+        subunit_1 = core.Subunit(id='aa', stoichiometry=2, structure=bpforms.ProteinForm().from_str('AA'))
+        self.assertEqual(OpenBabelUtils.export(subunit_1.get_structure()[0], 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)O.C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)O')
         self.assertTrue(isinstance(subunit_1.get_structure()[1][2], dict))
 
         ob_mol = openbabel.OBMol()
@@ -435,8 +435,8 @@ class BcFormTestCase(unittest.TestCase):
         self.assertEqual(bc_form_2.get_formula({'abc_a': EmpiricalFormula('C5H10O'), 'abc_b': EmpiricalFormula('C3H5O')}), EmpiricalFormula('C8H13O'))
 
         bc_form_3 = core.BcForm().from_str('2 * aa')
-        bc_form_3.set_subunit_attribute('aa', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AA'))
-        self.assertEqual(bc_form_3.get_formula(), EmpiricalFormula('C12H24N4O6'))
+        bc_form_3.set_subunit_attribute('aa', 'structure', bpforms.ProteinForm().from_str('AA'))
+        self.assertEqual(bc_form_3.get_formula(), EmpiricalFormula('C12H26N4O6'))
 
         bc_form_4 = core.BcForm().from_str('abc_a + abc_b')
         bc_form_4.subunits.append(bc_form_2)
@@ -445,12 +445,12 @@ class BcFormTestCase(unittest.TestCase):
 
         bc_form_5 = core.BcForm().from_str('abc_a + abc_b')
         bc_form_5.subunits.append(bc_form_3)
-        self.assertEqual(bc_form_5.get_formula({'abc_a': EmpiricalFormula('C5H10O'), 'abc_b': EmpiricalFormula('C3H5O')}), EmpiricalFormula('C20H39N4O8'))
+        self.assertEqual(bc_form_5.get_formula({'abc_a': EmpiricalFormula('C5H10O'), 'abc_b': EmpiricalFormula('C3H5O')}), EmpiricalFormula('C20H41N4O8'))
 
         bc_form_6 = core.BcForm().from_str('2 * aa')
-        bc_form_6.set_subunit_attribute('aa', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AA'))
+        bc_form_6.set_subunit_attribute('aa', 'structure', bpforms.ProteinForm().from_str('AA'))
         bc_form_6.subunits.append(bc_form_3)
-        self.assertEqual(bc_form_6.get_formula(), EmpiricalFormula('C24H48N8O12'))
+        self.assertEqual(bc_form_6.get_formula(), EmpiricalFormula('C24H52N8O12'))
 
 
     def test_get_mol_wt(self):
@@ -464,8 +464,8 @@ class BcFormTestCase(unittest.TestCase):
         self.assertAlmostEqual(bc_form_2.get_mol_wt({'abc_a': EmpiricalFormula('C5H10O').get_molecular_weight(), 'abc_b': EmpiricalFormula('C3H5O').get_molecular_weight()}), 125, places=0)
 
         bc_form_3 = core.BcForm().from_str('3 * aa')
-        bc_form_3.set_subunit_attribute('aa', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AA'))
-        self.assertAlmostEqual(bc_form_3.get_mol_wt(), 480.519, places=3)
+        bc_form_3.set_subunit_attribute('aa', 'structure', bpforms.ProteinForm().from_str('AA'))
+        self.assertAlmostEqual(bc_form_3.get_mol_wt(), 483.543, places=3)
 
         bc_form_4 = core.BcForm().from_str('abc_a + abc_b')
         bc_form_4.subunits.append(bc_form_2)
@@ -474,12 +474,12 @@ class BcFormTestCase(unittest.TestCase):
 
         bc_form_5 = core.BcForm().from_str('abc_a + abc_b')
         bc_form_5.subunits.append(bc_form_3)
-        self.assertAlmostEqual(bc_form_5.get_mol_wt({'abc_a': EmpiricalFormula('C5H10O').get_molecular_weight(), 'abc_b': EmpiricalFormula('C3H5O').get_molecular_weight()}), EmpiricalFormula('C26H51N6O11').get_molecular_weight())
+        self.assertAlmostEqual(bc_form_5.get_mol_wt({'abc_a': EmpiricalFormula('C5H10O').get_molecular_weight(), 'abc_b': EmpiricalFormula('C3H5O').get_molecular_weight()}), EmpiricalFormula('C26H54N6O11').get_molecular_weight())
 
         bc_form_6 = core.BcForm().from_str('2 * aa')
-        bc_form_6.set_subunit_attribute('aa', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AA'))
+        bc_form_6.set_subunit_attribute('aa', 'structure', bpforms.ProteinForm().from_str('AA'))
         bc_form_6.subunits.append(bc_form_3)
-        self.assertEqual(bc_form_6.get_mol_wt(), EmpiricalFormula('C30H60N10O15').get_molecular_weight())
+        self.assertEqual(bc_form_6.get_mol_wt(), EmpiricalFormula('C30H65N10O15').get_molecular_weight())
 
 
     def test_get_charge(self):
@@ -493,8 +493,8 @@ class BcFormTestCase(unittest.TestCase):
         self.assertEqual(bc_form_2.get_charge({'abc_a': 1, 'abc_b': -1}), -1)
 
         bc_form_3 = core.BcForm().from_str('2 * aa')
-        bc_form_3.set_subunit_attribute('aa', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AA'))
-        self.assertEqual(bc_form_3.get_charge(), 0)
+        bc_form_3.set_subunit_attribute('aa', 'structure', bpforms.ProteinForm().from_str('AA'))
+        self.assertEqual(bc_form_3.get_charge(), 2)
 
         bc_form_4 = core.BcForm().from_str('abc_a + abc_b')
         bc_form_4.subunits.append(bc_form_2)
@@ -503,12 +503,12 @@ class BcFormTestCase(unittest.TestCase):
 
         bc_form_5 = core.BcForm().from_str('abc_a + abc_b')
         bc_form_5.subunits.append(bc_form_3)
-        self.assertEqual(bc_form_5.get_charge({'abc_a': 1, 'abc_b': -1}), 0)
+        self.assertEqual(bc_form_5.get_charge({'abc_a': 1, 'abc_b': -1}), 2)
 
         bc_form_6 = core.BcForm().from_str('2 * aa')
-        bc_form_6.set_subunit_attribute('aa', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AA'))
+        bc_form_6.set_subunit_attribute('aa', 'structure', bpforms.ProteinForm().from_str('AA'))
         bc_form_6.subunits.append(bc_form_3)
-        self.assertEqual(bc_form_6.get_charge(), 0)
+        self.assertEqual(bc_form_6.get_charge(), 4)
 
 
     def test_validate(self):
@@ -571,9 +571,9 @@ class BcFormTestCase(unittest.TestCase):
         bc_form = core.BcForm().from_str('aa')
         bc_form_sub = core.BcForm().from_str('def')
         bc_form.subunits.append(bc_form_sub)
-        bc_form.subunits[0].structure = bpforms.alphabet.protein.ProteinForm().from_str('AA')
+        bc_form.subunits[0].structure = bpforms.ProteinForm().from_str('AA')
         self.assertEqual(bc_form.get_subunit_attribute('aa', 'stoichiometry'), 1)
-        self.assertTrue(bc_form.get_subunit_attribute('aa', 'structure').is_equal(bpforms.alphabet.protein.ProteinForm().from_str('AA')))
+        self.assertTrue(bc_form.get_subunit_attribute('aa', 'structure').is_equal(bpforms.ProteinForm().from_str('AA')))
         with self.assertRaises(ValueError):
             bc_form.get_subunit_attribute('bb', 'stoichiometry')
         with self.assertRaises(ValueError):
@@ -584,8 +584,8 @@ class BcFormTestCase(unittest.TestCase):
         bc_form = core.BcForm().from_str('aa')
         bc_form_sub = core.BcForm().from_str('def')
         bc_form.subunits.append(bc_form_sub)
-        bc_form.set_subunit_attribute('aa', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AA'))
-        self.assertTrue(bc_form.subunits[0].structure.is_equal(bpforms.alphabet.protein.ProteinForm().from_str('AA')))
+        bc_form.set_subunit_attribute('aa', 'structure', bpforms.ProteinForm().from_str('AA'))
+        self.assertTrue(bc_form.subunits[0].structure.is_equal(bpforms.ProteinForm().from_str('AA')))
         bc_form.set_subunit_attribute('aa', 'stoichiometry', 2)
         self.assertEqual(bc_form.subunits[0].stoichiometry, 2)
         with self.assertRaises(ValueError):
@@ -598,49 +598,48 @@ class BcFormTestCase(unittest.TestCase):
         # no crosslink
         bc_form_1 = core.BcForm().from_str('2*a')
         self.assertTrue(len(bc_form_1.validate())==0)
-        bc_form_1.set_subunit_attribute('a', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('A'))
-        self.assertEqual(OpenBabelUtils.export(bc_form_1.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)[O-].C[C@H]([NH3+])C(=O)[O-]')
+        bc_form_1.set_subunit_attribute('a', 'structure', bpforms.ProteinForm().from_str('A'))
+        self.assertEqual(OpenBabelUtils.export(bc_form_1.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)O.C[C@H]([NH3+])C(=O)O')
 
         # mini "homodimer" AA
         # linking C[C@H]([NH3+])C(=O)[O-] and C[C@H]([NH3+])C(=O)[O-]
-        bc_form_2 = core.BcForm().from_str('2*a | crosslink: [left-bond-atom: a(1)-1C8 | left-displaced-atom: a(1)-1O1b | right-bond-atom: a(2)-1N4-1 | right-displaced-atom: a(2)-1H5+1 | right-displaced-atom: a(2)-1H6]')
+        bc_form_2 = core.BcForm().from_str('2*a | crosslink: [left-bond-atom: a(1)-1C8 | left-displaced-atom: a(1)-1O10 | left-displaced-atom: a(1)-1H10 | right-bond-atom: a(2)-1N4-1 | right-displaced-atom: a(2)-1H4+1 | right-displaced-atom: a(2)-1H4]')
         self.assertTrue(len(bc_form_2.validate())==0)
-        bc_form_2.set_subunit_attribute('a', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('A'))
-        self.assertEqual(OpenBabelUtils.export(bc_form_2.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-]')
+        bc_form_2.set_subunit_attribute('a', 'structure', bpforms.ProteinForm().from_str('A'))
+        self.assertEqual(OpenBabelUtils.export(bc_form_2.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)O')
 
         # mini "heterodimer" AG
         # linking C[C@H]([NH3+])C(=O)[O-] and C([NH3+])C(=O)[O-]
-        bc_form_3 = core.BcForm().from_str('a+g | crosslink: [left-bond-atom: a-1C8 | left-displaced-atom: a-1O1b | right-bond-atom: g-1N2-1 | right-displaced-atom: g-1H3+1 | right-displaced-atom: g-1H4]')
+        bc_form_3 = core.BcForm().from_str('a+g | crosslink: [left-bond-atom: a-1C8 | left-displaced-atom: a-1O10 | left-displaced-atom: a(1)-1H10 | right-bond-atom: g-1N5-1 | right-displaced-atom: g-1H5+1 | right-displaced-atom: g-1H5]')
         self.assertTrue(len(bc_form_3.validate())==0)
-        bc_form_3.set_subunit_attribute('a', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('A'))
-        bc_form_3.set_subunit_attribute('g', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('G'))
-        self.assertEqual(OpenBabelUtils.export(bc_form_3.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)NCC(=O)[O-]')
-
+        bc_form_3.set_subunit_attribute('a', 'structure', bpforms.ProteinForm().from_str('A'))
+        bc_form_3.set_subunit_attribute('g', 'structure', bpforms.ProteinForm().from_str('G'))
+        self.assertEqual(OpenBabelUtils.export(bc_form_3.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)NCC(=O)O')
 
         # a more realistic example AGGA, where subunits are composed of multiple monomers
         # linking C[C@H]([NH3+])C(=O)NCC(=O)[O-] and C([NH3+])C(=O)N[C@@H](C)C(=O)[O-]
-        bc_form_4 = core.BcForm().from_str('ag+ga | crosslink: [left-bond-atom: ag-2C6 | left-displaced-atom: ag-2O1b | right-bond-atom: ga-1N2-1 | right-displaced-atom: ga-1H3+1 | right-displaced-atom: ga-1H4]')
+        bc_form_4 = core.BcForm().from_str('ag+ga | crosslink: [left-bond-atom: ag-2C2 | left-displaced-atom: ag-2O1 | left-displaced-atom: ag-2H1 | right-bond-atom: ga-1N5-1 | right-displaced-atom: ga-1H5+1 | right-displaced-atom: ga-1H5]')
         self.assertTrue(len(bc_form_4.validate())==0)
-        bc_form_4.set_subunit_attribute('ag', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('AG'))
-        bc_form_4.set_subunit_attribute('ga', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('GA'))
-        self.assertEqual(OpenBabelUtils.export(bc_form_4.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)NCC(=O)NCC(=O)N[C@@H](C)C(=O)[O-]')
+        bc_form_4.set_subunit_attribute('ag', 'structure', bpforms.ProteinForm().from_str('AG'))
+        bc_form_4.set_subunit_attribute('ga', 'structure', bpforms.ProteinForm().from_str('GA'))
+        self.assertEqual(OpenBabelUtils.export(bc_form_4.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)NCC(=O)NCC(=O)N[C@@H](C)C(=O)O')
 
         # a more realistic example ACCMGAGA, where subunits are composed of multiple monomers
         # linking ACCM and 2*GA
-        bc_form_5 = core.BcForm().from_str('accm+2*ga | crosslink: [left-bond-atom: accm-4C11 | left-displaced-atom: accm-4O1b | right-bond-atom: ga(1)-1N2-1 | right-displaced-atom: ga(1)-1H3+1 | right-displaced-atom: ga(1)-1H4] | crosslink: [left-bond-atom: ga(1)-2C8 | left-displaced-atom: ga(1)-2O1b | right-bond-atom: ga(2)-1N2-1 | right-displaced-atom: ga(2)-1H3+1 | right-displaced-atom: ga(2)-1H4]')
+        bc_form_5 = core.BcForm().from_str('accm+2*ga | crosslink: [left-bond-atom: accm-4C11 | left-displaced-atom: accm-4O13 | left-displaced-atom: accm-4H13 | right-bond-atom: ga(1)-1N5-1 | right-displaced-atom: ga(1)-1H5+1 | right-displaced-atom: ga(1)-1H5] | crosslink: [left-bond-atom: ga(1)-2C8 | left-displaced-atom: ga(1)-2O10 | left-displaced-atom: ga(1)-2H10 | right-bond-atom: ga(2)-1N5-1 | right-displaced-atom: ga(2)-1H5+1 | right-displaced-atom: ga(2)-1H5]')
         self.assertTrue(len(bc_form_5.validate())==0)
-        bc_form_5.set_subunit_attribute('accm', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('ACCM'))
-        bc_form_5.set_subunit_attribute('ga', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('GA'))
-        self.assertEqual(OpenBabelUtils.export(bc_form_5.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](CS)C(=O)N[C@@H](CS)C(=O)N[C@@H](CCSC)C(=O)NCC(=O)N[C@@H](C)C(=O)NCC(=O)N[C@@H](C)C(=O)[O-]')
+        bc_form_5.set_subunit_attribute('accm', 'structure', bpforms.ProteinForm().from_str('ACCM'))
+        bc_form_5.set_subunit_attribute('ga', 'structure', bpforms.ProteinForm().from_str('GA'))
+        self.assertEqual(OpenBabelUtils.export(bc_form_5.get_structure(), 'smiles', options=['canonical']), OpenBabelUtils.export(bpforms.ProteinForm().from_str('ACCMGAGA').get_structure()[0], 'smiles', options=['canonical']))
 
         # mini "heterodimer" + small molecule AG+CH4
-        bc_form_6 = core.BcForm().from_str('a+g+small | crosslink: [left-bond-atom: a-1C8 | left-displaced-atom: a-1O1b | right-bond-atom: g-1N2-1 | right-displaced-atom: g-1H3+1 | right-displaced-atom: g-1H4] | crosslink: [left-bond-atom: g-1C1 | left-displaced-atom: g-1H1 | right-bond-atom: small-1C1 | right-displaced-atom: small-1H1 ]')
+        bc_form_6 = core.BcForm().from_str('a+g+small | crosslink: [left-bond-atom: a-1C8 | left-displaced-atom: a-1O10 | left-displaced-atom: a-1H10 | right-bond-atom: g-1N5-1 | right-displaced-atom: g-1H5+1 | right-displaced-atom: g-1H5] | crosslink: [left-bond-atom: g-1C4 | left-displaced-atom: g-1H4 | right-bond-atom: small-1C1 | right-displaced-atom: small-1H1 ]')
         self.assertTrue(len(bc_form_6.validate())==0)
-        bc_form_6.set_subunit_attribute('a', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('A'))
-        bc_form_6.set_subunit_attribute('g', 'structure', bpforms.alphabet.protein.ProteinForm().from_str('G'))
+        bc_form_6.set_subunit_attribute('a', 'structure', bpforms.ProteinForm().from_str('A'))
+        bc_form_6.set_subunit_attribute('g', 'structure', bpforms.ProteinForm().from_str('G'))
         ob_mol = openbabel.OBMol()
         conversion = openbabel.OBConversion()
         conversion.SetInFormat('smi')
         conversion.ReadString(ob_mol, 'C')
         bc_form_6.set_subunit_attribute('small', 'structure', ob_mol)
-        self.assertEqual(OpenBabelUtils.export(bc_form_6.get_structure(), 'smiles', options=['canonical']), OpenBabelUtils.export(bpforms.alphabet.protein.ProteinForm().from_str('AA').get_structure()[0], 'smiles', options=['canonical']))
+        self.assertEqual(OpenBabelUtils.export(bc_form_6.get_structure(), 'smiles', options=['canonical']), OpenBabelUtils.export(bpforms.ProteinForm().from_str('AA').get_structure()[0], 'smiles', options=['canonical']))

@@ -240,6 +240,7 @@ class Subunit(object):
 
         # join the subunits
         mol = openbabel.OBMol()
+
         subunit_atom_map = {}
         subunit_idx = 1
         for i in range(self.stoichiometry):
@@ -251,22 +252,20 @@ class Subunit(object):
                 atom_map[1] = {}
                 atom_map[1]['monomer'] = {}
                 for i_atom in range(structure.NumAtoms()):
-                    atom_map[1]['monomer'][i_atom+1] = structure.GetAtom(i_atom+1)
+                    atom_map[1]['monomer'][i_atom+1] = i_atom+1
             else:
                 # structure is a BpForm object
-                structure, atom_map = self.structure.get_structure()[0:2]
+                structure, atom_map = self.structure.get_structure()
 
             num_atoms = structure.NumAtoms()
             total_atoms = sum(sum(len(y) for y in x.values()) for x in atom_map.values())
+            # print(num_atoms, total_atoms)
 
             mol += structure
             for monomer in atom_map.values():
                 for atom_type in monomer.values():
                     for i_atom, atom in atom_type.items():
-                        # print(i_atom, atom.GetIdx())
-                        if atom and atom.GetIdx() <= total_atoms:
-                            atom_type[i_atom] = mol.GetAtom(atom.GetIdx()+num_atoms*(subunit_idx-1))
-                        # print(i_atom, atom.GetAtomicNum(), atom_type[i_atom].GetIdx())
+                        atom_type[i_atom] = atom + num_atoms*(subunit_idx-1)
 
             subunit_atom_map[subunit_idx] = atom_map
             subunit_idx += 1
@@ -1310,17 +1309,15 @@ class BcForm(object):
             mol += structure
 
             n_atoms.append(n_atoms[-1]+structure.NumAtoms())
-            total_atoms = sum(sum(sum(len(z) for z in y.values()) for y in x.values()) for x in atom_map.values())
 
             for subunit_map in atom_map.values():
                 for monomer in subunit_map.values():
                     for atom_type in monomer.values():
                         for i_atom, atom in atom_type.items():
-                            if atom and atom.GetIdx() <= total_atoms:
-                                atom_type[i_atom] = mol.GetAtom(atom.GetIdx()+n_atoms[i_subunit])
+                            atom_type[i_atom] = atom+n_atoms[i_subunit]
             atom_maps.append(atom_map)
 
-        mol.AddHydrogens()
+        # mol.AddHydrogens()
 
         # print(atom_maps)
         # for i in range(mol.NumAtoms()):
@@ -1338,7 +1335,7 @@ class BcForm(object):
                 for atom_md in getattr(crosslink, atom_type):
                     i_subunit = [i for i in range(len(self.subunits)) if self.subunits[i].id == atom_md.subunit][0]
                     subunit_idx = 1 if atom_md.subunit_idx is None else atom_md.subunit_idx
-                    atom = atom_maps[i_subunit][subunit_idx][atom_md.monomer][atom_md.component_type][atom_md.position]
+                    atom = mol.GetAtom(atom_maps[i_subunit][subunit_idx][atom_md.monomer][atom_md.component_type][atom_md.position])
                     if atom_md.element == 'H' and atom.GetAtomicNum() != 1:
                         atom = get_hydrogen_atom(atom, bonding_hydrogens, (i_subunit, subunit_idx-1, atom_md.monomer-1, atom_md.component_type))
                     crosslink_atoms[atom_type].append((atom, atom_md.charge))
@@ -1383,3 +1380,60 @@ def get_hydrogen_atom(parent_atom, bonding_hydrogens, i_monomer):
                 bonding_hydrogens.append(tmp)
                 return other_atom
     return None
+
+if __name__ == '__main__':
+
+    # no crosslink
+    bc_form_1 = BcForm().from_str('2*a')
+    print(len(bc_form_1.validate())==0)
+    bc_form_1.set_subunit_attribute('a', 'structure', bpforms.ProteinForm().from_str('A'))
+    print(OpenBabelUtils.export(bc_form_1.get_structure(), 'smiles', options=[]))
+    print('C[C@H]([NH3+])C(=O)O.C[C@H]([NH3+])C(=O)O')
+
+    # mini "homodimer" AA
+    # linking C[C@H]([NH3+])C(=O)O and C[C@H]([NH3+])C(=O)O
+    bc_form_2 = BcForm().from_str('2*a | crosslink: [left-bond-atom: a(1)-1C8 | left-displaced-atom: a(1)-1O10 | left-displaced-atom: a(1)-1H10 | right-bond-atom: a(2)-1N4-1 | right-displaced-atom: a(2)-1H4+1 | right-displaced-atom: a(2)-1H4]')
+    print(len(bc_form_2.validate())==0)
+    bc_form_2.set_subunit_attribute('a', 'structure', bpforms.ProteinForm().from_str('A'))
+    print(OpenBabelUtils.export(bc_form_2.get_structure(), 'smiles', options=[]))
+    print('C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)O')
+
+    # mini "heterodimer" AG
+    # linking C[C@H]([NH3+])C(=O)[O-] and C([NH3+])C(=O)[O-]
+    bc_form_3 = BcForm().from_str('a+g | crosslink: [left-bond-atom: a-1C8 | left-displaced-atom: a-1O10 | left-displaced-atom: a(1)-1H10 | right-bond-atom: g-1N5-1 | right-displaced-atom: g-1H5+1 | right-displaced-atom: g-1H5]')
+    print(len(bc_form_3.validate())==0)
+    bc_form_3.set_subunit_attribute('a', 'structure', bpforms.ProteinForm().from_str('A'))
+    bc_form_3.set_subunit_attribute('g', 'structure', bpforms.ProteinForm().from_str('G'))
+    print(OpenBabelUtils.export(bc_form_3.get_structure(), 'smiles', options=[]))
+    print('C[C@H]([NH3+])C(=O)NCC(=O)O')
+
+    # a more realistic example AGGA, where subunits are composed of multiple monomers
+    # linking C[C@H]([NH3+])C(=O)NCC(=O)[O-] and C([NH3+])C(=O)N[C@@H](C)C(=O)[O-]
+    bc_form_4 = BcForm().from_str('ag+ga | crosslink: [left-bond-atom: ag-2C2 | left-displaced-atom: ag-2O1 | left-displaced-atom: ag-2H1 | right-bond-atom: ga-1N5-1 | right-displaced-atom: ga-1H5+1 | right-displaced-atom: ga-1H5]')
+    print(len(bc_form_4.validate())==0)
+    bc_form_4.set_subunit_attribute('ag', 'structure', bpforms.ProteinForm().from_str('AG'))
+    bc_form_4.set_subunit_attribute('ga', 'structure', bpforms.ProteinForm().from_str('GA'))
+    print(OpenBabelUtils.export(bc_form_4.get_structure(), 'smiles', options=[]))
+    print('C[C@H]([NH3+])C(=O)NCC(=O)NCC(=O)N[C@@H](C)C(=O)O')
+
+    # a more realistic example ACCMGAGA, where subunits are composed of multiple monomers
+    # linking ACCM and 2*GA
+    bc_form_5 = BcForm().from_str('accm+2*ga | crosslink: [left-bond-atom: accm-4C11 | left-displaced-atom: accm-4O13 | left-displaced-atom: accm-4H13 | right-bond-atom: ga(1)-1N5-1 | right-displaced-atom: ga(1)-1H5+1 | right-displaced-atom: ga(1)-1H5] | crosslink: [left-bond-atom: ga(1)-2C8 | left-displaced-atom: ga(1)-2O10 | left-displaced-atom: ga(1)-2H10 | right-bond-atom: ga(2)-1N5-1 | right-displaced-atom: ga(2)-1H5+1 | right-displaced-atom: ga(2)-1H5]')
+    print(len(bc_form_5.validate())==0)
+    bc_form_5.set_subunit_attribute('accm', 'structure', bpforms.ProteinForm().from_str('ACCM'))
+    bc_form_5.set_subunit_attribute('ga', 'structure', bpforms.ProteinForm().from_str('GA'))
+    print(OpenBabelUtils.export(bc_form_5.get_structure(), 'smiles', options=['canonical']))
+    print(OpenBabelUtils.export(bpforms.ProteinForm().from_str('ACCMGAGA').get_structure()[0], 'smiles', options=['canonical']))
+
+    # mini "heterodimer" + small molecule AG+CH4
+    bc_form_6 = BcForm().from_str('a+g+small | crosslink: [left-bond-atom: a-1C8 | left-displaced-atom: a-1O10 | left-displaced-atom: a-1H10 | right-bond-atom: g-1N5-1 | right-displaced-atom: g-1H5+1 | right-displaced-atom: g-1H5] | crosslink: [left-bond-atom: g-1C4 | left-displaced-atom: g-1H4 | right-bond-atom: small-1C1 | right-displaced-atom: small-1H1 ]')
+    print(len(bc_form_6.validate())==0)
+    bc_form_6.set_subunit_attribute('a', 'structure', bpforms.ProteinForm().from_str('A'))
+    bc_form_6.set_subunit_attribute('g', 'structure', bpforms.ProteinForm().from_str('G'))
+    ob_mol = openbabel.OBMol()
+    conversion = openbabel.OBConversion()
+    conversion.SetInFormat('smi')
+    conversion.ReadString(ob_mol, 'C')
+    bc_form_6.set_subunit_attribute('small', 'structure', ob_mol)
+    print(OpenBabelUtils.export(bc_form_6.get_structure(), 'smiles', options=['canonical']))
+    print(OpenBabelUtils.export(bpforms.ProteinForm().from_str('AA').get_structure()[0], 'smiles', options=['canonical']))

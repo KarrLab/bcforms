@@ -44,9 +44,3 @@ class ExamplesTestCase(unittest.TestCase):
                 notebook = nbformat.read(file, as_version=version)
             execute_preprocessor = nbconvert.preprocessors.ExecutePreprocessor(timeout=self.TIMEOUT)
             execute_preprocessor.preprocess(notebook, {'metadata': {'path': 'examples/'}})
-
-    def test_complexportal(self):
-        import complexportal
-        complexportal.run()
-        # filename = os.path.join('examples', 'complextab_homo_sapiens_bcforms.tsv')
-        # self.assertTrue(os.path.isfile(filename))

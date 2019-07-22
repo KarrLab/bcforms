@@ -23,20 +23,30 @@ class Subunit(object):
         id (:obj:`str`): id of the subunit
         stoichiometry (:obj:`int`): stoichiometry of the subunit
         structure (:obj:`bpforms.BpForm` or :obj:`openbabel.OBMol`, optional): structure of the subunit
+        formula (:obj:`EmpiricalFormula`, optional): formula of the subunit
+        mol_wt (:obj:`float`, optional): molecular weight of the subunit
+        charge (:obj:`int`, optional): charge of the subunit
     """
 
-    def __init__(self, id, stoichiometry, structure=None):
+    def __init__(self, id, stoichiometry, structure=None, formula=None, mol_wt=None, charge=None):
         """
 
         Args:
             id (:obj:`str`): id of the subunit
             stoichiometry (:obj:`int`): stoichiometry of the subunit
             structure (:obj:`bpforms.BpForm` or :obj:`openbabel.OBMol`, optional): structure of the subunit
-
+            formula (:obj:`EmpiricalFormula`, optional): formula of the subunit
+            mol_wt (:obj:`float`, optional): molecular weight of the subunit
+            charge (:obj:`int`, optional): charge of the subunit
         """
         self.id = id
         self.stoichiometry = stoichiometry
         self.structure = structure
+        if structure is None:
+            self.formula = formula
+            self.charge = charge
+            if formula is None:
+                self.mol_wt = mol_wt
 
     @property
     def id(self):
@@ -100,6 +110,8 @@ class Subunit(object):
     def structure(self, value):
         """ Set the structure of the subunit
 
+        * setting structure will automaticall set formula, mol_wt, charge
+
         Args:
             value (:obj:`bpforms.BpForm` or :obj:`openbabel.OBMol` or None): structure of the subunit
 
@@ -108,7 +120,108 @@ class Subunit(object):
         """
         if not isinstance(value, bpforms.BpForm) and not isinstance(value, openbabel.OBMol) and value is not None:
             raise ValueError('`value` must be an instance of `bpforms.BpForm` or `openbabel.OBMol` or None')
+
         self._structure = value
+
+        if isinstance(value, openbabel.OBMol):
+            self._formula = OpenBabelUtils.get_formula(value)
+            self._mol_wt = self.formula.get_molecular_weight()
+            self._charge = value.GetTotalCharge()
+        elif isinstance(value, bpforms.BpForm):
+            self._formula = value.get_formula()
+            self._mol_wt = value.get_mol_wt()
+            self._charge = value.get_charge()
+
+    @property
+    def formula(self):
+        """ Get the empirical formula of the subunit
+
+        Returns:
+            :obj:`EmpiricalFormula` or None: formula of the subunit
+
+        """
+        return self._formula
+
+    @formula.setter
+    def formula(self, value):
+        """ Set the formula of the subunit
+
+        Args:
+            value (:obj:`EmpiricalFormula` or None): formula of the subunit
+
+        Raises:
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`EmpiricalFormula` or None
+            :obj:`ValueError`: if formula already set by setting structure attribute
+        """
+        if not isinstance(value, EmpiricalFormula) and value is not None:
+            raise ValueError(':obj:`value` is not an instance of :obj:`EmpiricalFormula` or None')
+
+        if self.structure is not None:
+            raise ValueError('formula already set by setting structure attribute')
+
+        self._formula = value
+
+        if isinstance(value, EmpiricalFormula):
+            self._mol_wt = value.get_molecular_weight()
+
+
+    @property
+    def mol_wt(self):
+        """ Get the molecular weight of the subunit
+
+        Returns:
+            :obj:`float` or None: molecular weight of the subunit
+
+        """
+        return self._mol_wt
+
+    @mol_wt.setter
+    def mol_wt(self, value):
+        """ Set the molecular weight of the subunit
+
+        Args:
+            value (:obj:`float` or None): molecular weight of the subunit
+
+        Raises:
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`float` or None
+            :obj:`ValueError`: if mol_wt already set by setting structure attribute or formula attribute
+        """
+        if not isinstance(value, float) and value is not None:
+            raise ValueError(':obj:`value` is not an instance of :obj:`float` or None')
+
+        if self.formula is not None:
+            raise ValueError('mol_wt already set by setting structure attribute or formula attribute')
+
+        self._mol_wt = value
+
+    @property
+    def charge(self):
+        """ Get the charge of the subunit
+
+        Returns:
+            :obj:`int` or None: charge of the subunit
+
+        """
+        return self._charge
+
+    @charge.setter
+    def charge(self, value):
+        """ Set the charge of the subunit
+
+        Args:
+            value (:obj:`int` or None): charge of the subunit
+
+        Raises:
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`int` or None
+            :obj:`ValueError`: if charge already set by setting structure attribute
+        """
+        if not isinstance(value, int) and value is not None:
+            raise ValueError(':obj:`value` is not an instance of :obj:`int` or None')
+
+        if self.structure is not None:
+            raise ValueError('charge already set by setting structure attribute')
+
+        self._charge = value
 
     def __str__(self):
         return str(self.stoichiometry) + ' * ' + self.id
@@ -138,89 +251,62 @@ class Subunit(object):
 
         return True
 
-    def get_formula(self, formula=None, from_structure=False):
+    def get_formula(self, formula=None):
         """ Get the empirical formula
 
         Args:
             formula (:obj:`EmpiricalFormula` or None): Subunit empirical formula per copy
-            from_structure (:obj:`bool`): True if calculate formula from subunit structure
 
         Returns:
-            :obj:`EmpiricalFormula`: the empirical formula of the Subunit
-
-        Raises:
-            :obj:`ValueError`: Attempting to get formula from structure but structure is None
+            :obj:`EmpiricalFormula` or None: the empirical formula of the Subunit
 
         """
 
-        if formula is None or from_structure is True:
-            # get formula from structure
-            if self.structure is None:
-                raise ValueError('Attempting to get formula from structure but structure is None')
-            elif isinstance(self.structure, openbabel.OBMol):
-                return OpenBabelUtils.get_formula(self.structure) * self.stoichiometry
-            else:
-                # structure is a BpForm object
-                return self.structure.get_formula() * self.stoichiometry
-        else:
-            # get formula from formula
-            return formula * self.stoichiometry
+        if formula is not None:
+            self.formula = formula
 
-    def get_mol_wt(self, mol_wt=None, from_structure=False):
+        if self.formula is not None:
+            return self.formula * self.stoichiometry
+
+        return None
+
+    def get_mol_wt(self, mol_wt=None):
         """ Get the molecular weight
 
         Args:
             mol_wt (:obj:`float` or None): Subunit molecular weight per copy
-            from_structure (:obj:`bool`): True if calculate formula from subunit structure
 
         Returns:
-            :obj:`float`: the molecular weight of the Subunit
-
-        Raises:
-            :obj:`ValueError`: Attempting to get molecular weight from structure but structure is None
+            :obj:`float` or None: the molecular weight of the Subunit
 
         """
 
-        if mol_wt is None or from_structure is True:
-            # get mol_wt from structure
-            if self.structure is None:
-                raise ValueError('Attempting to get molecular weight from structure but structure is None')
-            elif isinstance(self.structure, openbabel.OBMol):
-                return OpenBabelUtils.get_formula(self.structure).get_molecular_weight() * self.stoichiometry
-            else:
-                # structure is a BpForm object
-                return self.structure.get_mol_wt() * self.stoichiometry
-        else:
-            # get mol_wt from formula
-            return mol_wt * self.stoichiometry
+        if mol_wt is not None:
+            self.mol_wt = mol_wt
 
-    def get_charge(self, charge=None, from_structure=False):
+        if self.mol_wt is not None:
+            return self.mol_wt * self.stoichiometry
+
+        return None
+
+    def get_charge(self, charge=None):
         """ Get the total charge
 
         Args:
             charge (:obj:`int` or None): Subunit charge per copy
-            from_structure (:obj:`bool`): True if calculate formula from subunit structure
 
         Returns:
-            :obj:`int`: the total charge of the Subunit
-
-        Raises:
-            :obj:`ValueError`: Attempting to get total charge from structure but structure is None
+            :obj:`int` or None: the total charge of the Subunit
 
         """
 
-        if charge is None or from_structure is True:
-            # get charge from structure
-            if self.structure is None:
-                raise ValueError('Attempting to get molecular weight from structure but structure is None')
-            elif isinstance(self.structure, openbabel.OBMol):
-                return self.structure.GetTotalCharge() * self.stoichiometry
-            else:
-                # structure is a BpForm object
-                return self.structure.get_charge() * self.stoichiometry
-        else:
-            # get charge from formula
-            return charge * self.stoichiometry
+        if charge is not None:
+            self.charge = charge
+
+        if self.charge is not None:
+            return self.charge * self.stoichiometry
+
+        return None
 
     def get_structure(self):
         """ Get an OpenBabel molecule of the structure
@@ -1023,7 +1109,7 @@ class BcForm(object):
 
         self.subunits = subunits_cleaned
 
-    def get_formula(self, subunit_formulas=None, from_structure=False):
+    def get_formula(self, subunit_formulas=None):
         """ Get the empirical formula
 
         * if user wants to calculate formula of nested BcForm, where some subunits
@@ -1032,7 +1118,6 @@ class BcForm(object):
 
         Args:
             subunit_formulas (:obj:`dict` or None): dictionary of subunit ids and empirical formulas
-            from_structure (:obj:`bool`): True if calculate formula from subunit structure
 
         Returns:
             :obj:`EmpiricalFormula`: the empirical formula of the BcForm
@@ -1045,24 +1130,18 @@ class BcForm(object):
         formula = EmpiricalFormula()
 
         # subunits
-        # if no subunit_formulas provided, then try to get formula from structure
-        # (even if from_structure is False by default)
-        # or if subunit_formulas provided and from_structure is True, then
-        # try to get formula from structure
-        if subunit_formulas is None or from_structure is True:
+        if subunit_formulas is None:
             for subunit in self.subunits:
-                formula += subunit.get_formula(from_structure=True)
-        # if subunit_formulas provided and from_structure is False, then
-        # get formula from subunit_formulas
+                formula += subunit.get_formula()
         else:
             for subunit in self.subunits:
                 if isinstance(subunit, BcForm):
-                    formula += subunit.get_formula(from_structure=True)
+                    formula += subunit.get_formula()
                 else:
                     if subunit.id not in subunit_formulas:
                         raise ValueError('subunit_formulas must include all subunits')
                     else:
-                        formula += subunit.get_formula(formula=subunit_formulas[subunit.id], from_structure=False)
+                        formula += subunit.get_formula(formula=subunit_formulas[subunit.id])
 
         # crosslinks
         for crosslink in self.crosslinks:
@@ -1070,7 +1149,7 @@ class BcForm(object):
                 formula[atom.element] -= 1
         return formula
 
-    def get_mol_wt(self, subunit_mol_wts=None, from_structure=False):
+    def get_mol_wt(self, subunit_mol_wts=None):
         """ Get the molecular weight
 
         * if user wants to calculate molecular weight of nested BcForm, where
@@ -1079,7 +1158,6 @@ class BcForm(object):
 
         Args:
             subunit_formulas (:obj:`dict` or None): dictionary of subunit ids and molecular weights
-            from_structure (:obj:`bool`): True if calculate molecular weight from subunit structure
 
         Returns:
             :obj:`float`: the molecular weight of the BcForm
@@ -1091,24 +1169,18 @@ class BcForm(object):
         mol_wt = 0.0
 
         # subunits
-        # if no subunit_mol_wts provided, then try to get mol_wt from structure
-        # (even if from_structure is False by default)
-        # or if subunit_mol_wts provided and from_structure is True, then
-        # try to get mol_wt from structure
-        if subunit_mol_wts is None or from_structure is True:
+        if subunit_mol_wts is None:
             for subunit in self.subunits:
-                mol_wt += subunit.get_mol_wt(from_structure=True)
-        # if subunit_mol_wts provided and from_structure is False, then
-        # get mol_wt from subunit_formulas
+                mol_wt += subunit.get_mol_wt()
         else:
             for subunit in self.subunits:
                 if isinstance(subunit, BcForm):
-                    mol_wt += subunit.get_mol_wt(from_structure=True)
+                    mol_wt += subunit.get_mol_wt()
                 else:
                     if subunit.id not in subunit_mol_wts:
                         raise ValueError('subunit_mol_wts must include all subunits')
                     else:
-                        mol_wt += subunit.get_mol_wt(mol_wt=subunit_mol_wts[subunit.id], from_structure=False)
+                        mol_wt += subunit.get_mol_wt(mol_wt=subunit_mol_wts[subunit.id])
 
         # crosslinks
         for crosslink in self.crosslinks:
@@ -1117,7 +1189,7 @@ class BcForm(object):
 
         return mol_wt
 
-    def get_charge(self, subunit_charges=None, from_structure=False):
+    def get_charge(self, subunit_charges=None):
         """ Get the total charge
 
         * if user wants to calculate charge of nested BcForm, where
@@ -1126,7 +1198,6 @@ class BcForm(object):
 
         Args:
             subunit_formulas (:obj:`dict` or None): dictionary of subunit ids and charges
-            from_structure (:obj:`bool`): True if calculate molecular weight from subunit structure
 
         Returns:
             :obj:`int`: the total charge of the BcForm
@@ -1138,24 +1209,18 @@ class BcForm(object):
         charge = 0
 
         # subunits
-        # if no subunit_charges provided, then try to get charge from structure
-        # (even if from_structure is False by default)
-        # or if subunit_charges provided and from_structure is True, then
-        # try to get charge from structure
-        if subunit_charges is None or from_structure is True:
+        if subunit_charges is None:
             for subunit in self.subunits:
-                charge += subunit.get_charge(from_structure=True)
-        # if subunit_charges provided and from_structure is False, then
-        # get charge from subunit_formulas
+                charge += subunit.get_charge()
         else:
             for subunit in self.subunits:
                 if isinstance(subunit, BcForm):
-                    charge += subunit.get_charge(from_structure=True)
+                    charge += subunit.get_charge()
                 else:
                     if subunit.id not in subunit_charges:
                         raise ValueError('subunit_charges must include all subunits')
                     else:
-                        charge += subunit.get_charge(charge=subunit_charges[subunit.id], from_structure=False)
+                        charge += subunit.get_charge(charge=subunit_charges[subunit.id])
 
         # crosslinks
         for crosslink in self.crosslinks:

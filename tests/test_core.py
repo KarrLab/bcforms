@@ -22,6 +22,9 @@ class SubunitTestCase(unittest.TestCase):
         self.assertEqual(subunit_1.id, 'abc')
         self.assertEqual(subunit_1.stoichiometry, 2)
         self.assertIsNone(subunit_1.structure)
+        self.assertIsNone(subunit_1.formula)
+        self.assertIsNone(subunit_1.mol_wt)
+        self.assertIsNone(subunit_1.charge)
 
         subunit_2 = core.Subunit(id='abc', stoichiometry=2, structure=bpforms.ProteinForm().from_str('AA'))
         self.assertEqual(subunit_2.id, 'abc')
@@ -45,10 +48,41 @@ class SubunitTestCase(unittest.TestCase):
     def test_set_structure(self):
         subunit = core.Subunit(id='abc', stoichiometry=3)
         subunit.structure = bpforms.ProteinForm().from_str('AA')
+        self.assertIsNotNone(subunit.formula)
+        self.assertIsNotNone(subunit.mol_wt)
+        self.assertIsNotNone(subunit.charge)
         subunit.structure = openbabel.OBMol()
         subunit.structure = None
         with self.assertRaises(ValueError):
             subunit.structure = 123
+
+    def test_set_formula(self):
+        subunit = core.Subunit(id='abc', stoichiometry=3)
+        subunit.formula = EmpiricalFormula('CH4')
+        self.assertIsNotNone(subunit.mol_wt)
+        subunit.formula = None
+        with self.assertRaises(ValueError):
+            subunit.formula = 123
+        with self.assertRaises(ValueError):
+            subunit.structure = bpforms.ProteinForm().from_str('AA')
+            subunit.formula = EmpiricalFormula('CH4')
+
+    def test_set_mol_wt(self):
+        subunit = core.Subunit(id='abc', stoichiometry=3)
+        subunit.mol_wt = 16.0
+        subunit.mol_wt = None
+        with self.assertRaises(ValueError):
+            subunit.mol_wt = 'string'
+        with self.assertRaises(ValueError):
+            subunit.formula = EmpiricalFormula('CH4')
+            subunit.mol_wt = 12.0
+
+    def test_set_charge(self):
+        subunit = core.Subunit(id='abc', stoichiometry=3)
+        subunit.charge = 2
+        subunit.charge = None
+        with self.assertRaises(ValueError):
+            subunit.charge = 0.5
 
     def test_str(self):
         subunit = core.Subunit(id='abc', stoichiometry=3)
@@ -72,8 +106,7 @@ class SubunitTestCase(unittest.TestCase):
         self.assertEqual(subunit_1.get_formula(formula=EmpiricalFormula('CH4')), EmpiricalFormula('C2H8'))
 
         subunit_2 = core.Subunit(id='abc', stoichiometry=2)
-        with self.assertRaises(ValueError):
-            subunit_2.get_formula()
+        self.assertIsNone(subunit_2.get_formula())
 
         mol = openbabel.OBMol()
         a = mol.NewAtom()
@@ -89,8 +122,7 @@ class SubunitTestCase(unittest.TestCase):
         self.assertEqual(subunit_1.get_mol_wt(mol_wt=32.0), 64.0)
 
         subunit_2 = core.Subunit(id='abc', stoichiometry=2)
-        with self.assertRaises(ValueError):
-            subunit_2.get_mol_wt()
+        self.assertIsNone(subunit_2.get_mol_wt())
 
         mol = openbabel.OBMol()
         a = mol.NewAtom()
@@ -106,8 +138,7 @@ class SubunitTestCase(unittest.TestCase):
         self.assertEqual(subunit_1.get_charge(charge=1), 2)
 
         subunit_2 = core.Subunit(id='abc', stoichiometry=2)
-        with self.assertRaises(ValueError):
-            subunit_2.get_charge()
+        self.assertIsNone(subunit_2.get_charge())
 
         mol = openbabel.OBMol()
         a = mol.NewAtom()
@@ -135,8 +166,8 @@ class SubunitTestCase(unittest.TestCase):
         subunit_3 = core.Subunit(id='aa', stoichiometry=1)
         with self.assertRaises(ValueError):
             subunit_3.get_structure()
-
-
+'''
+'''
 class AtomTestCase(unittest.TestCase):
 
     def test_init(self):
@@ -438,11 +469,6 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_3.set_subunit_attribute('aa', 'structure', bpforms.ProteinForm().from_str('AA'))
         self.assertEqual(bc_form_3.get_formula(), EmpiricalFormula('C12H26N4O6'))
 
-        bc_form_4 = core.BcForm().from_str('abc_a + abc_b')
-        bc_form_4.subunits.append(bc_form_2)
-        with self.assertRaises(ValueError):
-            bc_form_4.get_formula({'abc_a': EmpiricalFormula('C5H10O'), 'abc_b': EmpiricalFormula('C3H5O')})
-
         bc_form_5 = core.BcForm().from_str('abc_a + abc_b')
         bc_form_5.subunits.append(bc_form_3)
         self.assertEqual(bc_form_5.get_formula({'abc_a': EmpiricalFormula('C5H10O'), 'abc_b': EmpiricalFormula('C3H5O')}), EmpiricalFormula('C20H41N4O8'))
@@ -467,11 +493,6 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_3.set_subunit_attribute('aa', 'structure', bpforms.ProteinForm().from_str('AA'))
         self.assertAlmostEqual(bc_form_3.get_mol_wt(), 483.543, places=3)
 
-        bc_form_4 = core.BcForm().from_str('abc_a + abc_b')
-        bc_form_4.subunits.append(bc_form_2)
-        with self.assertRaises(ValueError):
-            bc_form_4.get_mol_wt({'abc_a': EmpiricalFormula('C5H10O').get_molecular_weight(), 'abc_b': EmpiricalFormula('C3H5O').get_molecular_weight()})
-
         bc_form_5 = core.BcForm().from_str('abc_a + abc_b')
         bc_form_5.subunits.append(bc_form_3)
         self.assertAlmostEqual(bc_form_5.get_mol_wt({'abc_a': EmpiricalFormula('C5H10O').get_molecular_weight(), 'abc_b': EmpiricalFormula('C3H5O').get_molecular_weight()}), EmpiricalFormula('C26H54N6O11').get_molecular_weight())
@@ -495,11 +516,6 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_3 = core.BcForm().from_str('2 * aa')
         bc_form_3.set_subunit_attribute('aa', 'structure', bpforms.ProteinForm().from_str('AA'))
         self.assertEqual(bc_form_3.get_charge(), 2)
-
-        bc_form_4 = core.BcForm().from_str('abc_a + abc_b')
-        bc_form_4.subunits.append(bc_form_2)
-        with self.assertRaises(ValueError):
-            bc_form_4.get_charge({'abc_a': 1, 'abc_b': -1})
 
         bc_form_5 = core.BcForm().from_str('abc_a + abc_b')
         bc_form_5.subunits.append(bc_form_3)

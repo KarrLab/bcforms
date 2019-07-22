@@ -1329,7 +1329,7 @@ class BcForm(object):
         if subunit is None:
             raise ValueError('No Subunit with subunit_id')
 
-        if attribute not in ['stoichiometry', 'structure']:
+        if attribute not in ['stoichiometry', 'structure', 'formula', 'mol_wt', 'charge']:
             raise ValueError('Invalid attribute')
 
         return getattr(subunit, attribute)
@@ -1351,7 +1351,7 @@ class BcForm(object):
         if subunit is None:
             raise ValueError('No Subunit with subunit_id')
 
-        if attribute not in ['stoichiometry', 'structure']:
+        if attribute not in ['stoichiometry', 'structure', 'formula', 'mol_wt', 'charge']:
             raise ValueError('Invalid attribute')
 
         setattr(subunit, attribute, value)

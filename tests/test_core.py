@@ -594,6 +594,9 @@ class BcFormTestCase(unittest.TestCase):
             bc_form.get_subunit_attribute('bb', 'stoichiometry')
         with self.assertRaises(ValueError):
             bc_form.get_subunit_attribute('aa', 'invalidattr')
+        self.assertEqual(bc_form.get_subunit_attribute('aa', 'formula'), bpforms.ProteinForm().from_str('AA').get_formula())
+        self.assertEqual(bc_form.get_subunit_attribute('aa', 'mol_wt'), bpforms.ProteinForm().from_str('AA').get_mol_wt())
+        self.assertEqual(bc_form.get_subunit_attribute('aa', 'charge'), bpforms.ProteinForm().from_str('AA').get_charge())
 
     def test_set_subunit_attribute(self):
 
@@ -608,6 +611,15 @@ class BcFormTestCase(unittest.TestCase):
             bc_form.set_subunit_attribute('bb', 'stoichiometry', 4)
         with self.assertRaises(ValueError):
             bc_form.set_subunit_attribute('aa', 'invalidattr', 'b')
+
+        bc_form.set_subunit_attribute('aa', 'structure', None)
+        bc_form.set_subunit_attribute('aa', 'formula', None)
+        bc_form.set_subunit_attribute('aa', 'mol_wt', 3.9)
+        self.assertTrue(bc_form.subunits[0].mol_wt == 3.9)
+        bc_form.set_subunit_attribute('aa', 'charge', 1)
+        self.assertTrue(bc_form.subunits[0].charge == 1)
+        bc_form.set_subunit_attribute('aa', 'formula', EmpiricalFormula('CH4'))
+        self.assertTrue(bc_form.subunits[0].formula == EmpiricalFormula('CH4'))
 
     def test_get_structure(self):
 

@@ -130,14 +130,14 @@ class Subunit(object):
         else:
             self._structure = value
 
-        if isinstance(value, openbabel.OBMol):
-            self._formula = OpenBabelUtils.get_formula(value)
+        if isinstance(self._structure, openbabel.OBMol):
+            self._formula = OpenBabelUtils.get_formula(self._structure)
             self._mol_wt = self.formula.get_molecular_weight()
-            self._charge = value.GetTotalCharge()
-        elif isinstance(value, bpforms.BpForm):
-            self._formula = value.get_formula()
-            self._mol_wt = value.get_mol_wt()
-            self._charge = value.get_charge()
+            self._charge = self._structure.GetTotalCharge()
+        elif isinstance(self._structure, bpforms.BpForm):
+            self._formula = self._structure.get_formula()
+            self._mol_wt = self._structure.get_mol_wt()
+            self._charge = self._structure.get_charge()
 
     @property
     def formula(self):
@@ -154,22 +154,25 @@ class Subunit(object):
         """ Set the formula of the subunit
 
         Args:
-            value (:obj:`EmpiricalFormula` or None): formula of the subunit
+            value (:obj:`EmpiricalFormula` or :obj:`str` (string representation of the formula) None): formula of the subunit
 
         Raises:
             :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`EmpiricalFormula` or None
             :obj:`ValueError`: if formula already set by setting structure attribute
         """
-        if not isinstance(value, EmpiricalFormula) and value is not None:
-            raise ValueError(':obj:`value` is not an instance of :obj:`EmpiricalFormula` or None')
+        if not isinstance(value, EmpiricalFormula) and not isinstance(value, str) and value is not None:
+            raise ValueError(':obj:`value` is not an instance of :obj:`EmpiricalFormula` or :obj:`str` or None')
 
         if self.structure is not None:
             raise ValueError('formula already set by setting structure attribute')
 
-        self._formula = value
+        if isinstance(value, str):
+            self._formula = EmpiricalFormula(value)
+        else:
+            self._formula = value
 
-        if isinstance(value, EmpiricalFormula):
-            self._mol_wt = value.get_molecular_weight()
+        if isinstance(self._formula, EmpiricalFormula):
+            self._mol_wt = self._formula.get_molecular_weight()
 
 
     @property

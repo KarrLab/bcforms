@@ -113,15 +113,22 @@ class Subunit(object):
         * setting structure will automaticall set formula, mol_wt, charge
 
         Args:
-            value (:obj:`bpforms.BpForm` or :obj:`openbabel.OBMol` or None): structure of the subunit
+            value (:obj:`bpforms.BpForm` or :obj:`openbabel.OBMol` or :obj:`str` (SMILES-encoded string) or None): structure of the subunit
 
         Raises:
             :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`bpforms.BpForm` or :obj:`openbabel.OBMol` or None
         """
-        if not isinstance(value, bpforms.BpForm) and not isinstance(value, openbabel.OBMol) and value is not None:
+        if not isinstance(value, bpforms.BpForm) and not isinstance(value, openbabel.OBMol) and not isinstance(value, str) and value is not None:
             raise ValueError('`value` must be an instance of `bpforms.BpForm` or `openbabel.OBMol` or None')
 
-        self._structure = value
+        if isinstance(value, str):
+            ob_mol = openbabel.OBMol()
+            conversion = openbabel.OBConversion()
+            conversion.SetInFormat('smi')
+            conversion.ReadString(ob_mol, value)
+            self._structure = ob_mol
+        else:
+            self._structure = value
 
         if isinstance(value, openbabel.OBMol):
             self._formula = OpenBabelUtils.get_formula(value)

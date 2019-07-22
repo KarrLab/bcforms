@@ -166,8 +166,10 @@ class SubunitTestCase(unittest.TestCase):
         subunit_3 = core.Subunit(id='aa', stoichiometry=1)
         with self.assertRaises(ValueError):
             subunit_3.get_structure()
-'''
-'''
+
+        subunit_4 = core.Subunit(id='aa', stoichiometry=1, structure='C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-]')
+        self.assertEqual(OpenBabelUtils.export(subunit_4.get_structure()[0], 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-]')
+
 class AtomTestCase(unittest.TestCase):
 
     def test_init(self):

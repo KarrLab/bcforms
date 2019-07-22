@@ -365,6 +365,21 @@ class Subunit(object):
 
         return mol, subunit_atom_map
 
+    def export(self, format='smiles', options=[]):
+        """ Export the structure to string
+
+        Args:
+            format (:obj:`str`, optional): export format
+            options (:obj:`list`, optional): export options
+
+        Returns:
+            :obj:`str`: exported string representation of the structure
+
+        """
+        if self.structure is None:
+            return ''
+
+        return OpenBabelUtils.export(self.get_structure()[0], format=format, options=options)
 
 class Atom(object):
     """ Atom in a crosslink
@@ -1435,6 +1450,20 @@ class BcForm(object):
                     r_atom.SetFormalCharge(r_atom.GetFormalCharge() + r_atom_charge)
 
         return mol
+
+    def export(self, format='smiles', options=[]):
+        """ Export the structure to string
+
+        Args:
+            format (:obj:`str`, optional): export format
+            options (:obj:`list`, optional): export options
+
+        Returns:
+            :obj:`str`: exported string representation of the structure
+
+        """
+        return OpenBabelUtils.export(self.get_structure(), format=format, options=options)
+
 
 def get_hydrogen_atom(parent_atom, bonding_hydrogens, i_monomer):
     """ Get a hydrogen atom attached to a parent atom

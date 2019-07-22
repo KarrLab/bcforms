@@ -83,6 +83,9 @@ class SubunitTestCase(unittest.TestCase):
         subunit.charge = None
         with self.assertRaises(ValueError):
             subunit.charge = 0.5
+        with self.assertRaises(ValueError):
+            subunit.structure = bpforms.ProteinForm().from_str('AA')
+            subunit.charge = -3
 
     def test_str(self):
         subunit = core.Subunit(id='abc', stoichiometry=3)
@@ -169,6 +172,10 @@ class SubunitTestCase(unittest.TestCase):
 
         subunit_4 = core.Subunit(id='aa', stoichiometry=1, structure='C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-]')
         self.assertEqual(OpenBabelUtils.export(subunit_4.get_structure()[0], 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)[O-]')
+
+    def test_export(self):
+        subunit_1 = core.Subunit(id='aa', stoichiometry=2, structure=bpforms.ProteinForm().from_str('AA'))
+        self.assertEqual(subunit_1.export(), 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)O.C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)O')
 
 class AtomTestCase(unittest.TestCase):
 
@@ -673,3 +680,10 @@ class BcFormTestCase(unittest.TestCase):
         conversion.ReadString(ob_mol, 'C')
         bc_form_6.set_subunit_attribute('small', 'structure', ob_mol)
         self.assertEqual(OpenBabelUtils.export(bc_form_6.get_structure(), 'smiles', options=['canonical']), OpenBabelUtils.export(bpforms.ProteinForm().from_str('AA').get_structure()[0], 'smiles', options=['canonical']))
+
+    def test_export(self):
+        bc_form_3 = core.BcForm().from_str('a+g | crosslink: [left-bond-atom: a-1C8 | left-displaced-atom: a-1O10 | left-displaced-atom: a(1)-1H10 | right-bond-atom: g-1N5-1 | right-displaced-atom: g-1H5+1 | right-displaced-atom: g-1H5]')
+        self.assertTrue(len(bc_form_3.validate())==0)
+        bc_form_3.set_subunit_attribute('a', 'structure', bpforms.ProteinForm().from_str('A'))
+        bc_form_3.set_subunit_attribute('g', 'structure', bpforms.ProteinForm().from_str('G'))
+        self.assertEqual(bc_form_3.export(), 'C[C@H]([NH3+])C(=O)NCC(=O)O')

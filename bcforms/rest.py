@@ -9,6 +9,7 @@
 
 import bcforms
 import bcforms.core
+import bpforms
 from wc_utils.util.chem import EmpiricalFormula
 import flask
 import flask_restplus
@@ -48,12 +49,35 @@ api = flask_restplus.Api(app,
 bcform_ns = flask_restplus.Namespace('bcform', description='Calculate properties of biocomplex forms')
 api.add_namespace(bcform_ns)
 
-bcforms_model = bcform_ns.model('BcForm', {
-    'form': flask_restplus.fields.String(required=True, title='BcForm', description='input biocomplex form', example='2 * abc_a + 3 * abc_b'),
-    'subunit_formulas': flask_restplus.fields.String(required=False, title='subunit_formulas', description='formulas of the subunits', example='{abc_a:C5H10O, abc_b:C3H5O}'),
-    'subunit_mol_wts': flask_restplus.fields.String(required=False, title='subunit_mol_wts', description='molecular weights of the subunits', example='{abc_a:86, abc_b:57}'),
-    'subunit_charges': flask_restplus.fields.String(required=False, title='subunit_charges', description='charges of the subunits', example='{abc_a:+1, abc_b:-1}'),
-})
+# define model
+
+# if encoding, structure defined -> define all other
+# formula defined -> define mol_wt define
+subunit_fields = {}
+subunit_fields['subunit_name'] = flask_restplus.fields.String(required=True, title='Subunit name', example='abc_a')
+# encoding can be smiles, bpforms.ProteinForm, bpforms.DnaForm, bpforms.RnaForm
+subunit_fields['encoding'] = flask_restplus.fields.String(required=False, title='Structure encoding', example='bpforms.ProteinForm')
+subunit_fields['structure'] = flask_restplus.fields.String(required=False, title='Structure string', example='AAA')
+subunit_fields['formula'] = flask_restplus.fields.String(required=False, title='Empirical formula', example='C5H10O')
+subunit_fields['mol_wt'] = flask_restplus.fields.Float(required=False, title='Molecular weight', example=86.0)
+subunit_fields['charge'] = flask_restplus.fields.Integer(required=False, title='Total charge', example=0)
+
+bcform_fields = {}
+bcform_fields['form'] = flask_restplus.fields.String(required=True, title='BcForm', description='input biocomplex form', example='2 * abc_a + 3 * abc_b')
+bcform_fields['subunits'] = flask_restplus.fields.List(flask_restplus.fields.Nested(bcform_ns.model('Subunit',subunit_fields)), example=[
+    {
+      "subunit_name": "abc_a",
+      "encoding": "bpforms.ProteinForm",
+      "structure": "AAA"
+    },
+    {
+      "subunit_name": "abc_b",
+      "encoding": "bpforms.ProteinForm",
+      "structure": "MM"
+    }
+  ])
+
+bcforms_model = bcform_ns.model('BcFrom', bcform_fields)
 
 
 @bcform_ns.route("/")
@@ -65,11 +89,11 @@ class Bcform(flask_restplus.Resource):
 
         args = bcform_ns.payload
 
-        # read arguments
+        # print(args)
+
+        # get arguments
         form = args['form']
-        arg_subunit_formulas = args.get('subunit_formulas', None)
-        arg_subunit_mol_wts = args.get('subunit_mol_wts', None)
-        arg_subunit_charges = args.get('subunit_charges', None)
+        arg_subunits = args.get('subunits', None)
 
         # validate form
         try:
@@ -81,68 +105,75 @@ class Bcform(flask_restplus.Resource):
         if errors:
             flask_restplus.abort(400, 'Form is invalid', errors={'form': '. '.join(errors)})
 
+        # validate input subunit properties
+        for subunit in arg_subunits:
+
+            # check if name is in the form
+            subunit_id = subunit['subunit_name']
+            if subunit_id in [subunit.id for subunit in bc_form.subunits]:
+
+                # check if encoding and structure are present at the same time
+                if ('encoding' in subunit) and ('structure' in subunit):
+                    # if encoding and structure both present, check if encoding is known
+                    encoding = subunit['encoding'].strip()
+                    if encoding == 'bpforms.ProteinForm':
+                        try:
+                            subunit_structure = bpforms.ProteinForm().from_str(subunit['structure'])
+                            bc_form.set_subunit_attribute(subunit_id, 'structure', subunit_structure)
+                        except Exception as error:
+                            flask_restplus.abort(400, 'Unable to parse bpforms.ProteinForm', errors={'structure': str(error)})
+                    elif encoding == 'bpforms.DnaForm':
+                        try:
+                            subunit_structure = bpforms.DnaForm().from_str(subunit['structure'])
+                            bc_form.set_subunit_attribute(subunit_id, 'structure', subunit_structure)
+                        except Exception as error:
+                            flask_restplus.abort(400, 'Unable to parse bpforms.DnaForm', errors={'structure': str(error)})
+                    elif encoding == 'bpforms.RnaForm':
+                        try:
+                            subunit_structure = bpforms.RnaForm().from_str(subunit['structure'])
+                            bc_form.set_subunit_attribute(subunit_id, 'structure', subunit_structure)
+                        except Exception as error:
+                            flask_restplus.abort(400, 'Unable to parse bpforms.RnaForm', errors={'structure': str(error)})
+                    elif encoding == 'smiles' or encoding == 'SMILES' or encoding == 'smi' or encoding == 'SMI':
+                        try:
+                            bc_form.set_subunit_attribute(subunit_id, 'structure', subunit['structure'])
+                        except Exception as error:
+                            flask_restplus.abort(400, 'Unable to parse SMILES string', errors={'structure': str(error)})
+
+                # else if one is present but not the other, report error
+                elif ('encoding' in subunit) ^ ('structure' in subunit):
+                    flask_restplus.abort(400, 'One of encoding and structure is present but not both')
+
+                # when neither encoding nor structure is present
+                else:
+                    # check formula
+                    if 'formula' in subunit:
+                        try:
+                            bc_form.set_subunit_attribute(subunit_id, 'formula', subunit['formula'])
+                        except Exception as error:
+                            flask_restplus.abort(400, 'Unable to parse formula', errors={'formula': str(error)})
+                    elif 'mol_wt' in subunit:
+                        try:
+                            bc_form.set_subunit_attribute(subunit_id, 'mol_wt', subunit['mol_wt'])
+                        except Exception as error:
+                            flask_restplus.abort(400, 'Unable to parse mol_wt', errors={'mol_wt': str(error)})
+
+                    # check charge
+                    if 'charge' in subunit:
+                        try:
+                            bc_form.set_subunit_attribute(subunit_id, 'charge', subunit['charge'])
+                        except Exception as error:
+                            flask_restplus.abort(400, 'Unable to parse charge', errors={'charge': str(error)})
+
+            else:
+                flask_restplus.abort(400, 'Subunit name not in BcForm')
+
+
         ret['form'] = str(bc_form)
-
-        # if subunit_formulas exists, then calculate biocomplex formula
-        if arg_subunit_formulas is not None:
-
-            # parse formula
-            subunit_formulas = {}
-            try:
-                for subunit in arg_subunit_formulas[1:-1].split(','):
-                    id, formula = subunit.strip().split(':')
-                    subunit_formulas[id.strip()] = EmpiricalFormula(formula.strip())
-            except Exception as error:
-                flask_restplus.abort(400, 'Cannot parse subunit_formulas', errors={'subunit_formulas': str(error)})
-
-            # calculate BcForm formula
-            try:
-                formula = bc_form.get_formula(subunit_formulas)
-            except Exception as error:
-                flask_restplus.abort(400, 'Unable to calculate BcForm formula', errors={'subunit_formulas': str(error)})
-
-            ret['formula'] = str(formula)
-
-        # if subunit_mol_wts exists, then calculate biocomplex molecular weight
-        if arg_subunit_mol_wts is not None:
-
-            # parse subunit_mol_wts
-            subunit_mol_wts = {}
-            try:
-                for subunit in arg_subunit_mol_wts[1:-1].split(','):
-                    id, mol_wt = subunit.strip().split(':')
-                    subunit_mol_wts[id.strip()] = float(mol_wt.strip())
-            except Exception as error:
-                flask_restplus.abort(400, 'Cannot parse subunit_mol_wts', errors={'subunit_mol_wts': str(error)})
-
-            # calculate BcForm molecular weights
-            try:
-                mol_wt = bc_form.get_mol_wt(subunit_mol_wts)
-            except Exception as error:
-                flask_restplus.abort(400, 'Unable to calculate BcForm molecular weight', errors={'subunit_mol_wts': str(error)})
-
-            ret['mol_wt'] = str(mol_wt)
-
-        # if subunit_charges exists, then calculate biocomplex total charges
-        if arg_subunit_charges is not None:
-
-            # parse subunit_charges
-            subunit_charges = {}
-            try:
-                for subunit in arg_subunit_charges[1:-1].split(','):
-                    id, charge = subunit.strip().split(':')
-                    subunit_charges[id.strip()] = int(charge.strip())
-            except Exception as error:
-                flask_restplus.abort(400, 'Cannot parse subunit_charges', errors={'subunit_charges': str(error)})
-
-            # calculate BcForm charge
-            try:
-                charge = bc_form.get_charge(subunit_charges)
-            except Exception as error:
-                flask_restplus.abort(400, 'Unable to calculate BcForm charges', errors={'subunit_charges': str(error)})
-
-            ret['charge'] = str(charge)
-
+        ret['structure'] = bc_form.export()
+        ret['formula'] = str(bc_form.get_formula())
+        ret['mol_wt'] = bc_form.get_mol_wt()
+        ret['charge'] = bc_form.get_charge()
 
         return ret
 

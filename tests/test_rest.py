@@ -18,6 +18,7 @@ class RestTestCase(unittest.TestCase):
     def test_PrefixMiddleware(self):
         rest.PrefixMiddleware(rest.app).__call__({'PATH_INFO': 'x'}, lambda x, y: None)
 
+'''
     def test_get_bcform_properties(self):
         client = rest.app.test_client()
 
@@ -142,3 +143,4 @@ class RestTestCase(unittest.TestCase):
         rv = client.post('/api/bcform/', json=dict(form='abc_a + abc_b',
                                                     subunit_charges='{abc_a:+1}'))
         self.assertEqual(rv.status_code, 400)
+'''

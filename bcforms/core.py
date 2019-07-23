@@ -657,54 +657,54 @@ class Crosslink(object):
     """ A crosslink between subunits
 
     Attributes:
-        left_bond_atoms (:obj:`list` of :obj:`Atom`): atoms from the left subunit that bond with the right subunit
-        right_bond_atoms (:obj:`list` of :obj:`Atom`): atoms from the right subunit that bond with the left subunit
-        left_displaced_atoms (:obj:`list` of :obj:`Atom`): atoms from the left subunit displaced by the crosslink
-        right_displaced_atoms (:obj:`list` of :obj:`Atom`): atoms from the right subunit displaced by the crosslink
+        l_bond_atoms (:obj:`list` of :obj:`Atom`): atoms from the left subunit that bond with the right subunit
+        r_bond_atoms (:obj:`list` of :obj:`Atom`): atoms from the right subunit that bond with the left subunit
+        l_displaced_atoms (:obj:`list` of :obj:`Atom`): atoms from the left subunit displaced by the crosslink
+        r_displaced_atoms (:obj:`list` of :obj:`Atom`): atoms from the right subunit displaced by the crosslink
     """
 
-    def __init__(self, left_bond_atoms=None, right_bond_atoms=None, left_displaced_atoms=None, right_displaced_atoms=None):
+    def __init__(self, l_bond_atoms=None, r_bond_atoms=None, l_displaced_atoms=None, r_displaced_atoms=None):
         """
 
         Args:
-            left_bond_atoms (:obj:`list`): atoms from the left subunit that bond with the right subunit
-            right_bond_atoms (:obj:`list`): atoms from the right subunit that bond with the left subunit
-            left_displaced_atoms (:obj:`list`): atoms from the left subunit displaced by the crosslink
-            right_displaced_atoms (:obj:`list`): atoms from the right subunit displaced by the crosslink
+            l_bond_atoms (:obj:`list`): atoms from the left subunit that bond with the right subunit
+            r_bond_atoms (:obj:`list`): atoms from the right subunit that bond with the left subunit
+            l_displaced_atoms (:obj:`list`): atoms from the left subunit displaced by the crosslink
+            r_displaced_atoms (:obj:`list`): atoms from the right subunit displaced by the crosslink
 
         """
-        if left_bond_atoms is None:
-            self.left_bond_atoms = []
+        if l_bond_atoms is None:
+            self.l_bond_atoms = []
         else:
-            self.left_bond_atoms = left_bond_atoms
+            self.l_bond_atoms = l_bond_atoms
 
-        if right_bond_atoms is None:
-            self.right_bond_atoms = []
+        if r_bond_atoms is None:
+            self.r_bond_atoms = []
         else:
-            self.right_bond_atoms = right_bond_atoms
+            self.r_bond_atoms = r_bond_atoms
 
-        if left_displaced_atoms is None:
-            self.left_displaced_atoms = []
+        if l_displaced_atoms is None:
+            self.l_displaced_atoms = []
         else:
-            self.left_displaced_atoms = left_displaced_atoms
+            self.l_displaced_atoms = l_displaced_atoms
 
-        if right_bond_atoms is None:
-            self.right_displaced_atoms = []
+        if r_bond_atoms is None:
+            self.r_displaced_atoms = []
         else:
-            self.right_displaced_atoms = right_bond_atoms
+            self.r_displaced_atoms = r_bond_atoms
 
     @property
-    def left_bond_atoms(self):
+    def l_bond_atoms(self):
         """ Get the left bond atoms
 
         Returns:
             :obj:`list` of :obj:`Atom`: left bond atoms
 
         """
-        return self._left_bond_atoms
+        return self._l_bond_atoms
 
-    @left_bond_atoms.setter
-    def left_bond_atoms(self, value):
+    @l_bond_atoms.setter
+    def l_bond_atoms(self, value):
         """ Set the left bond atoms
 
         Args:
@@ -716,20 +716,20 @@ class Crosslink(object):
         """
         if not isinstance(value, list):
             raise ValueError('`value` must be an instance of `list`')
-        self._left_bond_atoms = value
+        self._l_bond_atoms = value
 
     @property
-    def right_bond_atoms(self):
+    def r_bond_atoms(self):
         """ Get the right bond atoms
 
         Returns:
             :obj:`list` of :obj:`Atom`: right bond atoms
 
         """
-        return self._right_bond_atoms
+        return self._r_bond_atoms
 
-    @right_bond_atoms.setter
-    def right_bond_atoms(self, value):
+    @r_bond_atoms.setter
+    def r_bond_atoms(self, value):
         """ Set the right bond atoms
 
         Args:
@@ -741,20 +741,20 @@ class Crosslink(object):
         """
         if not isinstance(value, list):
             raise ValueError('`value` must be an instance of `list`')
-        self._right_bond_atoms = value
+        self._r_bond_atoms = value
 
     @property
-    def left_displaced_atoms(self):
+    def l_displaced_atoms(self):
         """ Get the left displaced atoms
 
         Returns:
             :obj:`list` of :obj:`Atom`: left displaced atoms
 
         """
-        return self._left_displaced_atoms
+        return self._l_displaced_atoms
 
-    @left_displaced_atoms.setter
-    def left_displaced_atoms(self, value):
+    @l_displaced_atoms.setter
+    def l_displaced_atoms(self, value):
         """ Set the left displaced atoms
 
         Args:
@@ -766,20 +766,20 @@ class Crosslink(object):
         """
         if not isinstance(value, list):
             raise ValueError('`value` must be an instance of `list`')
-        self._left_displaced_atoms = value
+        self._l_displaced_atoms = value
 
     @property
-    def right_displaced_atoms(self):
+    def r_displaced_atoms(self):
         """ Get the right displaced atoms
 
         Returns:
             :obj:`list` of :obj:`Atom`: right displaced atoms
 
         """
-        return self._right_displaced_atoms
+        return self._r_displaced_atoms
 
-    @right_displaced_atoms.setter
-    def right_displaced_atoms(self, value):
+    @r_displaced_atoms.setter
+    def r_displaced_atoms(self, value):
         """ Set the right displaced atoms
 
         Args:
@@ -791,7 +791,7 @@ class Crosslink(object):
         """
         if not isinstance(value, list):
             raise ValueError('`value` must be an instance of `list`')
-        self._right_displaced_atoms = value
+        self._r_displaced_atoms = value
 
     def __str__(self):
         """Generate a string representation
@@ -800,7 +800,7 @@ class Crosslink(object):
             :obj:`str`: string representation
         """
         s = 'crosslink: ['
-        atom_types = ['left_bond_atoms', 'left_displaced_atoms', 'right_bond_atoms', 'right_displaced_atoms']
+        atom_types = ['l_bond_atoms', 'l_displaced_atoms', 'r_bond_atoms', 'r_displaced_atoms']
         for atom_type in atom_types:
             for atom in getattr(self, atom_type):
                 s += ' {}: {} |'.format(atom_type[:-1].replace('_', '-'), str(atom))
@@ -824,7 +824,7 @@ class Crosslink(object):
         if self.__class__ != other.__class__:
             return False
 
-        attrs = ['left_bond_atoms', 'left_displaced_atoms', 'right_bond_atoms', 'right_displaced_atoms']
+        attrs = ['l_bond_atoms', 'l_displaced_atoms', 'r_bond_atoms', 'r_displaced_atoms']
 
         for attr in attrs:
             self_atoms = getattr(self, attr)
@@ -1183,7 +1183,7 @@ class BcForm(object):
 
         # crosslinks
         for crosslink in self.crosslinks:
-            for atom in itertools.chain(crosslink.left_displaced_atoms, crosslink.right_displaced_atoms):
+            for atom in itertools.chain(crosslink.l_displaced_atoms, crosslink.r_displaced_atoms):
                 formula[atom.element] -= 1
         return formula
 
@@ -1224,7 +1224,7 @@ class BcForm(object):
 
         # crosslinks
         for crosslink in self.crosslinks:
-            for atom in itertools.chain(crosslink.left_displaced_atoms, crosslink.right_displaced_atoms):
+            for atom in itertools.chain(crosslink.l_displaced_atoms, crosslink.r_displaced_atoms):
                 mol_wt -= EmpiricalFormula(atom.element).get_molecular_weight()
 
         return mol_wt
@@ -1267,7 +1267,7 @@ class BcForm(object):
 
         # crosslinks
         for crosslink in self.crosslinks:
-            for atom in itertools.chain(crosslink.left_displaced_atoms, crosslink.right_displaced_atoms):
+            for atom in itertools.chain(crosslink.l_displaced_atoms, crosslink.r_displaced_atoms):
                 charge -= atom.charge
 
         # return the total charge
@@ -1288,7 +1288,7 @@ class BcForm(object):
         self_subunits_subunits = [subunit for subunit in self.subunits if isinstance(subunit,Subunit)]
         self_subunits_bcforms = [subunit for subunit in self.subunits if isinstance(subunit,BcForm)]
 
-        atom_types = ['left_bond_atoms', 'left_displaced_atoms', 'right_bond_atoms', 'right_displaced_atoms']
+        atom_types = ['l_bond_atoms', 'l_displaced_atoms', 'r_bond_atoms', 'r_displaced_atoms']
         for i_crosslink, crosslink in enumerate(self.crosslinks):
             for atom_type in atom_types:
                 for i_atom, atom in enumerate(getattr(crosslink, atom_type)):
@@ -1438,7 +1438,7 @@ class BcForm(object):
         for crosslink in self.crosslinks:
             crosslink_atoms = {}
             crosslinks_atoms.append(crosslink_atoms)
-            for atom_type in ['left_bond_atoms', 'right_bond_atoms', 'left_displaced_atoms', 'right_displaced_atoms']:
+            for atom_type in ['l_bond_atoms', 'r_bond_atoms', 'l_displaced_atoms', 'r_displaced_atoms']:
                 crosslink_atoms[atom_type] = []
                 for atom_md in getattr(crosslink, atom_type):
                     i_subunit = [i for i in range(len(self.subunits)) if self.subunits[i].id == atom_md.subunit][0]
@@ -1453,11 +1453,11 @@ class BcForm(object):
         # make the crosslink bonds
         for atoms in crosslinks_atoms:
 
-            for atom, atom_charge in itertools.chain(atoms['left_displaced_atoms'], atoms['right_displaced_atoms']):
+            for atom, atom_charge in itertools.chain(atoms['l_displaced_atoms'], atoms['r_displaced_atoms']):
                 if atom:
                     assert mol.DeleteAtom(atom, True)
 
-            for (l_atom, l_atom_charge), (r_atom, r_atom_charge) in zip(atoms['left_bond_atoms'], atoms['right_bond_atoms']):
+            for (l_atom, l_atom_charge), (r_atom, r_atom_charge) in zip(atoms['l_bond_atoms'], atoms['r_bond_atoms']):
                 bond = openbabel.OBBond()
                 bond.SetBegin(l_atom)
                 bond.SetEnd(r_atom)

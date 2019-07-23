@@ -303,7 +303,7 @@ class RestTestCase(unittest.TestCase):
         })
         self.assertEqual(rv.status_code, 400)
 
-        rv = client.post('/api/bcform/', json=dict(form='abc_a + abc_b | crosslink: [left-bond-atom: abc_c(1)-2O1 | left-displaced-atom: abc_d(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]'))
+        rv = client.post('/api/bcform/', json=dict(form='abc_a + abc_b | crosslink: [l-bond-atom: abc_c(1)-2O1 | l-displaced-atom: abc_d(1)-2H1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]'))
         self.assertEqual(rv.status_code, 400)
 
         # bad protein form

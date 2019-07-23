@@ -52,7 +52,7 @@ class CliTestCase(unittest.TestCase):
                 self.assertEqual(captured.stderr.get_text(), '')
 
         with capturer.CaptureOutput(merged=False, relay=False) as captured:
-            with __main__.App(argv=['validate', 'bmp2_a + bmp2_a | crosslink: [left-bond-atom: bmp2_a(1)-362S1 | left-displaced-atom: bmp2_a(1)-362H1 | right-bond-atom: bmp2_a(2)-362S1 | right-displaced-atom: bmp2_a(2)-362H1]']) as app:
+            with __main__.App(argv=['validate', 'bmp2_a + bmp2_a | crosslink: [l-bond-atom: bmp2_a(1)-362S1 | l-displaced-atom: bmp2_a(1)-362H1 | r-bond-atom: bmp2_a(2)-362S1 | r-displaced-atom: bmp2_a(2)-362H1]']) as app:
                 # run app
                 app.run()
 
@@ -65,7 +65,7 @@ class CliTestCase(unittest.TestCase):
                 app.run()
 
         with self.assertRaisesRegex(SystemExit, '^Form is invalid'):
-            with __main__.App(argv=['validate', 'abc_a + abc_b | crosslink: [left-bond-atom: abc_c(1)-2O1 | left-displaced-atom: abc_d(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]']) as app:
+            with __main__.App(argv=['validate', 'abc_a + abc_b | crosslink: [l-bond-atom: abc_c(1)-2O1 | l-displaced-atom: abc_d(1)-2H1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]']) as app:
                 app.run()
 
     def test_get_formula(self):
@@ -79,7 +79,7 @@ class CliTestCase(unittest.TestCase):
                 self.assertEqual(captured.stderr.get_text(), '')
 
         with capturer.CaptureOutput(merged=False, relay=False) as captured:
-            with __main__.App(argv=['get-formula', 'abc_a + abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1+1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]', '{abc_a:C5H10O, abc_b:C3H5O}']) as app:
+            with __main__.App(argv=['get-formula', 'abc_a + abc_b | crosslink: [l-bond-atom: abc_a(1)-2O1 | l-displaced-atom: abc_a(1)-2H1+1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]', '{abc_a:C5H10O, abc_b:C3H5O}']) as app:
                 # run app
                 app.run()
 
@@ -92,7 +92,7 @@ class CliTestCase(unittest.TestCase):
                 app.run()
 
         with self.assertRaisesRegex(SystemExit, '^Form is invalid'):
-            with __main__.App(argv=['get-formula', 'abc_a + abc_b | crosslink: [left-bond-atom: abc_c(1)-2O1 | left-displaced-atom: abc_d(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]', '{abc_a:C5H10O, abc_b:C3H5O}']) as app:
+            with __main__.App(argv=['get-formula', 'abc_a + abc_b | crosslink: [l-bond-atom: abc_c(1)-2O1 | l-displaced-atom: abc_d(1)-2H1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]', '{abc_a:C5H10O, abc_b:C3H5O}']) as app:
                 app.run()
 
         with self.assertRaisesRegex(SystemExit, '^Cannot parse subunit_formulas:'):
@@ -114,7 +114,7 @@ class CliTestCase(unittest.TestCase):
                 self.assertEqual(captured.stderr.get_text(), '')
 
         with capturer.CaptureOutput(merged=False, relay=False) as captured:
-            with __main__.App(argv=['get-molwt', 'abc_a + abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1+1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]', '{abc_a:86, abc_b:57}']) as app:
+            with __main__.App(argv=['get-molwt', 'abc_a + abc_b | crosslink: [l-bond-atom: abc_a(1)-2O1 | l-displaced-atom: abc_a(1)-2H1+1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]', '{abc_a:86, abc_b:57}']) as app:
                 # run app
                 app.run()
 
@@ -127,7 +127,7 @@ class CliTestCase(unittest.TestCase):
                 app.run()
 
         with self.assertRaisesRegex(SystemExit, '^Form is invalid'):
-            with __main__.App(argv=['get-molwt', 'abc_a + abc_b | crosslink: [left-bond-atom: abc_c(1)-2O1 | left-displaced-atom: abc_d(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]', '{abc_a:86, abc_b:57}']) as app:
+            with __main__.App(argv=['get-molwt', 'abc_a + abc_b | crosslink: [l-bond-atom: abc_c(1)-2O1 | l-displaced-atom: abc_d(1)-2H1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]', '{abc_a:86, abc_b:57}']) as app:
                 app.run()
 
         with self.assertRaisesRegex(SystemExit, '^Cannot parse subunit_mol_wts:'):
@@ -149,7 +149,7 @@ class CliTestCase(unittest.TestCase):
                 self.assertEqual(captured.stderr.get_text(), '')
 
         with capturer.CaptureOutput(merged=False, relay=False) as captured:
-            with __main__.App(argv=['get-charge', 'abc_a + abc_b | crosslink: [left-bond-atom: abc_a(1)-2O1 | left-displaced-atom: abc_a(1)-2H1+1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]', '{abc_a:-1, abc_b:0}']) as app:
+            with __main__.App(argv=['get-charge', 'abc_a + abc_b | crosslink: [l-bond-atom: abc_a(1)-2O1 | l-displaced-atom: abc_a(1)-2H1+1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]', '{abc_a:-1, abc_b:0}']) as app:
                 # run app
                 app.run()
 
@@ -162,7 +162,7 @@ class CliTestCase(unittest.TestCase):
                 app.run()
 
         with self.assertRaisesRegex(SystemExit, '^Form is invalid'):
-            with __main__.App(argv=['get-charge', 'abc_a + abc_b | crosslink: [left-bond-atom: abc_c(1)-2O1 | left-displaced-atom: abc_d(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]', '{abc_a:-1, abc_b:0}']) as app:
+            with __main__.App(argv=['get-charge', 'abc_a + abc_b | crosslink: [l-bond-atom: abc_c(1)-2O1 | l-displaced-atom: abc_d(1)-2H1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]', '{abc_a:-1, abc_b:0}']) as app:
                 app.run()
 
         with self.assertRaisesRegex(SystemExit, '^Cannot parse subunit_charges:'):

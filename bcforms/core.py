@@ -190,17 +190,20 @@ class Subunit(object):
         """ Set the molecular weight of the subunit
 
         Args:
-            value (:obj:`float` or None): molecular weight of the subunit
+            value (:obj:`float` or :obj:`int` or None): molecular weight of the subunit
 
         Raises:
-            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`float` or None
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`float` or :obj:`int` or None
             :obj:`ValueError`: if mol_wt already set by setting structure attribute or formula attribute
         """
-        if not isinstance(value, float) and value is not None:
-            raise ValueError(':obj:`value` is not an instance of :obj:`float` or None')
+        if not isinstance(value, float) and not isinstance(value, int) and value is not None:
+            raise ValueError(':obj:`value` is not an instance of :obj:`float` or :obj:`int` or None')
 
         if self.formula is not None:
             raise ValueError('mol_wt already set by setting structure attribute or formula attribute')
+
+        if isinstance(value, int):
+            value = float(value)
 
         self._mol_wt = value
 
@@ -1149,6 +1152,7 @@ class BcForm(object):
 
         Raises:
             :obj:`ValueError`: subunit formulas does not include all subunits
+            :obj:`ValueError`: Not all subunits have defined formula
 
         """
 
@@ -1157,6 +1161,8 @@ class BcForm(object):
         # subunits
         if subunit_formulas is None:
             for subunit in self.subunits:
+                if subunit.get_formula() is None:
+                    raise ValueError('Not all subunits have defined formula')
                 formula += subunit.get_formula()
         else:
             for subunit in self.subunits:
@@ -1189,13 +1195,15 @@ class BcForm(object):
 
         Raises:
             :obj:`ValueError`: subunit_mol_wts does not include all subunits
-
+            :obj:`ValueError`: Not all subunits have defined molecular weight
         """
         mol_wt = 0.0
 
         # subunits
         if subunit_mol_wts is None:
             for subunit in self.subunits:
+                if subunit.get_mol_wt() is None:
+                    raise ValueError('Not all subunits have defined molecular weight')
                 mol_wt += subunit.get_mol_wt()
         else:
             for subunit in self.subunits:
@@ -1229,6 +1237,7 @@ class BcForm(object):
 
         Raises:
             :obj:`ValueError`: subunit_charges does not include all subunits
+            :obj:`ValueError`: Not all subunits have defined charge
 
         """
         charge = 0
@@ -1236,6 +1245,8 @@ class BcForm(object):
         # subunits
         if subunit_charges is None:
             for subunit in self.subunits:
+                if subunit.get_charge() is None:
+                    raise ValueError('Not all subunits have defined charge')
                 charge += subunit.get_charge()
         else:
             for subunit in self.subunits:

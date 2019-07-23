@@ -487,6 +487,10 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_6.subunits.append(bc_form_3)
         self.assertEqual(bc_form_6.get_formula(), EmpiricalFormula('C24H52N8O12'))
 
+        bc_form_7 = core.BcForm().from_str('abc_a + abc_b')
+        bc_form_7.set_subunit_attribute('abc_a', 'formula', 'C5H10O')
+        with self.assertRaises(ValueError):
+            bc_form_7.get_formula()
 
     def test_get_mol_wt(self):
 
@@ -511,6 +515,10 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_6.subunits.append(bc_form_3)
         self.assertEqual(bc_form_6.get_mol_wt(), EmpiricalFormula('C30H65N10O15').get_molecular_weight())
 
+        bc_form_7 = core.BcForm().from_str('abc_a + abc_b')
+        bc_form_7.set_subunit_attribute('abc_a', 'formula', 'C5H10O')
+        with self.assertRaises(ValueError):
+            bc_form_7.get_mol_wt()
 
     def test_get_charge(self):
 
@@ -535,6 +543,10 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_6.subunits.append(bc_form_3)
         self.assertEqual(bc_form_6.get_charge(), 4)
 
+        bc_form_7 = core.BcForm().from_str('abc_a + abc_b')
+        bc_form_7.set_subunit_attribute('abc_a', 'charge', 1)
+        with self.assertRaises(ValueError):
+            bc_form_7.get_charge()
 
     def test_validate(self):
 

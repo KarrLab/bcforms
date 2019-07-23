@@ -117,6 +117,7 @@ class Subunit(object):
 
         Raises:
             :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`bpforms.BpForm` or :obj:`openbabel.OBMol` or None
+            :obj:`ValueError`: unable to convert smiles-encoded string to structure
         """
         if not isinstance(value, bpforms.BpForm) and not isinstance(value, openbabel.OBMol) and not isinstance(value, str) and value is not None:
             raise ValueError('`value` must be an instance of `bpforms.BpForm` or `openbabel.OBMol` or None')
@@ -125,7 +126,8 @@ class Subunit(object):
             ob_mol = openbabel.OBMol()
             conversion = openbabel.OBConversion()
             conversion.SetInFormat('smi')
-            conversion.ReadString(ob_mol, value)
+            if not conversion.ReadString(ob_mol, value):
+                raise ValueError('unable to convert smiles-encoded string to structure')
             self._structure = ob_mol
         else:
             self._structure = value
@@ -195,6 +197,7 @@ class Subunit(object):
         Raises:
             :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`float` or :obj:`int` or None
             :obj:`ValueError`: if mol_wt already set by setting structure attribute or formula attribute
+            :obj:`ValueError`: if mol_wt is not non-negative
         """
         if not isinstance(value, float) and not isinstance(value, int) and value is not None:
             raise ValueError(':obj:`value` is not an instance of :obj:`float` or :obj:`int` or None')
@@ -204,6 +207,10 @@ class Subunit(object):
 
         if isinstance(value, int):
             value = float(value)
+
+        if isinstance(value, float):
+            if value < 0:
+                raise ValueError('mol_wt must be non-negative')
 
         self._mol_wt = value
 

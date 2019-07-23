@@ -55,6 +55,8 @@ class SubunitTestCase(unittest.TestCase):
         subunit.structure = None
         with self.assertRaises(ValueError):
             subunit.structure = 123
+        with self.assertRaises(ValueError):
+            subunit.structure = 'CH3'
 
     def test_set_formula(self):
         subunit = core.Subunit(id='abc', stoichiometry=3)
@@ -70,12 +72,15 @@ class SubunitTestCase(unittest.TestCase):
     def test_set_mol_wt(self):
         subunit = core.Subunit(id='abc', stoichiometry=3)
         subunit.mol_wt = 16.0
+        subunit.mol_wt = 12
         subunit.mol_wt = None
         with self.assertRaises(ValueError):
             subunit.mol_wt = 'string'
         with self.assertRaises(ValueError):
             subunit.formula = EmpiricalFormula('CH4')
             subunit.mol_wt = 12.0
+        with self.assertRaises(ValueError):
+            subunit.mol_wt = -5
 
     def test_set_charge(self):
         subunit = core.Subunit(id='abc', stoichiometry=3)

@@ -10,7 +10,6 @@
 import bcforms
 from bcforms import core
 from bcforms import rest
-from wc_utils.util.chem import EmpiricalFormula
 import unittest
 
 class RestTestCase(unittest.TestCase):
@@ -277,48 +276,162 @@ class RestTestCase(unittest.TestCase):
             "form": "1 * abc_a + 1 * abc_b"
         })
 
+        # some known structure + some known nothing -> nothing
+        # test when all structure is known (protein)
+        rv = client.post('/api/bcform/', json={
+          "form": "abc_a + abc_b",
+          "subunits": [
+            {
+              "subunit_name": "abc_a",
+              "encoding": "bpforms.ProteinForm",
+              "structure": "A"
+            }
+          ]
+        })
+        self.assertEqual(rv.status_code, 200)
+        self.assertEqual(rv.get_json(), {
+            "form": "1 * abc_a + 1 * abc_b"
+        })
 
+    def test_get_bcform_properties_errors(self):
 
+        client = rest.app.test_client()
 
-    # def test_get_bcform_properties_errors(self):
-    #
-    #     client = rest.app.test_client()
-    #
-    #     # invalid forms
-    #     rv = client.post('/api/bcform/', json=dict(form='HELLO'))
-    #     self.assertEqual(rv.status_code, 400)
-    #
-    #     rv = client.post('/api/bcform/', json=dict(form='abc_a + abc_b | crosslink: [left-bond-atom: abc_c(1)-2O1 | left-displaced-atom: abc_d(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]'))
-    #     self.assertEqual(rv.status_code, 400)
-    #
-    #     # invalid subunit_formulas
-    #     rv = client.post('/api/bcform/', json=dict(form='abc_a + abc_b',
-    #                                                 subunit_formulas='{abc_a:C5H10O, abc_b}'))
-    #     self.assertEqual(rv.status_code, 400)
-    #
-    #     rv = client.post('/api/bcform/', json=dict(form='abc_a + abc_b',
-    #                                                 subunit_formulas='{abc_a:C5H10O}'))
-    #     self.assertEqual(rv.status_code, 400)
-    #
-    #     # invalid subunit_mol_wts
-    #     rv = client.post('/api/bcform/', json=dict(form='abc_a + abc_b',
-    #                                                 subunit_mol_wts='{abc_a:86, abc_b}'))
-    #     self.assertEqual(rv.status_code, 400)
-    #
-    #     rv = client.post('/api/bcform/', json=dict(form='abc_a + abc_b',
-    #                                                 subunit_mol_wts='{abc_a:86}'))
-    #     self.assertEqual(rv.status_code, 400)
-    #
-    #     # invalid subunit_charges
-    #     rv = client.post('/api/bcform/', json=dict(form='abc_a + abc_b',
-    #                                                 subunit_charges='{abc_a:+1, abc_b:0.5}'))
-    #     self.assertEqual(rv.status_code, 400)
-    #
-    #     rv = client.post('/api/bcform/', json=dict(form='abc_a + abc_b',
-    #                                                 subunit_charges='{abc_a:+1, abc_b}'))
-    #     self.assertEqual(rv.status_code, 400)
-    #
-    #     rv = client.post('/api/bcform/', json=dict(form='abc_a + abc_b',
-    #                                                 subunit_charges='{abc_a:+1}'))
-    #     self.assertEqual(rv.status_code, 400)
-    #
+        # invalid form
+        rv = client.post('/api/bcform/', json={
+          "form": "HELLO"
+        })
+        self.assertEqual(rv.status_code, 400)
+
+        rv = client.post('/api/bcform/', json=dict(form='abc_a + abc_b | crosslink: [left-bond-atom: abc_c(1)-2O1 | left-displaced-atom: abc_d(1)-2H1 | right-bond-atom: abc_b(1)-3C1 | right-displaced-atom: abc_b(1)-3H1 | right-displaced-atom: abc_b(1)-3O1]'))
+        self.assertEqual(rv.status_code, 400)
+
+        # bad protein form
+        rv = client.post('/api/bcform/', json={
+          "form": "2 * abc_b",
+          "subunits": [
+            {
+              "subunit_name": "abc_b",
+              "encoding": "bpforms.ProteinForm",
+              "structure": "B"
+            }
+          ]
+        })
+        self.assertEqual(rv.status_code, 400)
+
+        # bad dna form
+        rv = client.post('/api/bcform/', json={
+          "form": "2 * abc_b",
+          "subunits": [
+            {
+              "subunit_name": "abc_b",
+              "encoding": "bpforms.DnaForm",
+              "structure": "D"
+            }
+          ]
+        })
+        self.assertEqual(rv.status_code, 400)
+
+        # bad rna form
+        rv = client.post('/api/bcform/', json={
+          "form": "2 * abc_b",
+          "subunits": [
+            {
+              "subunit_name": "abc_b",
+              "encoding": "bpforms.RnaForm",
+              "structure": "D"
+            }
+          ]
+        })
+        self.assertEqual(rv.status_code, 400)
+
+        # bad smiles form
+        rv = client.post('/api/bcform/', json={
+          "form": "2 * abc_b",
+          "subunits": [
+            {
+              "subunit_name": "abc_b",
+              "encoding": "SMILES",
+              "structure": "CH3"
+            }
+          ]
+        })
+        self.assertEqual(rv.status_code, 400)
+
+        # either encoding or structure, not both
+        rv = client.post('/api/bcform/', json={
+          "form": "2 * abc_b",
+          "subunits": [
+            {
+              "subunit_name": "abc_b",
+              "encoding": "bpforms.ProteinForm",
+            }
+          ]
+        })
+        self.assertEqual(rv.status_code, 400)
+
+        rv = client.post('/api/bcform/', json={
+          "form": "2 * abc_b",
+          "subunits": [
+            {
+              "subunit_name": "abc_b",
+              "structure": "AAA",
+            }
+          ]
+        })
+        self.assertEqual(rv.status_code, 400)
+
+        # subunit name not present
+        # test when all structure is known (protein)
+        rv = client.post('/api/bcform/', json={
+          "form": "abc_a + abc_b",
+          "subunits": [
+            {
+              "subunit_name": "abc_a",
+              "encoding": "bpforms.ProteinForm",
+              "structure": "A"
+            },
+            {
+              "subunit_name": "abc_c",
+              "encoding": "bpforms.ProteinForm",
+              "structure": "M"
+            }
+          ]
+        })
+        self.assertEqual(rv.status_code, 400)
+
+        # bad formula
+        rv = client.post('/api/bcform/', json={
+          "form": "2 * abc_b",
+          "subunits": [
+            {
+              "subunit_name": "abc_b",
+              "formula": "hello"
+            }
+          ]
+        })
+        self.assertEqual(rv.status_code, 400)
+
+        # bad mol_wt
+        rv = client.post('/api/bcform/', json={
+          "form": "2 * abc_b",
+          "subunits": [
+            {
+              "subunit_name": "abc_b",
+              "mol_wt": -5
+            }
+          ]
+        })
+        self.assertEqual(rv.status_code, 400)
+
+        # bad charge
+        rv = client.post('/api/bcform/', json={
+          "form": "2 * abc_b",
+          "subunits": [
+            {
+              "subunit_name": "abc_b",
+              "charge": 0.5
+            }
+          ]
+        })
+        self.assertEqual(rv.status_code, 400)

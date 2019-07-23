@@ -77,7 +77,7 @@ bcform_fields['subunits'] = flask_restplus.fields.List(flask_restplus.fields.Nes
     }
   ])
 
-bcforms_model = bcform_ns.model('BcFrom', bcform_fields)
+bcforms_model = bcform_ns.model('BcForm', bcform_fields)
 
 
 @bcform_ns.route("/")

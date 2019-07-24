@@ -63,6 +63,7 @@ $(document).on('change', '.subunit_info_select', function(){
 $(document).on('change', '.formula_input', function(){
     var formula_id = $(this).attr("id").substring(7)
     if ($(this).val()) {
+    	$('#mol_wt'+formula_id).val('')
         $('#mol_wt'+formula_id).prop("disabled", true)
     }
     else {
@@ -121,13 +122,13 @@ $('#submit').click(function (evt) {
             }
             if ($('#mol_wt'+i+'').length && typeof $('#mol_wt'+i+'').val() !== 'undefined') {
                 mol_wt = parseFloat($('#mol_wt'+i+'').val().trim())
-                if (mol_wt != null && mol_wt != '') {
+                if (mol_wt != null && (!isNaN(mol_wt))) {
                     subunit['mol_wt'] = mol_wt
                 }
             }
             if ($('#charge'+i+'').length && typeof $('#charge'+i+'').val() !== 'undefined') {
                 charge = parseInt($('#charge'+i+'').val().trim())
-                if (charge != null && charge != '') {
+                if (charge != null && (!isNaN(charge))) {
                     subunit['charge'] = charge
                 }
             }
@@ -147,7 +148,7 @@ $('#submit').click(function (evt) {
         'subunits': subunits
     }
 
-    console.log(JSON.stringify(data))
+//     console.log(JSON.stringify(data))
 
     $.ajax({
       type: 'post',
@@ -157,40 +158,62 @@ $('#submit').click(function (evt) {
       dataType: 'json',
       success: set_properties
     })
+    .fail(display_error);
 
 })
 
+display_error = function( jqXHR, textStatus, errorThrown ) {
+    error = '<b>' + jqXHR['responseJSON']['message'] + '</b>'
+    if ('errors' in jqXHR['responseJSON']) {
+        error += '<ul>'
+        for (field in jqXHR['responseJSON']['errors'])
+            error += '<li>'
+            if (field != '')
+                error += '<span style="text-decoration: underline;">' + field + '</span>: '
+            error += jqXHR['responseJSON']['errors'][field]
+            error += '</li>'
+        error += '</ul>'
+    }
+    $("#errors").html(error)
+    $("#errors").css('padding-bottom', '16px')
+}
+
 set_properties = function(data, status, jqXHR) {
 
-    if (status == 'success') {
-        // write form
-        form = data['form']
-        $("#out_bcform").val(form)
+	// clear everything
+	$("#out_bcform").val('')
+	$("#out_structure").val('')
+	$("#out_formula").val('')
+	$("#out_mol_wt").val('')
+	$("#out_charge").val('')
 
-        // write structure
-        if ('structure' in data) {
-            structure = data['structure']
-            $("#out_structure").val(structure)
-        }
+	// write form
+	form = data['form']
+	$("#out_bcform").val(form)
 
-        // write formula
-        if ('formula' in data) {
-            formula = data['formula']
-            $("#out_formula").val(formula)
-        }
+	// write structure
+	if ('structure' in data) {
+		structure = data['structure']
+		$("#out_structure").val(structure)
+	}
 
-        // write mol_wt
-        if ('mol_wt' in data) {
-            mol_wt = data['mol_wt']
-            $("#out_mol_wt").val(mol_wt)
-        }
+	// write formula
+	if ('formula' in data) {
+		formula = data['formula']
+		$("#out_formula").val(formula)
+	}
 
-        // write charge
-        if ('charge' in data) {
-            charge = data['charge']
-            $("#out_charge").val(charge)
-        }
+	// write mol_wt
+	if ('mol_wt' in data) {
+		mol_wt = data['mol_wt']
+		$("#out_mol_wt").val(mol_wt)
+	}
 
-    }
+	// write charge
+	if ('charge' in data) {
+		charge = data['charge']
+		$("#out_charge").val(charge)
+	}
+
 
 }

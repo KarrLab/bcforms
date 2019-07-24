@@ -167,7 +167,7 @@ class Bcform(flask_restplus.Resource):
                                 flask_restplus.abort(400, 'Unable to parse charge', errors={'charge': str(error)})
 
                 else:
-                    flask_restplus.abort(400, 'Subunit name not in BcForm')
+                    flask_restplus.abort(400, 'Subunit name not in BcForm', errors={'subunit':subunit_id})
 
 
         ret['form'] = str(bc_form)

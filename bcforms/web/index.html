@@ -46,6 +46,7 @@
           <label>Define the subunits of the biocomplex.</label>
           <button type="button" name="add_subunit" id="add_subunit" class="button">Add Subunit</button>
           <table id="table_subunits_dynamic"></table>
+          <div id="errors" style="color: #da3b60;"></div>
           <input id="submit" type="button" class="button" value="Calculate"/>
           </form>
         </div>
@@ -54,19 +55,19 @@
           <h3>Calculated properties of the biocomplex form</h3>
           <form class="out">
           <label>Validated BcForm
-            <textarea id="out_bcform"></textarea>
+            <textarea id="out_bcform" disabled></textarea>
           </label>
           <label>Structure
-              <textarea id="out_structure"></textarea>
+              <textarea id="out_structure" disabled></textarea>
           </label>
           <label>Empirical formula
-              <input type="text" id="out_formula"></input>
+              <input type="text" id="out_formula" disabled></input>
           </label>
           <label>Molecular weight
-              <input type="number" id="out_mol_wt"></input>
+              <input type="number" id="out_mol_wt" disabled></input>
           </label>
           <label>Charge
-              <input type="number" id="out_charge"></input>
+              <input type="number" id="out_charge" disabled></input>
           </label>
           </form>
         </div>

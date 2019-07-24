@@ -35,12 +35,12 @@ class RestTestCase(unittest.TestCase):
           "form": "abc_a + abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_a",
+              "name": "abc_a",
               "encoding": "bpforms.ProteinForm",
               "structure": "A"
             },
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "encoding": "bpforms.ProteinForm",
               "structure": "M"
             }
@@ -60,12 +60,12 @@ class RestTestCase(unittest.TestCase):
           "form": "abc_a + abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_a",
+              "name": "abc_a",
               "encoding": "bpforms.DnaForm",
               "structure": "A"
             },
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "encoding": "bpforms.DnaForm",
               "structure": "T"
             }
@@ -85,12 +85,12 @@ class RestTestCase(unittest.TestCase):
           "form": "abc_a + abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_a",
+              "name": "abc_a",
               "encoding": "bpforms.RnaForm",
               "structure": "A"
             },
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "encoding": "bpforms.RnaForm",
               "structure": "U"
             }
@@ -110,12 +110,12 @@ class RestTestCase(unittest.TestCase):
           "form": "abc_a + abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_a",
+              "name": "abc_a",
               "encoding": "bpforms.ProteinForm",
               "structure": "A"
             },
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "encoding": "smiles",
               "structure": "[Zn+2]"
             }
@@ -136,11 +136,11 @@ class RestTestCase(unittest.TestCase):
           "form": "abc_a + abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_a",
+              "name": "abc_a",
               "formula": "CH4"
             },
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "formula": "H2O"
             }
           ]
@@ -157,11 +157,11 @@ class RestTestCase(unittest.TestCase):
           "form": "abc_a + abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_a",
+              "name": "abc_a",
               "mol_wt": 16
             },
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "mol_wt": 18
             }
           ]
@@ -177,11 +177,11 @@ class RestTestCase(unittest.TestCase):
           "form": "abc_a + abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_a",
+              "name": "abc_a",
               "charge": 1
             },
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "charge": -1
             }
           ]
@@ -199,12 +199,12 @@ class RestTestCase(unittest.TestCase):
           "form": "abc_a + abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_a",
+              "name": "abc_a",
               "encoding": "bpforms.ProteinForm",
               "structure": "A"
             },
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "formula": "CH4"
             }
           ]
@@ -221,12 +221,12 @@ class RestTestCase(unittest.TestCase):
           "form": "abc_a + abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_a",
+              "name": "abc_a",
               "encoding": "bpforms.ProteinForm",
               "structure": "A"
             },
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "mol_wt": 16
             }
           ]
@@ -242,11 +242,11 @@ class RestTestCase(unittest.TestCase):
           "form": "abc_a + abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_a",
+              "name": "abc_a",
               "formula": "CH4"
             },
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "mol_wt": 16
             }
           ]
@@ -262,11 +262,11 @@ class RestTestCase(unittest.TestCase):
           "form": "abc_a + abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_a",
+              "name": "abc_a",
               "formula": "CH4"
             },
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "charge": 1
             }
           ]
@@ -282,7 +282,7 @@ class RestTestCase(unittest.TestCase):
           "form": "abc_a + abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_a",
+              "name": "abc_a",
               "encoding": "bpforms.ProteinForm",
               "structure": "A"
             }
@@ -311,7 +311,7 @@ class RestTestCase(unittest.TestCase):
           "form": "2 * abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "encoding": "bpforms.ProteinForm",
               "structure": "B"
             }
@@ -324,7 +324,7 @@ class RestTestCase(unittest.TestCase):
           "form": "2 * abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "encoding": "bpforms.DnaForm",
               "structure": "D"
             }
@@ -337,7 +337,7 @@ class RestTestCase(unittest.TestCase):
           "form": "2 * abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "encoding": "bpforms.RnaForm",
               "structure": "D"
             }
@@ -350,7 +350,7 @@ class RestTestCase(unittest.TestCase):
           "form": "2 * abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "encoding": "SMILES",
               "structure": "CH3"
             }
@@ -363,7 +363,7 @@ class RestTestCase(unittest.TestCase):
           "form": "2 * abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "encoding": "bpforms.ProteinForm",
             }
           ]
@@ -374,7 +374,7 @@ class RestTestCase(unittest.TestCase):
           "form": "2 * abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "structure": "AAA",
             }
           ]
@@ -387,12 +387,12 @@ class RestTestCase(unittest.TestCase):
           "form": "abc_a + abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_a",
+              "name": "abc_a",
               "encoding": "bpforms.ProteinForm",
               "structure": "A"
             },
             {
-              "subunit_name": "abc_c",
+              "name": "abc_c",
               "encoding": "bpforms.ProteinForm",
               "structure": "M"
             }
@@ -405,7 +405,7 @@ class RestTestCase(unittest.TestCase):
           "form": "2 * abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "formula": "hello"
             }
           ]
@@ -417,7 +417,7 @@ class RestTestCase(unittest.TestCase):
           "form": "2 * abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "mol_wt": -5
             }
           ]
@@ -429,7 +429,7 @@ class RestTestCase(unittest.TestCase):
           "form": "2 * abc_b",
           "subunits": [
             {
-              "subunit_name": "abc_b",
+              "name": "abc_b",
               "charge": 0.5
             }
           ]

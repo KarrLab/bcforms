@@ -54,7 +54,7 @@ api.add_namespace(bcform_ns)
 # if encoding, structure defined -> ignore formula, mol_wt, charge, and define them based on structure
 # if neither encoding, structure set and formula is defined -> ignore mol_wt, and define mol_wt based on formula
 subunit_fields = {}
-subunit_fields['subunit_name'] = flask_restplus.fields.String(required=True, title='Subunit name', example='abc_a')
+subunit_fields['name'] = flask_restplus.fields.String(required=True, title='Subunit name', example='abc_a')
 # encoding can be smiles, bpforms.ProteinForm, bpforms.DnaForm, bpforms.RnaForm
 subunit_fields['encoding'] = flask_restplus.fields.String(required=False, title='Structure encoding', example='bpforms.ProteinForm')
 subunit_fields['structure'] = flask_restplus.fields.String(required=False, title='Structure string', example='AAA')
@@ -66,12 +66,12 @@ bcform_fields = {}
 bcform_fields['form'] = flask_restplus.fields.String(required=True, title='BcForm', description='input biocomplex form', example='2 * abc_a + 3 * abc_b')
 bcform_fields['subunits'] = flask_restplus.fields.List(flask_restplus.fields.Nested(bcform_ns.model('Subunit',subunit_fields)), example=[
     {
-      "subunit_name": "abc_a",
+      "name": "abc_a",
       "encoding": "bpforms.ProteinForm",
       "structure": "AAA"
     },
     {
-      "subunit_name": "abc_b",
+      "name": "abc_b",
       "encoding": "bpforms.ProteinForm",
       "structure": "MM"
     }
@@ -110,7 +110,7 @@ class Bcform(flask_restplus.Resource):
             for subunit in arg_subunits:
 
                 # check if name is in the form
-                subunit_id = subunit['subunit_name']
+                subunit_id = subunit['name']
                 if subunit_id in [subunit.id for subunit in bc_form.subunits]:
 
                     # check if encoding and structure are present at the same time

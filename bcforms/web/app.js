@@ -180,6 +180,9 @@ display_error = function( jqXHR, textStatus, errorThrown ) {
 
 set_properties = function(data, status, jqXHR) {
 
+    $("#errors").html('')
+    $("#errors").css('padding-bottom', '0px')
+
 	// clear everything
 	$("#out_bcform").val('')
 	$("#out_structure").val('')

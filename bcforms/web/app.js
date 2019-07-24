@@ -161,14 +161,11 @@ $('#submit').click(function (evt) {
 })
 
 set_properties = function(data, status, jqXHR) {
-    console.log(status)
 
     if (status == 'success') {
         // write form
         form = data['form']
         $("#out_bcform").val(form)
-
-        console.log(form)
 
         // write structure
         if ('structure' in data) {
@@ -190,7 +187,7 @@ set_properties = function(data, status, jqXHR) {
 
         // write charge
         if ('charge' in data) {
-            mol_wt = data['charge']
+            charge = data['charge']
             $("#out_charge").val(charge)
         }
 

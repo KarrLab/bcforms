@@ -161,10 +161,14 @@ $('#submit').click(function (evt) {
 })
 
 set_properties = function(data, status, jqXHR) {
+    console.log(status)
+
     if (status == 200) {
         // write form
         form = data['form']
         $("#out_bcform").val(form)
+
+        console.log(form)
 
         // write structure
         if ('structure' in data) {

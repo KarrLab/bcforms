@@ -25,7 +25,7 @@ $('#add_subunit').click(function(){
               <input type="text" id="structure'+num_rows+'" name="structure" placeholder="AA"/> \
             </div> \
           </td> \
-          <td><button type="button" name="remove" id="'+num_rows+'" class="remove_subunit">X</button></td> \
+          <td><button type="button" name="remove" id="'+num_rows+'" class="alert button remove_subunit">Delete</button></td> \
         </tr>')
     num_rows++
 })
@@ -161,5 +161,5 @@ $('#submit').click(function (evt) {
 })
 
 set_properties = function(data, status, jqXHR) {
-    $("#output_test").val(data)
+    $("#output_test").val(JSON.stringify(data))
 }

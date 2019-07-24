@@ -63,10 +63,10 @@ $(document).on('change', '.subunit_info_select', function(){
 $(document).on('change', '.formula_input', function(){
     var formula_id = $(this).attr("id").substring(7)
     if ($(this).val()) {
-        $('#mol_wt'+formula_id).prop("disabled", true);
+        $('#mol_wt'+formula_id).prop("disabled", true)
     }
     else {
-        $('#mol_wt'+formula_id).prop("disabled", false);
+        $('#mol_wt'+formula_id).prop("disabled", false)
     }
 })
 
@@ -78,7 +78,7 @@ $('#submit').click(function (evt) {
         return
     }
 
-    subunits = [];
+    subunits = []
     for (var i=0; i<num_rows; i++) {
         if ($('#row'+i).length) {
             // name is required
@@ -145,7 +145,7 @@ $('#submit').click(function (evt) {
     data = {
         'form': bc_form,
         'subunits': subunits
-    };
+    }
 
     console.log(JSON.stringify(data))
 
@@ -161,5 +161,35 @@ $('#submit').click(function (evt) {
 })
 
 set_properties = function(data, status, jqXHR) {
-    $("#output_test").val(JSON.stringify(data))
+    if (status == 200) {
+        // write form
+        form = data['form']
+        $("#out_bcform").val(form)
+
+        // write structure
+        if ('structure' in data) {
+            structure = data['structure']
+            $("#out_structure").val(structure)
+        }
+
+        // write formula
+        if ('formula' in data) {
+            formula = data['formula']
+            $("#out_formula").val(formula)
+        }
+
+        // write mol_wt
+        if ('mol_wt' in data) {
+            mol_wt = data['mol_wt']
+            $("#out_mol_wt").val(mol_wt)
+        }
+
+        // write charge
+        if ('charge' in data) {
+            mol_wt = data['charge']
+            $("#out_charge").val(charge)
+        }
+
+    }
+
 }

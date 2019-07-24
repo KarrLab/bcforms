@@ -163,7 +163,7 @@ $('#submit').click(function (evt) {
 set_properties = function(data, status, jqXHR) {
     console.log(status)
 
-    if (status == 200) {
+    if (status == 'success') {
         // write form
         form = data['form']
         $("#out_bcform").val(form)

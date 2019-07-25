@@ -1,40 +1,64 @@
 $(document).foundation()
 
-var num_rows=0
+var num_subunits=0
+var elem = new Foundation.Tabs($('#tabs_subunits_dynamic'))
+
 $('#add_subunit').click(function(){
-   $('#table_subunits_dynamic').append(' \
-        <tr id="row'+num_rows+'"> \
-          <td> \
+    $('#tabs_subunits_dynamic').foundation('_collapse');
+    $('#tabs_subunits_dynamic').append(' \
+        <li class="tabs-title is-active" id="tab'+num_subunits+'"><a href="#panel'+num_subunits+'" id="tab_a_'+num_subunits+'" aria-selected="true">Subunit</a></li> \
+    ')
+    $('#tabs_content_subunits_dynamic').append(' \
+        <div class="tabs-panel is-active" id="panel'+num_subunits+'"> \
             <label>Name:</label> \
-            <input type="text" id="name'+num_rows+'" name="name" placeholder="abc_a"/> \
+            <input type="text" id="name'+num_subunits+'" name="name" placeholder="abc_a"/> \
             \
             <label>Structural information</label> \
-              <select class= "subunit_info_select" id="subunit_info_type_'+num_rows+'"> \
-                <option value=1>Formula, molecular weight, and/or charge</option> \
-                <option value=0 selected>Molecular structure</option> \
-              </select> \
+            <select class= "subunit_info_select" id="subunit_info_type_'+num_subunits+'"> \
+             <option value=1>Formula, molecular weight, and/or charge</option> \
+             <option value=0 selected>Molecular structure</option> \
+            </select> \
             \
-            <div id="subunit_info'+num_rows+'"> \
-              <label>Structure format</label> \
-              <select name="encoding" class="encoding" id="encoding'+num_rows+'"> \
-                <option value=3>SMILES</option> \
-                <option value=2>bpforms.RnaForm</option> \
-                <option value=1>bpforms.DnaForm</option> \
-                <option value=0 selected>bpforms.ProteinForm</option> \
-              </select> \
-              \
-              <label>Structure</label> \
-              <input type="text" id="structure'+num_rows+'" name="structure" placeholder="AA"/> \
+            <div id="subunit_info'+num_subunits+'"> \
+            <label>Structure format</label> \
+            <select name="encoding" class="encoding" id="encoding'+num_subunits+'"> \
+             <option value=3>SMILES</option> \
+             <option value=2>bpforms.RnaForm</option> \
+             <option value=1>bpforms.DnaForm</option> \
+             <option value=0 selected>bpforms.ProteinForm</option> \
+            </select> \
+            \
+            <label>Structure</label> \
+            <input type="text" id="structure'+num_subunits+'" name="structure" placeholder="AA"/> \
+            <button type="button" name="remove" id="'+num_subunits+'" class="alert button remove_subunit">Delete Subunit</button> \
             </div> \
-          </td> \
-          <td><button type="button" name="remove" id="'+num_rows+'" class="alert button remove_subunit">Delete</button></td> \
-        </tr>')
-    num_rows++
+        </div> \
+    ')
+    num_subunits++
+    elem = new Foundation.Tabs($('#tabs_subunits_dynamic'))
+    update_tab_name()
 })
+
+function update_tab_name() {
+    for (var i=0; i<num_subunits; i++) {
+        if ($('#panel'+i).length) {
+            name = $('#name'+i+'').val()
+            if (name != null && name != '') {
+                $('#tab_a_'+i+'').html(name)
+            }
+            else {
+                $('#tab_a_'+i+'').html('Subunit')
+            }
+        }
+    }
+}
+
+$('#tabs_subunits_dynamic').on('change.zf.tabs', update_tab_name)
 
 $(document).on('click', '.remove_subunit', function(){
      var button_id = $(this).attr("id")
-     $('#row'+button_id+'').remove()
+     $('#panel'+button_id+'').remove()
+     $('#tab'+button_id+'').remove()
 })
 
 $(document).on('change', '.subunit_info_select', function(){
@@ -42,7 +66,7 @@ $(document).on('change', '.subunit_info_select', function(){
     if ($('#subunit_info_type_'+select_id).val() == 0) {
         $('#subunit_info'+select_id).html(' \
             <label>Structure format</label> \
-            <select name="encoding" class="encoding" id="encoding'+num_rows+'"> \
+            <select name="encoding" class="encoding" id="encoding'+num_subunits+'"> \
               <option value=3>SMILES</option> \
               <option value=2>bpforms.RnaForm</option> \
               <option value=1>bpforms.DnaForm</option> \
@@ -83,8 +107,8 @@ $('#submit').click(function (evt) {
     }
 
     subunits = []
-    for (var i=0; i<num_rows; i++) {
-        if ($('#row'+i).length) {
+    for (var i=0; i<num_subunits; i++) {
+        if ($('#panel'+i).length) {
             // name is required
             name = $('#name'+i+'').val().trim()
             if (name == null || name == '') {
@@ -151,7 +175,7 @@ $('#submit').click(function (evt) {
         'subunits': subunits
     }
 
-//     console.log(JSON.stringify(data))
+    console.log(JSON.stringify(data))
 
     $.ajax({
       type: 'post',

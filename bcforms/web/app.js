@@ -224,7 +224,7 @@ set_properties = function(data, status, jqXHR) {
 	}
 
     if ('warnings' in data && data['warnings'] != null) {
-        warnings = 'Warning: ' + data['warnings'] + '. Please download <i>BcForms</i> to calculate structure of longer biocomplexes.'
+        warnings = 'Warning: ' + data['warnings'] + ' Please download <i>BcForms</i> to calculate structure of longer biocomplexes.'
         $("#warnings").html(warnings)
         $("#warnings").css('padding-bottom', '16px')
     } else {

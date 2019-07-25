@@ -59,6 +59,14 @@ $(document).on('click', '.remove_subunit', function(){
      var button_id = $(this).attr("id")
      $('#panel'+button_id+'').remove()
      $('#tab'+button_id+'').remove()
+
+     // open first tab
+     for (var i=0; i<num_subunits; i++) {
+         if ($('#panel'+i).length) {
+             $('#tabs_subunits_dynamic').foundation('_openTab', $('#tab'+i));
+             break
+         }
+     }
 })
 
 $(document).on('change', '.subunit_info_select', function(){
@@ -175,7 +183,7 @@ $('#submit').click(function (evt) {
         'subunits': subunits
     }
 
-    console.log(JSON.stringify(data))
+    // console.log(JSON.stringify(data))
 
     $.ajax({
       type: 'post',

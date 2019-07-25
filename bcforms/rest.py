@@ -16,6 +16,9 @@ import flask_restplus
 import flask_restplus.errors
 import flask_restplus.fields
 
+# the max total length of bpforms-encoded subunits must be less than 50
+max_len_get_structure = 50
+
 # setup app
 app = flask.Flask(__name__)
 
@@ -86,6 +89,7 @@ class Bcform(flask_restplus.Resource):
     @bcform_ns.expect(bcforms_model, validate=True)
     def post(self):
         ret = {}
+        warnings = []
 
         args = bcform_ns.payload
 
@@ -106,6 +110,7 @@ class Bcform(flask_restplus.Resource):
             flask_restplus.abort(400, 'Form is invalid', errors={'form': '. '.join(errors)})
 
         # validate input subunit properties
+        sum_length = 0
         if arg_subunits is not None:
             for subunit in arg_subunits:
 
@@ -120,18 +125,21 @@ class Bcform(flask_restplus.Resource):
                         if encoding == 'bpforms.ProteinForm':
                             try:
                                 subunit_structure = bpforms.ProteinForm().from_str(subunit['structure'])
+                                sum_length += len(subunit_structure) * bc_form.get_subunit_attribute(subunit_id, 'stoichiometry')
                                 bc_form.set_subunit_attribute(subunit_id, 'structure', subunit_structure)
                             except Exception as error:
                                 flask_restplus.abort(400, 'Unable to parse bpforms.ProteinForm', errors={'structure': str(error)})
                         elif encoding == 'bpforms.DnaForm':
                             try:
                                 subunit_structure = bpforms.DnaForm().from_str(subunit['structure'])
+                                sum_length += len(subunit_structure) * bc_form.get_subunit_attribute(subunit_id, 'stoichiometry')
                                 bc_form.set_subunit_attribute(subunit_id, 'structure', subunit_structure)
                             except Exception as error:
                                 flask_restplus.abort(400, 'Unable to parse bpforms.DnaForm', errors={'structure': str(error)})
                         elif encoding == 'bpforms.RnaForm':
                             try:
                                 subunit_structure = bpforms.RnaForm().from_str(subunit['structure'])
+                                sum_length += len(subunit_structure) * bc_form.get_subunit_attribute(subunit_id, 'stoichiometry')
                                 bc_form.set_subunit_attribute(subunit_id, 'structure', subunit_structure)
                             except Exception as error:
                                 flask_restplus.abort(400, 'Unable to parse bpforms.RnaForm', errors={'structure': str(error)})
@@ -172,10 +180,14 @@ class Bcform(flask_restplus.Resource):
 
         ret['form'] = str(bc_form)
 
-        try:
-            ret['structure'] = bc_form.export()
-        except Exception:
-            pass
+        if sum_length <= max_len_get_structure:
+            try:
+                ret['structure'] = bc_form.export()
+            except Exception:
+                pass
+        else:
+            warnings.append('The sum of length of bpforms-encoded subunits is {}, which exceeds the max length limit {}.'.format(sum_length, max_len_get_structure))
+            ret['structure'] = None
 
         try:
             ret['formula'] = str(bc_form.get_formula())
@@ -191,6 +203,8 @@ class Bcform(flask_restplus.Resource):
             ret['charge'] = bc_form.get_charge()
         except Exception:
             pass
+
+        ret['warnings'] = ' '.join(warnings)
 
         return ret
 

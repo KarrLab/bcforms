@@ -199,8 +199,10 @@ set_properties = function(data, status, jqXHR) {
 
 	// write structure
 	if ('structure' in data) {
-		structure = data['structure']
-		$("#out_structure").val(structure)
+        if (data['structure'] != null) {
+    		structure = data['structure']
+    		$("#out_structure").val(structure)
+        }
 	}
 
 	// write formula
@@ -220,6 +222,16 @@ set_properties = function(data, status, jqXHR) {
 		charge = data['charge']
 		$("#out_charge").val(charge)
 	}
+
+    if ('warnings' in data && data['warnings'] != null) {
+        warnings = 'Warning: ' + data['warnings'] + '. Please download <i>BcForms</i> to calculate structure of longer biocomplexes.'
+        $("#warnings").html(warnings)
+        $("#warnings").css('padding-bottom', '16px')
+    } else {
+        warnings = ''
+        $("#warnings").html(warnings)
+        $("#warnings").css('padding-bottom', '0px')
+    }
 
 
 }

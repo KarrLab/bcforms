@@ -5,23 +5,25 @@ $('#add_subunit').click(function(){
    $('#table_subunits_dynamic').append(' \
         <tr id="row'+num_rows+'"> \
           <td> \
-            <label>Subunit Name:</label> \
+            <label>Name:</label> \
             <input type="text" id="name'+num_rows+'" name="name" placeholder="abc_a"/> \
-            <label>Select type of known information \
+            \
+            <label>Structural information</label> \
               <select class= "subunit_info_select" id="subunit_info_type_'+num_rows+'"> \
-                <option value=1>Physical properties</option> \
-                <option value=0 selected>Structure</option> \
+                <option value=1>Formula, molecular weight, and/or charge</option> \
+                <option value=0 selected>Molecular structure</option> \
               </select> \
-            </label> \
+            \
             <div id="subunit_info'+num_rows+'"> \
-              Structure encoding: \
+              <label>Structure format</label> \
               <select name="encoding" class="encoding" id="encoding'+num_rows+'"> \
                 <option value=3>SMILES</option> \
                 <option value=2>bpforms.RnaForm</option> \
                 <option value=1>bpforms.DnaForm</option> \
                 <option value=0 selected>bpforms.ProteinForm</option> \
               </select> \
-              Structure string: \
+              \
+              <label>Structure</label> \
               <input type="text" id="structure'+num_rows+'" name="structure" placeholder="AA"/> \
             </div> \
           </td> \
@@ -39,23 +41,24 @@ $(document).on('change', '.subunit_info_select', function(){
     var select_id = $(this).attr("id").substring(18)
     if ($('#subunit_info_type_'+select_id).val() == 0) {
         $('#subunit_info'+select_id).html(' \
-            Structure encoding: \
+            <label>Structure format</label> \
             <select name="encoding" class="encoding" id="encoding'+num_rows+'"> \
               <option value=3>SMILES</option> \
               <option value=2>bpforms.RnaForm</option> \
               <option value=1>bpforms.DnaForm</option> \
               <option value=0 selected>bpforms.ProteinForm</option> \
             </select> \
-            Structure string: \
+            \
+            <label>Structure</label> \
             <input type="text" id="structure'+select_id+'" name="structure" placeholder="AA"/>')
     }
     else {
         $('#subunit_info'+select_id).html(' \
-            Empirical Formula: \
+            <label>Formula</label> \
             <input type="text" class="formula_input" id="formula'+select_id+'" name="formula"/> \
-            Molecular weight: \
+            <label>Molecular weight</label> \
             <input type="text" id="mol_wt'+select_id+'" name="mol_wt"/> \
-            Charge: \
+            <label>Charge</label> \
             <input type="text" id="charge'+select_id+'" name="charge"/>')
     }
 })
@@ -87,7 +90,7 @@ $('#submit').click(function (evt) {
             if (name == null || name == '') {
                 return
             }
-            subunit = {'name':name}
+            subunit = {'name': name}
 
             // other fields are optional
             if ($('#encoding'+i+'').length && typeof $('#encoding'+i+'').val() !== 'undefined') {

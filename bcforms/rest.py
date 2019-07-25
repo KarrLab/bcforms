@@ -204,7 +204,8 @@ class Bcform(flask_restplus.Resource):
         except Exception:
             pass
 
-        ret['warnings'] = ' '.join(warnings)
+        if len(warnings) > 0:
+            ret['warnings'] = ' '.join(warnings)
 
         return ret
 

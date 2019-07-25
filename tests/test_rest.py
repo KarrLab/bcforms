@@ -293,6 +293,27 @@ class RestTestCase(unittest.TestCase):
             "form": "1 * abc_a + 1 * abc_b"
         })
 
+        # test too large biocomplex
+        rv = client.post('/api/bcform/', json={
+          "form": "55 * abc_a",
+          "subunits": [
+            {
+              "name": "abc_a",
+              "encoding": "bpforms.ProteinForm",
+              "structure": "A"
+            }
+          ]
+        })
+        self.assertEqual(rv.status_code, 200)
+        self.assertEqual(rv.get_json(), {
+            "form": "55 * abc_a",
+            "structure": None,
+            "formula": "C165H440N55O110",
+            "mol_wt": 4955.610000000001,
+            "charge": 55,
+            "warnings": "The sum of length of bpforms-encoded subunits is 55, which exceeds the max length limit 50."
+        })
+
     def test_get_bcform_properties_errors(self):
 
         client = rest.app.test_client()

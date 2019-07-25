@@ -317,7 +317,7 @@ class CrosslinkTestCase(unittest.TestCase):
         atom_2 = core.Atom(subunit='def', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
         crosslink.r_bond_atoms.append(atom_2)
 
-        self.assertEqual(str(crosslink), 'crosslink: [ l-bond-atom: abc(1)-10H1 | r-bond-atom: def(1)-10H1 ]')
+        self.assertEqual(str(crosslink), 'x-link: [ l-bond-atom: abc(1)-10H1 | r-bond-atom: def(1)-10H1 ]')
 
     def test_is_equal(self):
         atom_1 = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
@@ -382,7 +382,7 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_1 = core.BcForm().from_str(s1)
         self.assertEqual(s1, str(bc_form_1))
 
-        s2 = '2 * bmp2_a | crosslink: [ l-bond-atom: bmp2_a(1)-362S1 | l-displaced-atom: bmp2_a(1)-362H1 | r-bond-atom: bmp2_a(2)-362S1 | r-displaced-atom: bmp2_a(2)-362H1 ]'
+        s2 = '2 * bmp2_a | x-link: [ l-bond-atom: bmp2_a(1)-362S1 | l-displaced-atom: bmp2_a(1)-362H1 | r-bond-atom: bmp2_a(2)-362S1 | r-displaced-atom: bmp2_a(2)-362H1 ]'
         bc_form_2 = core.BcForm().from_str(s2)
         self.assertEqual(s2, str(bc_form_2))
 
@@ -390,7 +390,7 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_3.subunits.append(core.Subunit(id='bmp2_a', stoichiometry=1))
         bc_form_3.crosslinks.append(core.Crosslink(l_bond_atoms=[
             core.Atom(subunit='bmp2_a', subunit_idx=None, element='H', position=1, monomer=10, charge=0)]))
-        self.assertEqual(str(bc_form_3), '1 * bmp2_a | crosslink: [ l-bond-atom: bmp2_a-10H1 ]')
+        self.assertEqual(str(bc_form_3), '1 * bmp2_a | x-link: [ l-bond-atom: bmp2_a-10H1 ]')
 
     def test_from_str(self):
 
@@ -403,7 +403,7 @@ class BcFormTestCase(unittest.TestCase):
         self.assertEqual(bc_form_1.subunits[1].stoichiometry, 3)
         self.assertEqual(bc_form_1.crosslinks, [])
 
-        bc_form_2 = core.BcForm().from_str('bmp2_a + bmp2_a | crosslink: [l-bond-atom: bmp2_a(1)-362S1 | l-displaced-atom: bmp2_a(1)-362H1 | r-bond-atom: bmp2_a(2)-362S1 | r-displaced-atom: bmp2_a(2)-362H1]')
+        bc_form_2 = core.BcForm().from_str('bmp2_a + bmp2_a | x-link: [l-bond-atom: bmp2_a(1)-362S1 | l-displaced-atom: bmp2_a(1)-362H1 | r-bond-atom: bmp2_a(2)-362S1 | r-displaced-atom: bmp2_a(2)-362H1]')
 
         self.assertEqual(len(bc_form_2.crosslinks), 1)
         self.assertEqual(len(bc_form_2.crosslinks[0].l_bond_atoms), 1)
@@ -415,17 +415,17 @@ class BcFormTestCase(unittest.TestCase):
         self.assertEqual(len(bc_form_2.crosslinks[0].r_displaced_atoms), 1)
         self.assertEqual(bc_form_2.crosslinks[0].r_displaced_atoms[0].element, 'H')
 
-        bc_form_3 = core.BcForm().from_str('abc_a + abc_b | crosslink: [l-bond-atom: abc_a-2O1 | l-displaced-atom: abc_a-2H1 | r-bond-atom: abc_b-3C1 | r-displaced-atom: abc_b-3H1 | r-displaced-atom: abc_b-3O1]')
+        bc_form_3 = core.BcForm().from_str('abc_a + abc_b | x-link: [l-bond-atom: abc_a-2O1 | l-displaced-atom: abc_a-2H1 | r-bond-atom: abc_b-3C1 | r-displaced-atom: abc_b-3H1 | r-displaced-atom: abc_b-3O1]')
         self.assertIsNone(bc_form_3.crosslinks[0].l_bond_atoms[0].subunit_idx)
         self.assertEqual(bc_form_3.crosslinks[0].l_bond_atoms[0].charge, 0)
 
-        bc_form_4 = core.BcForm().from_str('abc_a + abc_b | crosslink: [l-bond-atom: abc_a-2O1+1 | l-displaced-atom: abc_a-2H1 | r-bond-atom: abc_b-3C1 | r-displaced-atom: abc_b-3H1 | r-displaced-atom: abc_b-3O1]')
+        bc_form_4 = core.BcForm().from_str('abc_a + abc_b | x-link: [l-bond-atom: abc_a-2O1+1 | l-displaced-atom: abc_a-2H1 | r-bond-atom: abc_b-3C1 | r-displaced-atom: abc_b-3H1 | r-displaced-atom: abc_b-3O1]')
         self.assertIsNone(bc_form_4.crosslinks[0].l_bond_atoms[0].subunit_idx)
         self.assertEqual(len(bc_form_4.crosslinks[0].l_bond_atoms), 1)
         self.assertEqual(bc_form_4.crosslinks[0].l_bond_atoms[0].element, 'O')
         self.assertEqual(bc_form_4.crosslinks[0].l_bond_atoms[0].charge, 1)
 
-        bc_form_5 = core.BcForm().from_str('abc_a + abc_b | crosslink: [l-bond-atom: abc_a-2O1m+1 | l-displaced-atom: abc_a-2H1m | r-bond-atom: abc_b-3C1 | r-displaced-atom: abc_b-3H1+1 | r-displaced-atom: abc_b-3O1b-1]')
+        bc_form_5 = core.BcForm().from_str('abc_a + abc_b | x-link: [l-bond-atom: abc_a-2O1m+1 | l-displaced-atom: abc_a-2H1m | r-bond-atom: abc_b-3C1 | r-displaced-atom: abc_b-3H1+1 | r-displaced-atom: abc_b-3O1b-1]')
         self.assertEqual(bc_form_5.crosslinks[0].l_bond_atoms[0].component_type, 'monomer')
         self.assertEqual(bc_form_5.crosslinks[0].l_bond_atoms[0].charge, 1)
         self.assertEqual(bc_form_5.crosslinks[0].l_displaced_atoms[0].component_type, 'monomer')
@@ -476,7 +476,7 @@ class BcFormTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             bc_form_1.get_formula({'abc_a': EmpiricalFormula('C5H10O')})
 
-        bc_form_2 = core.BcForm().from_str('abc_a + abc_b | crosslink: [l-bond-atom: abc_a(1)-2O1 | l-displaced-atom: abc_a(1)-2H1+1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
+        bc_form_2 = core.BcForm().from_str('abc_a + abc_b | x-link: [l-bond-atom: abc_a(1)-2O1 | l-displaced-atom: abc_a(1)-2H1+1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
         self.assertEqual(bc_form_2.get_formula({'abc_a': EmpiricalFormula('C5H10O'), 'abc_b': EmpiricalFormula('C3H5O')}), EmpiricalFormula('C8H13O'))
 
         bc_form_3 = core.BcForm().from_str('2 * aa')
@@ -504,7 +504,7 @@ class BcFormTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             bc_form_1.get_mol_wt({'abc_a': EmpiricalFormula('C5H10O').get_molecular_weight()})
 
-        bc_form_2 = core.BcForm().from_str('abc_a + abc_b | crosslink: [l-bond-atom: abc_a(1)-2O1 | l-displaced-atom: abc_a(1)-2H1+1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
+        bc_form_2 = core.BcForm().from_str('abc_a + abc_b | x-link: [l-bond-atom: abc_a(1)-2O1 | l-displaced-atom: abc_a(1)-2H1+1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
         self.assertAlmostEqual(bc_form_2.get_mol_wt({'abc_a': EmpiricalFormula('C5H10O').get_molecular_weight(), 'abc_b': EmpiricalFormula('C3H5O').get_molecular_weight()}), 125, places=0)
 
         bc_form_3 = core.BcForm().from_str('3 * aa')
@@ -532,7 +532,7 @@ class BcFormTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             bc_form_1.get_mol_wt({'abc_a': 1})
 
-        bc_form_2 = core.BcForm().from_str('abc_a + abc_b | crosslink: [l-bond-atom: abc_a(1)-2O1 | l-displaced-atom: abc_a(1)-2H1+1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
+        bc_form_2 = core.BcForm().from_str('abc_a + abc_b | x-link: [l-bond-atom: abc_a(1)-2O1 | l-displaced-atom: abc_a(1)-2H1+1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
         self.assertEqual(bc_form_2.get_charge({'abc_a': 1, 'abc_b': -1}), -1)
 
         bc_form_3 = core.BcForm().from_str('2 * aa')
@@ -555,22 +555,22 @@ class BcFormTestCase(unittest.TestCase):
 
     def test_validate(self):
 
-        bc_form_1 = core.BcForm().from_str('abc_a + abc_b | crosslink: [l-bond-atom: abc_a(1)-2O1 | l-displaced-atom: abc_a(1)-2H1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
+        bc_form_1 = core.BcForm().from_str('abc_a + abc_b | x-link: [l-bond-atom: abc_a(1)-2O1 | l-displaced-atom: abc_a(1)-2H1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
         self.assertEqual(len(bc_form_1.validate()), 0)
 
-        bc_form_2 = core.BcForm().from_str('abc_a + abc_b | crosslink: [l-bond-atom: abc_c(1)-2O1 | l-displaced-atom: abc_d(1)-2H1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
+        bc_form_2 = core.BcForm().from_str('abc_a + abc_b | x-link: [l-bond-atom: abc_c(1)-2O1 | l-displaced-atom: abc_d(1)-2H1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
         self.assertEqual(len(bc_form_2.validate()), 2)
 
-        bc_form_3 = core.BcForm().from_str('abc_a + abc_b | crosslink: [l-bond-atom: abc_a(2)-2O1 | l-displaced-atom: abc_b(2)-2H1 | r-bond-atom: abc_b(3)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
+        bc_form_3 = core.BcForm().from_str('abc_a + abc_b | x-link: [l-bond-atom: abc_a(2)-2O1 | l-displaced-atom: abc_b(2)-2H1 | r-bond-atom: abc_b(3)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
         self.assertEqual(len(bc_form_3.validate()), 3)
 
-        bc_form_4 = core.BcForm().from_str('abc_a + abc_b | crosslink: [l-bond-atom: abc_a-2O1 | l-displaced-atom: abc_a-2H1 | r-bond-atom: abc_b-3C1 | r-displaced-atom: abc_b-3H1 | r-displaced-atom: abc_b-3O1]')
+        bc_form_4 = core.BcForm().from_str('abc_a + abc_b | x-link: [l-bond-atom: abc_a-2O1 | l-displaced-atom: abc_a-2H1 | r-bond-atom: abc_b-3C1 | r-displaced-atom: abc_b-3H1 | r-displaced-atom: abc_b-3O1]')
         self.assertEqual(len(bc_form_4.validate()), 0)
 
-        bc_form_5 = core.BcForm().from_str('2 * abc_a + abc_b | crosslink: [l-bond-atom: abc_a-2O1 | l-displaced-atom: abc_a-2H1 | r-bond-atom: abc_b-3C1 | r-displaced-atom: abc_b-3H1 | r-displaced-atom: abc_b-3O1]')
+        bc_form_5 = core.BcForm().from_str('2 * abc_a + abc_b | x-link: [l-bond-atom: abc_a-2O1 | l-displaced-atom: abc_a-2H1 | r-bond-atom: abc_b-3C1 | r-displaced-atom: abc_b-3H1 | r-displaced-atom: abc_b-3O1]')
         self.assertEqual(len(bc_form_5.validate()), 2)
 
-        bc_form_6 = core.BcForm().from_str('abc_a + abc_b | crosslink: [l-bond-atom: abc_c(1)-2O1 | l-displaced-atom: abc_d(1)-2H1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
+        bc_form_6 = core.BcForm().from_str('abc_a + abc_b | x-link: [l-bond-atom: abc_c(1)-2O1 | l-displaced-atom: abc_d(1)-2H1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
         bc_form_6.subunits.append(bc_form_3)
         self.assertEqual(len(bc_form_6.validate()), 5)
 
@@ -578,21 +578,21 @@ class BcFormTestCase(unittest.TestCase):
 
         bc_form_1 = core.BcForm().from_str('abc_a + abc_a + 3 * abc_b')
         bc_form_2 = core.BcForm().from_str('3 * abc_b + 2 * abc_a')
-        bc_form_3 = core.BcForm().from_str('abc_a + abc_a + 3 * abc_b | crosslink: [l-bond-atom: abc_a(1)-2O1 | l-displaced-atom: abc_a(1)-2H1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
-        bc_form_4 = core.BcForm().from_str('abc_a + abc_a + 3 * abc_b | crosslink: [l-bond-atom: abc_a(1)-2O1 | r-bond-atom: abc_b(1)-3C1 | l-displaced-atom: abc_a(1)-2H1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
-        bc_form_5 = core.BcForm().from_str('abc_a + abc_a + 3 * abc_b | crosslink: [l-bond-atom: abc_a(1)-2O1 | l-displaced-atom: abc_a(1)-2H1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1]')
+        bc_form_3 = core.BcForm().from_str('abc_a + abc_a + 3 * abc_b | x-link: [l-bond-atom: abc_a(1)-2O1 | l-displaced-atom: abc_a(1)-2H1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
+        bc_form_4 = core.BcForm().from_str('abc_a + abc_a + 3 * abc_b | x-link: [l-bond-atom: abc_a(1)-2O1 | r-bond-atom: abc_b(1)-3C1 | l-displaced-atom: abc_a(1)-2H1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
+        bc_form_5 = core.BcForm().from_str('abc_a + abc_a + 3 * abc_b | x-link: [l-bond-atom: abc_a(1)-2O1 | l-displaced-atom: abc_a(1)-2H1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1]')
         bc_form_6 = core.BcForm().from_str('2 * abc_a')
         bc_form_7 = core.BcForm().from_str('4 * abc_a + 3 * abc_b')
 
-        bc_form_8 = core.BcForm().from_str('abc_a + abc_b | crosslink: [l-bond-atom: abc_a-2O1 | l-displaced-atom: abc_a-2H1 | r-bond-atom: abc_b-3C1 | r-displaced-atom: abc_b-3H1 | r-displaced-atom: abc_b-3O1]')
-        bc_form_9 = core.BcForm().from_str('abc_a + abc_b | crosslink: [l-bond-atom: abc_a(1)-2O1 | l-displaced-atom: abc_a(1)-2H1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
+        bc_form_8 = core.BcForm().from_str('abc_a + abc_b | x-link: [l-bond-atom: abc_a-2O1 | l-displaced-atom: abc_a-2H1 | r-bond-atom: abc_b-3C1 | r-displaced-atom: abc_b-3H1 | r-displaced-atom: abc_b-3O1]')
+        bc_form_9 = core.BcForm().from_str('abc_a + abc_b | x-link: [l-bond-atom: abc_a(1)-2O1 | l-displaced-atom: abc_a(1)-2H1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]')
 
         bc_form_10 = core.BcForm().from_str('3 * abc_b + 2 * abc_a')
         bc_form_10.subunits.append(bc_form_3)
         bc_form_11 = core.BcForm().from_str('3 * abc_b + 2 * abc_a')
         bc_form_11.subunits.append(bc_form_1)
         bc_form_12 = core.BcForm().from_str('3 * abc_b + 2 * abc_a')
-        bc_form_12.subunits.append(core.BcForm().from_str('abc_a + abc_a + 3 * abc_b | crosslink: [l-bond-atom: abc_a(1)-2O1 | l-displaced-atom: abc_a(1)-2H1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]'))
+        bc_form_12.subunits.append(core.BcForm().from_str('abc_a + abc_a + 3 * abc_b | x-link: [l-bond-atom: abc_a(1)-2O1 | l-displaced-atom: abc_a(1)-2H1 | r-bond-atom: abc_b(1)-3C1 | r-displaced-atom: abc_b(1)-3H1 | r-displaced-atom: abc_b(1)-3O1]'))
 
         self.assertTrue(bc_form_1.is_equal(bc_form_1))
         self.assertFalse(bc_form_1.is_equal('form'))
@@ -657,14 +657,14 @@ class BcFormTestCase(unittest.TestCase):
 
         # mini "homodimer" AA
         # linking C[C@H]([NH3+])C(=O)[O-] and C[C@H]([NH3+])C(=O)[O-]
-        bc_form_2 = core.BcForm().from_str('2*a | crosslink: [l-bond-atom: a(1)-1C8 | l-displaced-atom: a(1)-1O10 | l-displaced-atom: a(1)-1H10 | r-bond-atom: a(2)-1N4-1 | r-displaced-atom: a(2)-1H4+1 | r-displaced-atom: a(2)-1H4]')
+        bc_form_2 = core.BcForm().from_str('2*a | x-link: [l-bond-atom: a(1)-1C8 | l-displaced-atom: a(1)-1O10 | l-displaced-atom: a(1)-1H10 | r-bond-atom: a(2)-1N4-1 | r-displaced-atom: a(2)-1H4+1 | r-displaced-atom: a(2)-1H4]')
         self.assertTrue(len(bc_form_2.validate())==0)
         bc_form_2.set_subunit_attribute('a', 'structure', bpforms.ProteinForm().from_str('A'))
         self.assertEqual(OpenBabelUtils.export(bc_form_2.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)O')
 
         # mini "heterodimer" AG
         # linking C[C@H]([NH3+])C(=O)[O-] and C([NH3+])C(=O)[O-]
-        bc_form_3 = core.BcForm().from_str('a+g | crosslink: [l-bond-atom: a-1C8 | l-displaced-atom: a-1O10 | l-displaced-atom: a(1)-1H10 | r-bond-atom: g-1N5-1 | r-displaced-atom: g-1H5+1 | r-displaced-atom: g-1H5]')
+        bc_form_3 = core.BcForm().from_str('a+g | x-link: [l-bond-atom: a-1C8 | l-displaced-atom: a-1O10 | l-displaced-atom: a(1)-1H10 | r-bond-atom: g-1N5-1 | r-displaced-atom: g-1H5+1 | r-displaced-atom: g-1H5]')
         self.assertTrue(len(bc_form_3.validate())==0)
         bc_form_3.set_subunit_attribute('a', 'structure', bpforms.ProteinForm().from_str('A'))
         bc_form_3.set_subunit_attribute('g', 'structure', bpforms.ProteinForm().from_str('G'))
@@ -672,7 +672,7 @@ class BcFormTestCase(unittest.TestCase):
 
         # a more realistic example AGGA, where subunits are composed of multiple monomers
         # linking C[C@H]([NH3+])C(=O)NCC(=O)[O-] and C([NH3+])C(=O)N[C@@H](C)C(=O)[O-]
-        bc_form_4 = core.BcForm().from_str('ag+ga | crosslink: [l-bond-atom: ag-2C2 | l-displaced-atom: ag-2O1 | l-displaced-atom: ag-2H1 | r-bond-atom: ga-1N5-1 | r-displaced-atom: ga-1H5+1 | r-displaced-atom: ga-1H5]')
+        bc_form_4 = core.BcForm().from_str('ag+ga | x-link: [l-bond-atom: ag-2C2 | l-displaced-atom: ag-2O1 | l-displaced-atom: ag-2H1 | r-bond-atom: ga-1N5-1 | r-displaced-atom: ga-1H5+1 | r-displaced-atom: ga-1H5]')
         self.assertTrue(len(bc_form_4.validate())==0)
         bc_form_4.set_subunit_attribute('ag', 'structure', bpforms.ProteinForm().from_str('AG'))
         bc_form_4.set_subunit_attribute('ga', 'structure', bpforms.ProteinForm().from_str('GA'))
@@ -680,14 +680,14 @@ class BcFormTestCase(unittest.TestCase):
 
         # a more realistic example ACCMGAGA, where subunits are composed of multiple monomers
         # linking ACCM and 2*GA
-        bc_form_5 = core.BcForm().from_str('accm+2*ga | crosslink: [l-bond-atom: accm-4C11 | l-displaced-atom: accm-4O13 | l-displaced-atom: accm-4H13 | r-bond-atom: ga(1)-1N5-1 | r-displaced-atom: ga(1)-1H5+1 | r-displaced-atom: ga(1)-1H5] | crosslink: [l-bond-atom: ga(1)-2C8 | l-displaced-atom: ga(1)-2O10 | l-displaced-atom: ga(1)-2H10 | r-bond-atom: ga(2)-1N5-1 | r-displaced-atom: ga(2)-1H5+1 | r-displaced-atom: ga(2)-1H5]')
+        bc_form_5 = core.BcForm().from_str('accm+2*ga | x-link: [l-bond-atom: accm-4C11 | l-displaced-atom: accm-4O13 | l-displaced-atom: accm-4H13 | r-bond-atom: ga(1)-1N5-1 | r-displaced-atom: ga(1)-1H5+1 | r-displaced-atom: ga(1)-1H5] | x-link: [l-bond-atom: ga(1)-2C8 | l-displaced-atom: ga(1)-2O10 | l-displaced-atom: ga(1)-2H10 | r-bond-atom: ga(2)-1N5-1 | r-displaced-atom: ga(2)-1H5+1 | r-displaced-atom: ga(2)-1H5]')
         self.assertTrue(len(bc_form_5.validate())==0)
         bc_form_5.set_subunit_attribute('accm', 'structure', bpforms.ProteinForm().from_str('ACCM'))
         bc_form_5.set_subunit_attribute('ga', 'structure', bpforms.ProteinForm().from_str('GA'))
         self.assertEqual(OpenBabelUtils.export(bc_form_5.get_structure(), 'smiles', options=['canonical']), OpenBabelUtils.export(bpforms.ProteinForm().from_str('ACCMGAGA').get_structure()[0], 'smiles', options=['canonical']))
 
         # mini "heterodimer" + small molecule AG+CH4
-        bc_form_6 = core.BcForm().from_str('a+g+small | crosslink: [l-bond-atom: a-1C8 | l-displaced-atom: a-1O10 | l-displaced-atom: a-1H10 | r-bond-atom: g-1N5-1 | r-displaced-atom: g-1H5+1 | r-displaced-atom: g-1H5] | crosslink: [l-bond-atom: g-1C4 | l-displaced-atom: g-1H4 | r-bond-atom: small-1C1 | r-displaced-atom: small-1H1 ]')
+        bc_form_6 = core.BcForm().from_str('a+g+small | x-link: [l-bond-atom: a-1C8 | l-displaced-atom: a-1O10 | l-displaced-atom: a-1H10 | r-bond-atom: g-1N5-1 | r-displaced-atom: g-1H5+1 | r-displaced-atom: g-1H5] | x-link: [l-bond-atom: g-1C4 | l-displaced-atom: g-1H4 | r-bond-atom: small-1C1 | r-displaced-atom: small-1H1 ]')
         self.assertTrue(len(bc_form_6.validate())==0)
         bc_form_6.set_subunit_attribute('a', 'structure', bpforms.ProteinForm().from_str('A'))
         bc_form_6.set_subunit_attribute('g', 'structure', bpforms.ProteinForm().from_str('G'))
@@ -699,7 +699,7 @@ class BcFormTestCase(unittest.TestCase):
         self.assertEqual(OpenBabelUtils.export(bc_form_6.get_structure(), 'smiles', options=['canonical']), OpenBabelUtils.export(bpforms.ProteinForm().from_str('AA').get_structure()[0], 'smiles', options=['canonical']))
 
     def test_export(self):
-        bc_form_3 = core.BcForm().from_str('a+g | crosslink: [l-bond-atom: a-1C8 | l-displaced-atom: a-1O10 | l-displaced-atom: a(1)-1H10 | r-bond-atom: g-1N5-1 | r-displaced-atom: g-1H5+1 | r-displaced-atom: g-1H5]')
+        bc_form_3 = core.BcForm().from_str('a+g | x-link: [l-bond-atom: a-1C8 | l-displaced-atom: a-1O10 | l-displaced-atom: a(1)-1H10 | r-bond-atom: g-1N5-1 | r-displaced-atom: g-1H5+1 | r-displaced-atom: g-1H5]')
         self.assertTrue(len(bc_form_3.validate())==0)
         bc_form_3.set_subunit_attribute('a', 'structure', bpforms.ProteinForm().from_str('A'))
         bc_form_3.set_subunit_attribute('g', 'structure', bpforms.ProteinForm().from_str('G'))

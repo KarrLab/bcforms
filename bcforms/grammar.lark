@@ -4,7 +4,7 @@ component: coefficient? subunit
 coefficient: INT STAR_SEP
 subunit: NAME
 global_attr: crosslink
-crosslink: "crosslink" FIELD_SEP "[" WS* crosslink_atom (ATTR_SEP crosslink_atom)* WS* "]"
+crosslink: "x-link" FIELD_SEP "[" WS* crosslink_atom (ATTR_SEP crosslink_atom)* WS* "]"
 crosslink_atom: crosslink_atom_type FIELD_SEP subunit subunit_idx? "-" monomer_position atom_element atom_position atom_component_type? atom_charge?
 crosslink_atom_type: /(l|r)/ "-" /(bond|displaced)/ "-atom"
 monomer_position: /[0-9]+/

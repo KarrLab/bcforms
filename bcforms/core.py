@@ -799,7 +799,7 @@ class Crosslink(object):
         Returns:
             :obj:`str`: string representation
         """
-        s = 'crosslink: ['
+        s = 'x-link: ['
         atom_types = ['l_bond_atoms', 'l_displaced_atoms', 'r_bond_atoms', 'r_displaced_atoms']
         for atom_type in atom_types:
             for atom in getattr(self, atom_type):
@@ -1045,7 +1045,7 @@ class BcForm(object):
 
             @lark.v_args(inline=True)
             def crosslink_atom_type(self, *args):
-                return ('crosslink_atom_type', args[0].value+'_'+args[1].value+'_atom')
+                return ('crosslink_atom_type', args[0].value + '_' + args[1].value + '_atom')
 
             @lark.v_args(inline=True)
             def monomer_position(self, *args):

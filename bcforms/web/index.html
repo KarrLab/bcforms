@@ -26,6 +26,7 @@
       <div class="grid-x grid-padding-x blue">
         <div class="large-12 cell">
           <p><i>BcForms</i> is a toolkit for unambiguously describing the molecular structure (atoms and bonds) of macromolecular complexes, including non-canonical monomeric forms, circular topologies, and crosslinks. <i>BcForms</i> was developed to help researchers concretely describe the semantic meaning of whole-cell computational models <a href="https://www.wholecell.org"><i class="fi-link"></i></a>.</p>
+          <p><i>BcForms</i> includes a notation for describing biocomplex forms. The subunits in the complex can subsequently be described by <i>BpForms</i> for biopolymers or SMILES string for small molecules. <i>BcForms</i> also includes four software tools for verifying descriptions of biocomplex forms and calculating physical properties such as their molecular structure, empirical formula, molecular weight, and charge: this website, a JSON REST API <a href="https://www.bcforms.org/api/"><i class="fi-link"></i></a>, a command line interface <a href="https://pypi.python.org/pypi/bcforms/"><i class="fi-link"></i></a>, and a Python API <a href="https://pypi.python.org/pypi/bcforms/"><i class="fi-link"></i></a>. <i>BcForms</i> is available open-source <a href="https://github.com/KarrLab/bcforms"><i class="fi-social-github"></i></a> under the MIT license.</p>
         </div>
       </div>
 
@@ -59,7 +60,7 @@
           <label>Validated BcForm
             <textarea id="out_bcform" disabled></textarea>
           </label>
-          <label>Structure
+          <label>Structure (SMILES)
               <textarea id="out_structure" disabled></textarea>
           </label>
           <label>Formula
@@ -74,7 +75,163 @@
           </form>
         </div>
 
-    </div>
+      </div>
+
+      <div class="grid-x grid-padding-x orange">
+        <a name="notation"></a>
+        <div class="large-12 cell">
+            <h2><i>BcForms</i> notation</h2>
+        </div>
+
+        <div class="large-5 cell notation">
+          <h3>Overview</h3>
+          <p class="before_list">The <i>BcForms</i> notation can concretely describe biocomplexes by describing their subunit composition and the inter-subunit crosslinks:</p>
+          <ul>
+            <li><i>BcForms</i> represents the subunit composition as formulae composed of subunit ids and stoichiometries.</li>
+            <li><i>BcForms</i> can capture interstrand crosslinks (additional bonds between atoms from different subunits).</li>
+            <li><i>BcForms</i> allows concrete definitions of subunits by <i>BpForms</i> or SMILES.</li>
+          </ul>
+
+          <p class="before_list"><i>BcForms</i> descriptions of biocomplexes consist of two parts separated by pipes ("|") (e.g., <tt>3 * subunit_a + 2 * subunit_b | crosslink: [...]</tt>):</p>
+          <ul>
+            <li>A formula describing the subunit composition of the biocomplex. Each type of subunit is represented as its stoichiometry and id connected by an asterisk. If a type of subunit has only one copy, then its stoichiometry 1 is optional. Different types of subunits are connected by plus signs.</li>
+            <li>An optional set of crosslinks which describe bonds between atoms from different subunits (e.g., crosslink: [...]). See below for additional information.</li>
+          </ul>
+
+          <p>The <i>BcForms</i> grammar <a href="https://raw.githubusercontent.com/KarrLab/bcforms/master/bcforms/grammar.lark"><i class="fi-link"></i></a> is defined in Lark syntax <a href="https://lark-parser.readthedocs.io"><i class="fi-link"></i></a>, which is based on EBNF syntax <a href="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form"><i class="fi-link"></i></a>.</p>
+        </div>
+
+        <div class="large-7 cell example">
+          <h3>Examples</h3>
+          <div class="grid-x grid-padding-x">
+            <div class="large-12 cell">
+                <h5>heterodimer with no crosslink</h5>
+                <p><tt>sub_a + sub_b</tt></p>
+                <p>If the subunit is further defined, then the physical properties of the biocomplex can also be calculated. For example, let <tt>sub_a</tt> be dipeptide AC and <tt>sub_b</tt> be tripeptide MK, then <i>BcForms</i> can calculate the following properties:</p>
+                <p class="form-properties">
+                Structure: C[C@H]([NH3+])C(=O)N[C@H](C(=O)O)CS.CSCC[C@H]([NH3+])C(=O)N[C@@H](CCCC[NH3+])C(=O)O<br/>
+                Formula: C<sub>17</sub>H<sub>38</sub>N<sub>5</sub>O<sub>6</sub>S<sub>2</sub><br/>
+                Molecular weight: 472.64<br/>
+                Charge: 3
+                </p>
+            </div>
+            <div class="large-12 cell">
+                <h5>homodimer with crosslink</h5>
+                <pre>2 * sub_c
+    | x-link: [ l-bond-atom: sub_c(1)-1S11 |
+                l-displaced-atom: sub_c(1)-1H11 |
+                r-bond-atom: sub_c(2)-1S11 |
+                r-displaced-atom: sub_c(2)-1H11 ]
+                </pre>
+                <p>Let <tt>sub_c</tt> be dipeptide CA, then <i>BcForms</i> can calculate the following properties:</p>
+                <p class="form-properties">
+                Structure: C(=O)([C@@H]([NH3+])CSSC[C@@H](C(=O)N[C@@H](C)C(=O)O)[NH3+])N[C@@H](C)C(=O)O<br/>
+                Formula: C<sub>12</sub>H<sub>24</sub>N<sub>4</sub>O<sub>6</sub>S<sub>2</sub><br/>
+                Molecular weight: 384.466<br/>
+                Charge: 2
+                </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="large-5 cell notation">
+          <a name="crosslinks"></a>
+          <h3>Crosslinks between subunits</h3>
+          <p>The <tt class="attribute">crosslink</tt> attribute can be used to indicate a bond between atoms from different subunits. For example, this attribute can be used to describe interstrand disulfide bonds between cysteines in proteins and crosslinks in DNA .</p>
+
+          <p>Each Crosslink can be described by enclosing attributes which indicate the atoms involved in the bond within square brackets and delimiting the attributes with pipes (e.g., "<tt>| crosslink: [left-bond-atom: 1C1 | right-bond-atom: 3C2 | ...]</tt>").</p>
+
+          <p class="before_list">Each crosslink can be described with four types of attributes:</p>
+          <ul>
+            <li><tt>left-bond-atom</tt> and <tt>right-bond-atom</tt>: These attributes indicate the atoms involved in the bond. The values of these attributes are the position of the monomeric form within the sequence, the element of the atom, the position of the atom within the monomeric form, and the charge of the atom (e.g., <tt>8N3+1</tt>). OpenBabel can be used to display the numbers of the atoms within monomeric forms.</li>
+            <li><tt>left-displaced-atom</tt> and <tt>right-displaced-atom</tt>: These attributes indicate the atoms displaced by the formation of the bond. The values of these attributes are also the position of the monomeric form within the sequence, the element of the atom, the position of the atom within the monomeric form, and the charge of the atom.</li>
+          </ul>
+
+          <p>Biocomplexes can have zero, one, or more crosslinks. Each crosslink can have one or more left and right bond atoms and zero or more left and right displaced atoms. Furthermore, each crosslink must have the same number of left and right bond atoms.</p>
+        </div>
+
+        <div class="large-7 cell example">
+          <h3>Examples</h3>
+          <div class="grid-x grid-padding-x">
+            <div class="large-12 cell">
+                <h5>inter-subunit disulfide bonds</h5>
+                <pre>| x-link: [ l-bond-atom: sub_c(1)-1S11 |
+            l-displaced-atom: sub_c(1)-1H11 |
+            r-bond-atom: sub_c(2)-1S11 |
+            r-displaced-atom: sub_c(2)-1H11 ]
+                </pre>
+            </div>
+          </div>
+          <div class="grid-x grid-padding-x">
+            <div class="large-12 cell">
+                <h5>inter-subunit isopeptide bond crosslinks</h5>
+                <pre>| x-link: [ l-bond-atom: a(2)-1N1-1 |
+            r-bond-atom: b(1)-4C2 |
+            l-displaced-atom: a(2)-1H1+1 |
+            l-displaced-atom: a(2)-1H1 |
+            r-displaced-atom: b(1)-4O1 |
+            r-displaced-atom: b(1)-4H1 ]
+                </pre>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="grid-x grid-padding-x blue">
+        <a name="interfaces"></a>
+        <div class="large-12 cell">
+          <h2>User interfaces</h2>
+          <p class="before_list"><i>BcForms</i> includes four software interfaces for verifying descriptions of biocomplexes and calculating properties such as their molecular structures, formulae, molecular weights, and charges.</p>
+        </div>
+        <div class="large-3 cell">
+          <h3>Webform</h3>
+          The webform above <a href="#form"><i class="fi-link"></i></a> can be used to validate <i>BcForms</i> and calculate their properties.
+        </div>
+        <div class="large-3 cell">
+          <a name="rest"></a>
+          <h3>JSON REST API</h3>
+          A JSON REST API is available at <a href="https://bcforms.org/api">https://bcforms.org/api</a>.
+        </div>
+        <div class="large-3 cell">
+          <a name="cli"></a>
+          <h3>Command line interface</h3>
+          A command line interface is available from PyPI <a href="https://pypi.python.org/pypi/bcforms"><i class="fi-link"></i></a>.
+        </div>
+        <div class="large-3 cell">
+          <a name="library"></a>
+          <h3>Python library</h3>
+          A Python library is available from PyPI <a href="https://pypi.python.org/pypi/bcforms"><i class="fi-link"></i></a>.
+        </div>
+      </div>
+
+      <div class="grid-x grid-padding-x orange">
+        <a name="integration"></a>
+        <div class="large-12 cell">
+          <h2>Integrating <i>BcForms</i> into the CellML and SBML standards</h2>
+          <p class="before_list"><i>BcForms</i> can be used in conjunction with several commonly used standards in genomics, transcriptomics, proteomics, systems biology, and synthetic biology. In addition, <i>BcForms</i> can easily be embedded within other documents such as Excel workbooks and comma-separated tables.</p>
+        </div>
+
+        <div class="large-4 cell">
+          <a name="cellml"></a>
+          <h3>CellML</h3>
+          <p><i>BcForms</i> can be used to concretely describe the meaning of the biocomplex components of a model encoded in CellML <a href="https://www.cellml.org/"><i class="fi-link"></i></a>. <i>BcForms</i> can be used with the <tt class="attribute">RDF</tt> element of <tt class="attribute">component</tt> objects.</p>
+        </div>
+        <div class="large-8 cell example">
+          <h3>Examples</h3>
+        </div>
+
+        <div class="large-4 cell">
+          <a name="sbml"></a>
+          <h3>SBML</h3>
+          <p><i>BcForms</i> can be used to concretely describe the meaning of each biocomplex species in a model encoded in Systems Biology Markup Language (SBML) <a href="http://sbml.org"><i class="fi-link"></i></a>. <i>BcForms</i> can be used with the <tt class="attribute">annotation</tt> element of <tt class="attribute">species</tt> objects.</p>
+        </div>
+        <div class="large-8 cell example">
+          <h3>Examples</h3>
+
+        </div>
+
+      </div>
 
     </div>
 

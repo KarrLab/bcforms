@@ -216,8 +216,29 @@ sub_c: bpforms.ProteinForm(CA)</pre>
         </div>
         <div class="large-8 cell example">
           <h3>Example</h3>
-          <pre>
-          </pre>
+          <pre class="small">...
+
+&lt;component cmeta:id="complex" name="complex"&gt;
+  &lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"&gt;
+    &lt;rdf:Description rdf:about="#complex"&gt;
+      &lt;bcforms:BcForm xmlns:bcforms="https://bpforms.org"&gt;
+        <span class="bpform">3 * subunit</span>
+      &lt;/bcforms:BcForm&gt;
+    &lt;/rdf:Description&gt;
+  &lt;/rdf:RDF&gt;
+&lt;/component&gt;
+
+&lt;component cmeta:id="subunit" name="subunit"&gt;
+  &lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"&gt;
+    &lt;rdf:Description rdf:about="#subunit"&gt;
+      &lt;bpforms:ProteinForm xmlns:bpforms="https://bpforms.org"&gt;
+        <span class="bpform">LID<span class="modification">{AA0037}</span>MAN<span class="modification">{AA0037}</span>FVGTR</span>
+      &lt;/bpforms:ProteinForm&gt;
+    &lt;/rdf:Description&gt;
+  &lt;/rdf:RDF&gt;
+&lt;/component&gt;
+
+...</pre>
         </div>
 
         <div class="large-4 cell">
@@ -227,8 +248,35 @@ sub_c: bpforms.ProteinForm(CA)</pre>
         </div>
         <div class="large-8 cell example">
           <h3>Example</h3>
-          <pre>
-          </pre>
+          <pre class="small">...
+
+&lt;species name="complex"&gt;
+  &lt;annotation&gt;
+    &lt;rdf:RDF
+      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"&gt;
+      &lt;rdf:Description rdf:about="#complex"&gt;
+        &lt;bcforms:BcForm xmlns:bcforms="https://bcforms.org"&gt;
+          <span class="bpform">2 * subunit</span>
+        &lt;/bcforms:BcForm&gt;
+      &lt;/rdf:Description&gt;
+    &lt;/rdf:RDF&gt;
+  &lt;/annotation&gt;
+&lt;/species&gt;
+
+&lt;species name="subunit"&gt;
+  &lt;annotation&gt;
+    &lt;rdf:RDF
+      xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"&gt;
+      &lt;rdf:Description rdf:about="#complex-a"&gt;
+        &lt;bpforms:ProteinForm xmlns:bcforms="https://bpforms.org"&gt;
+          <span class="bpform">A<span class="modification">{U}</span>CR</span>
+        &lt;/bpforms:ProteinForm&gt;
+      &lt;/rdf:Description&gt;
+    &lt;/rdf:RDF&gt;
+  &lt;/annotation&gt;
+&lt;/species&gt;
+
+...</pre>
 
         </div>
 

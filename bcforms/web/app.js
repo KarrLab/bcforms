@@ -1,11 +1,12 @@
 $(document).foundation()
 
-var num_subunits=0
-var elem = new Foundation.Tabs($('#tabs_subunits_dynamic'))
+var tabs = new Foundation.Tabs($('#tabs_subunits_dynamic'))
 
-$('#add_subunit').click(function(){
-    $('#tabs_subunits_dynamic').foundation('_collapse');
-    $('#tabs_subunits_dynamic').append(' \
+function add_subunit() {
+    tabs = $('#tabs_subunits_dynamic')
+    num_subunits = tabs.children().length - 1
+    
+    $('#tab_add_title').before(' \
         <li class="tabs-title is-active" id="tab'+num_subunits+'"><a href="#panel'+num_subunits+'" id="tab_a_'+num_subunits+'" aria-selected="true">Subunit</a></li> \
     ')
     $('#tabs_content_subunits_dynamic').append(' \
@@ -30,14 +31,26 @@ $('#add_subunit').click(function(){
             \
             <label>Structure</label> \
             <input type="text" id="structure'+num_subunits+'" name="structure" placeholder="AA"/> \
-            <button type="button" name="remove" id="'+num_subunits+'" class="alert button remove_subunit">Delete Subunit</button> \
+            <button type="button" name="remove" id="'+num_subunits+'" class="alert button remove_subunit">Delete</button> \
             </div> \
         </div> \
     ')
     num_subunits++
-    elem = new Foundation.Tabs($('#tabs_subunits_dynamic'))
     update_tab_name()
-})
+
+    new Foundation.Tabs($('#tabs_subunits_dynamic'))
+
+    $('#name' + (num_subunits -1)).keyup(function(evt){
+        input = $(evt.currentTarget)
+        name = input.val()
+        i_subunit = input.attr('id').replace('name', '')
+        $('#tab_a_' + i_subunit).html(name)
+    })
+
+    tabs = $('#tabs_subunits_dynamic')
+    tabs.foundation('_collapse');
+    tabs.foundation('_openTab', $('#tab' + (num_subunits - 1)));
+}
 
 function update_tab_name() {
     for (var i=0; i<num_subunits; i++) {
@@ -56,17 +69,17 @@ function update_tab_name() {
 $('#tabs_subunits_dynamic').on('change.zf.tabs', update_tab_name)
 
 $(document).on('click', '.remove_subunit', function(){
-     var button_id = $(this).attr("id")
-     $('#panel'+button_id+'').remove()
-     $('#tab'+button_id+'').remove()
+    var button_id = $(this).attr("id")
+    $('#panel'+button_id+'').remove()
+    $('#tab'+button_id+'').remove()
 
-     // open first tab
-     for (var i=0; i<num_subunits; i++) {
-         if ($('#panel'+i).length) {
-             $('#tabs_subunits_dynamic').foundation('_openTab', $('#tab'+i));
-             break
-         }
-     }
+    // open first tab
+    for (var i=0; i<num_subunits; i++) {
+        if ($('#panel'+i).length) {
+            $('#tabs_subunits_dynamic').foundation('_openTab', $('#tab'+i));
+            break
+        }
+    }
 })
 
 $(document).on('change', '.subunit_info_select', function(){
@@ -264,6 +277,15 @@ set_properties = function(data, status, jqXHR) {
         $("#warnings").html(warnings)
         $("#warnings").css('padding-bottom', '0px')
     }
-
-
 }
+
+add_subunit()
+
+$('#tab_add_title > a').click(function(evt){
+    add_subunit()
+
+    evt.stopImmediatePropagation()
+
+    $('#tab_add_title').removeClass('is-active')
+    $('#tab_add_title > a').attr('aria-selected', false)
+})

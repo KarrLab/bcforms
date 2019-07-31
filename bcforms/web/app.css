@@ -65,6 +65,17 @@ p, div, label { color: #333; }
 form { text-align: left; }
 label { font-weight: bold; }
 textarea { height: 100px; }
+
+#tab_add_title a {
+    background: none;
+}
+#submit {
+    margin-top: 1rem;
+}
+.remove_subunit {
+    margin-bottom: 0rem;
+}
+
 .out input, .out textarea { background: #eee; }
 
 p.before_list {

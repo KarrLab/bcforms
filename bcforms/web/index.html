@@ -116,11 +116,11 @@ sub_b: bpforms.ProteinForm(MK)</pre>
             </div>
             <div class="large-12 cell">
                 <h5>Homodimer with a crosslink</h5>
-                <pre>complex: 2 * sub_c | x-link: [ 
+                <pre>complex: 2 * sub_c | x-link: [
     l-bond-atom: sub_c(1)-1S11 |
     l-displaced-atom: sub_c(1)-1H11 |
     r-bond-atom: sub_c(2)-1S11 |
-    r-displaced-atom: sub_c(2)-1H11 
+    r-displaced-atom: sub_c(2)-1H11
   ]
 sub_c: bpforms.ProteinForm(CA)</pre>
                 <p class="form-properties">
@@ -221,7 +221,7 @@ sub_c: bpforms.ProteinForm(CA)</pre>
 &lt;component cmeta:id="complex" name="complex"&gt;
   &lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"&gt;
     &lt;rdf:Description rdf:about="#complex"&gt;
-      &lt;bcforms:BcForm xmlns:bcforms="https://bpforms.org"&gt;
+      &lt;bcforms:BcForm xmlns:bcforms="https://bcforms.org"&gt;
         <span class="bpform">3 * subunit</span>
       &lt;/bcforms:BcForm&gt;
     &lt;/rdf:Description&gt;
@@ -268,7 +268,7 @@ sub_c: bpforms.ProteinForm(CA)</pre>
     &lt;rdf:RDF
       xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"&gt;
       &lt;rdf:Description rdf:about="#complex-a"&gt;
-        &lt;bpforms:ProteinForm xmlns:bcforms="https://bpforms.org"&gt;
+        &lt;bpforms:ProteinForm xmlns:bpforms="https://bpforms.org"&gt;
           <span class="bpform">A<span class="modification">{U}</span>CR</span>
         &lt;/bpforms:ProteinForm&gt;
       &lt;/rdf:Description&gt;
@@ -281,6 +281,83 @@ sub_c: bpforms.ProteinForm(CA)</pre>
         </div>
 
       </div>
+
+      <div class="grid-x grid-padding-x blue">
+        <a name="help"></a>
+        <div class="large-12 cell">
+          <h2>Tutorials, documentation, and help</h2>
+        </div>
+        <div class="large-6 cell">
+          <h3>Documentation for the grammar</h3>
+          Documentation for the grammar is available above <a href="#grammar"><i class="fi-link"></i></a>. The definition of the grammar is available at GitHub <a href="https://raw.githubusercontent.com/KarrLab/bcforms/master/bcforms/grammar.lark"><i class="fi-link"></i></a>
+        </div>
+        <div class="large-6 cell">
+          <h3>Query builder for the REST API</h3>
+          A visual interface for building REST queries is available at bcforms.org/api <a href="https://www.bcforms.org/api"><i class="fi-link"></i></a>.
+        </div>
+        <div class="large-6 cell">
+          <h3>Documentation for the REST API</h3>
+          Documentation for the REST API is available at bcforms.org/api <a href="https://www.bcforms.org/api"><i class="fi-link"></i></a>.
+        </div>
+        <div class="large-6 cell">
+          <h3>Documentation for the command line program</h3>
+          Documentation for the command line program is available inline by running <tt>bcforms --help</tt>.
+        </div>
+        <div class="large-6 cell">
+          <h3>Tutorial for the Python API</h3>
+          A Jupyter notebook with an interactive tutorial is available at sandbox.karrlab.org <a href="http://sandbox.karrlab.org/tree/bcforms"><i class="fi-link"></i></a>.
+        </div>
+        <div class="large-6 cell">
+          <h3>Documentation for the Python API</h3>
+          Detailed documentation for the Python API is available at docs.karrlab.org <a href="https://docs.karrlab.org/bcforms"><i class="fi-link"></i></a>.
+        </div>
+        <div class="large-6 cell">
+          <h3>Questions</h3>
+          Please contact the Karr Lab <a href="mailto:karr@mssm.edu"><i class="fi-mail"></i></a> with any questions.
+        </div>
+      </div>
+
+      <div class="grid-x grid-padding-x orange">
+        <a name="contributing"></a>
+        <div class="large-12 cell">
+          <h2>Contributing to <i>BcForms</i></h2>
+        </div>
+        <div class="large-6 cell">
+          <h3>Contributing to the software</h3>
+          To contribute to the software, please submit a Git pull request.
+        </div>
+      </div>
+
+      <div class="grid-x grid-padding-x blue">
+        <a name="about"></a>
+        <div class="large-12 cell">
+          <h2>About <i>BcForms</i></h2>
+        </div>
+        <div class="large-4 cell">
+          <h3>Source code</h3>
+          <i>BcForms</i> is available open-source from GitHub <a href="https://github.com/KarrLab/bcforms"><i class="fi-social-github"></i></a>.
+        </div>
+        <div class="large-4 cell">
+          <h3>License</h3>
+          <i>BcForms</i> is released under the MIT license <a href="https://github.com/KarrLab/bcforms/blob/master/LICENSE"><i class="fi-link"></i></a>.
+        </div>
+        <div class="large-4 cell">
+          <h3>Citing <i>BForms</i></h3>
+        </div>
+        <div class="large-4 cell">
+          <h3>Team</h3>
+          <i>BcForms</i> was developed by Jonathan Karr <a href="https://www.karrlab.org/"><i class="fi-link"></i></a> <a href="https://www.linkedin.com/in/jonrkarr/"><i class="fi-social-linkedin"></i></a> and Xiaoyue Zheng <a href="https://www.linkedin.com/in/xiaoyue-zheng/"><i class="fi-social-linkedin"></i></a> in the Karr Lab <a href="https://www.karrlab.org"><i class="fi-link"></i></a> at the Icahn School of Medicine at Mount Sinai <a href="https://www.mssm.edu/"><i class="fi-link"></i></a> in New York, USA.
+        </div>
+        <div class="large-4 cell">
+          <h3>Acknowledgements</h3>
+          <i>BcForms</i> was supported by a National Institute of Health P41 award <a href="https://projectreporter.nih.gov/project_info_details.cfm?aid=9460251"><i class="fi-link"></i></a>, a National Institute of Health MIRA R35 award <a href="https://projectreporter.nih.gov/project_info_details.cfm?aid=9509480"><i class="fi-link"></i></a>, and a National Science Foundation INSPIRE award <a href="https://www.nsf.gov/awardsearch/showAward?AWD_ID=1649014"><i class="fi-link"></i></a>.
+        </div>
+        <div class="large-4 cell">
+          <h3>Questions/comments</h3>
+          Please contact Jonathan Karr <a href="mailto:karr@mssm.edu"><i class="fi-mail"></i></a> with any questions or comments.
+        </div>
+      </div>
+
 
     </div>
 

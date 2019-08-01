@@ -28,8 +28,10 @@ class BaseController(cement.Controller):
 
 class ValidateController(cement.Controller):
     """ Validate a biopolymer form
-        ex:
-            bcforms validate 'abc_a + abc_b'
+    
+    Example::
+
+        bcforms validate 'abc_a + abc_b'
     """
 
     class Meta:
@@ -60,8 +62,10 @@ class ValidateController(cement.Controller):
 
 class GetFormulaController(cement.Controller):
     """ Calculate the chemical formula of a BcForm
-        ex:
-            bcforms get-formula 'abc_a + abc_b' '{abc_a:C5H10O, abc_b:C3H5O}'
+    
+    Example::
+
+        bcforms get-formula 'abc_a + abc_b' '{abc_a:C5H10O, abc_b:C3H5O}'
     """
 
     class Meta:
@@ -108,8 +112,10 @@ class GetFormulaController(cement.Controller):
 
 class GetMolWtController(cement.Controller):
     """ Calculate the molecular weight of a BcForm
-        ex:
-            bcforms get-molwt 'abc_a + abc_b' '{abc_a:86, abc_b:57}'
+    
+    Example:
+
+        bcforms get-molwt 'abc_a + abc_b' '{abc_a:86, abc_b:57}'
     """
 
     class Meta:
@@ -156,8 +162,10 @@ class GetMolWtController(cement.Controller):
 
 class GetChargeController(cement.Controller):
     """ Calculate the total charge of a BcForm
-        ex:
-            bcforms get-charge 'abc_a + abc_b' '{abc_a:+1, abc_b:-1}'
+    
+    Example::
+
+        bcforms get-charge 'abc_a + abc_b' '{abc_a:+1, abc_b:-1}'
     """
 
     class Meta:

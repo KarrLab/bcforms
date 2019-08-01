@@ -192,7 +192,7 @@ class Subunit(object):
         """ Set the molecular weight of the subunit
 
         Args:
-            value (:obj:`float` or :obj:`int` or None): molecular weight of the subunit
+            value (:obj:`float` or :obj:`int` or :obj:`None`): molecular weight of the subunit
 
         Raises:
             :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`float` or :obj:`int` or None
@@ -229,7 +229,7 @@ class Subunit(object):
         """ Set the charge of the subunit
 
         Args:
-            value (:obj:`int` or None): charge of the subunit
+            value (:obj:`int` or :obj:`None`): charge of the subunit
 
         Raises:
             :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`int` or None
@@ -275,7 +275,7 @@ class Subunit(object):
         """ Get the empirical formula
 
         Args:
-            formula (:obj:`EmpiricalFormula` or None): Subunit empirical formula per copy
+            formula (:obj:`EmpiricalFormula` or :obj:`None`): Subunit empirical formula per copy
 
         Returns:
             :obj:`EmpiricalFormula` or None: the empirical formula of the Subunit
@@ -294,11 +294,10 @@ class Subunit(object):
         """ Get the molecular weight
 
         Args:
-            mol_wt (:obj:`float` or None): Subunit molecular weight per copy
+            mol_wt (:obj:`float` or :obj:`None`): Subunit molecular weight per copy
 
         Returns:
             :obj:`float` or None: the molecular weight of the Subunit
-
         """
 
         if mol_wt is not None:
@@ -313,11 +312,10 @@ class Subunit(object):
         """ Get the total charge
 
         Args:
-            charge (:obj:`int` or None): Subunit charge per copy
+            charge (:obj:`int` or :obj:`None`): Subunit charge per copy
 
         Returns:
             :obj:`int` or None: the total charge of the Subunit
-
         """
 
         if charge is not None:
@@ -332,13 +330,13 @@ class Subunit(object):
         """ Get an Open Babel molecule of the structure
 
         Returns:
-            :obj:`openbabel.OBMol`: Open Babel molecule of the structure
-            :obj:`dict` of obj:`dict`: dictionary which maps subunit_idx to
-                atom_maps
+            :obj:`tuple`:
+                * :obj:`openbabel.OBMol`: Open Babel molecule of the structure
+                * :obj:`dict` of obj:`dict`: dictionary which maps :obj:`subunit_idx` to
+                    atom_maps
 
         Raises:
-            :obj:`ValueError`: Subunit structure is None
-
+            :obj:`ValueError`: Subunit structure is :obj:`None`
         """
 
         if self.structure is None:
@@ -1147,12 +1145,12 @@ class BcForm(object):
     def get_formula(self, subunit_formulas=None):
         """ Get the empirical formula
 
-        * if user wants to calculate formula of nested BcForm, where some subunits
-        are BcForm objects, then the subunit BcForms must be able to calculate
-        its own formula through structure
+        * If user wants to calculate formula of nested BcForm, where some subunits
+          are BcForm objects, then the subunit BcForms must be able to calculate
+          its own formula through structure
 
         Args:
-            subunit_formulas (:obj:`dict` or None): dictionary of subunit ids and empirical formulas
+            subunit_formulas (:obj:`dict` or :obj:`None`): dictionary of subunit ids and empirical formulas
 
         Returns:
             :obj:`EmpiricalFormula`: the empirical formula of the BcForm
@@ -1160,7 +1158,6 @@ class BcForm(object):
         Raises:
             :obj:`ValueError`: subunit formulas does not include all subunits
             :obj:`ValueError`: Not all subunits have defined formula
-
         """
 
         formula = EmpiricalFormula()
@@ -1190,12 +1187,12 @@ class BcForm(object):
     def get_mol_wt(self, subunit_mol_wts=None):
         """ Get the molecular weight
 
-        * if user wants to calculate molecular weight of nested BcForm, where
-        some subunits are BcForm objects, then the subunit BcForms must be able
-        to calculate its own molecular weight through structure
+        * If user wants to calculate molecular weight of nested BcForm, where
+          some subunits are BcForm objects, then the subunit BcForms must be able
+          to calculate its own molecular weight through structure
 
         Args:
-            subunit_formulas (:obj:`dict` or None): dictionary of subunit ids and molecular weights
+            subunit_formulas (:obj:`dict` or :obj:`None`): dictionary of subunit ids and molecular weights
 
         Returns:
             :obj:`float`: the molecular weight of the BcForm
@@ -1232,12 +1229,12 @@ class BcForm(object):
     def get_charge(self, subunit_charges=None):
         """ Get the total charge
 
-        * if user wants to calculate charge of nested BcForm, where
-        some subunits are BcForm objects, then the subunit BcForms must be able
-        to calculate its own charge through structure
+        * If user wants to calculate charge of nested BcForm, where
+          some subunits are BcForm objects, then the subunit BcForms must be able
+          to calculate its own charge through structure
 
         Args:
-            subunit_formulas (:obj:`dict` or None): dictionary of subunit ids and charges
+            subunit_formulas (:obj:`dict` or :obj:`None`): dictionary of subunit ids and charges
 
         Returns:
             :obj:`int`: the total charge of the BcForm
@@ -1245,7 +1242,6 @@ class BcForm(object):
         Raises:
             :obj:`ValueError`: subunit_charges does not include all subunits
             :obj:`ValueError`: Not all subunits have defined charge
-
         """
         charge = 0
 
@@ -1404,7 +1400,6 @@ class BcForm(object):
 
         Returns:
             :obj:`openbabel.OBMol`: Open Babel molecule of the structure
-
         """
         mol = openbabel.OBMol()
 

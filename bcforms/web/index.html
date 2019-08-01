@@ -24,9 +24,49 @@
       </div>
 
       <div class="grid-x grid-padding-x blue">
-        <div class="large-12 cell">
+        <div class="large-7 cell">
           <p><i>BcForms</i> is a toolkit for concretely describing the molecular structure (atoms and bonds) of macromolecular complexes, including non-canonical monomeric forms, circular topologies, and crosslinks. <i>BcForms</i> was developed to help describe the semantic meaning of whole-cell computational models <a href="https://www.wholecell.org"><i class="fi-link"></i></a>.</p>
           <p><i>BcForms</i> includes a grammar for describing forms of macromolecular complexes composed of DNA, RNA, protein, and small molecular subunits and crosslinks between the subunits. The DNA, RNA, and protein subunits can be described using <i>BpForms</i> and the small molecule subunits can be described using SMILES. <i>BcForms</i> also includes four software tools for verifying descriptions of complexes and calculating physical properties of complexes such as their molecular structure, formula, molecular weight, and charge: this website, a JSON REST API <a href="https://www.bcforms.org/api/"><i class="fi-link"></i></a>, a command line interface <a href="https://pypi.python.org/pypi/bcforms/"><i class="fi-link"></i></a>, and a Python API <a href="https://pypi.python.org/pypi/bcforms/"><i class="fi-link"></i></a>. <i>BcForms</i> is available open-source <a href="https://github.com/KarrLab/bcforms"><i class="fi-social-github"></i></a> under the MIT license.</p>
+        </div>
+        <div class="large-5 cell">
+          <div class="toc">
+            <h3>Table of contents</h3>
+            <div class="grid-x grid-padding-x">
+              <div class="large-6 cell">
+                <ul>
+                  <li><a href="#calculator">Web application</a></li>
+                  <li><a href="#grammar">Grammar</a>
+                    <ul>
+                      <li><a href="#grammar">Subunit composition</a></li>
+                      <li><a href="#crosslinks">Crosslinks</a></li>
+                    </ul>
+                  </li>
+                  <li><a href="#interfaces">User interfaces</a>
+                    <ul>
+                      <li><a href="#calculator">Webform</a></li>
+                      <li><a href="#rest">REST API</a></li>
+                      <li><a href="#cli">Command line interface</a></li>
+                      <li><a href="#library">Python library</a></li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+              <div class="large-6 cell">
+                <ul>                  
+                  <li><a href="#integration">Integration with standards for kinetic models</a>
+                    <ul>
+                      <li><a href="#cellml">CellML</a></li>
+                      <li><a href="#sbml">SBML</a></li>
+                    </ul>
+                  </li>
+                  <li><a href="#resources">Other useful resources</a></li>
+                  <li><a href="#help">Tutorials, docs, and help</a></li>
+                  <li><a href="#contributing">Contributing to <i>BcForms</i></a></li>
+                  <li><a href="#about">About <i>BcForms</i></a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -285,6 +325,38 @@ sub_c: bpforms.ProteinForm(CA)</pre>
       </div>
 
       <div class="grid-x grid-padding-x blue">
+        <a name="resources"></a>
+        <div class="large-12 cell">
+          <h2>Resources for determining the structures of complexes</h2>
+          <p class="before_list">Below are several resources which can be helpful for determining the subunit and crosslink composition of complexes.</p>
+        </div>
+        <div class="large-4 cell">
+          <h3>Subunit composition</h3>
+          <ul>
+            <li>BioCyc <a href="https://biocyc.org/"><i class="fi-link"></i></a></li>
+            <li>Complex Portal <a href="https://www.ebi.ac.uk/complexportal/"><i class="fi-link"></i></a></li>
+            <li>CORUM <a href="https://mips.helmholtz-muenchen.de/corum/"><i class="fi-link"></i></a></li>
+            <li>Protein Data Bank (PDB) <a href="https://www.rcsb.org/"><i class="fi-link"></i></a></li>
+            <li>UniProt <a href="https://www.uniprot.org/"><i class="fi-link"></i></a></li>
+          </ul>
+        </div>
+        <div class="large-4 cell">
+          <h3>Crosslink composition</h3>
+          <ul>
+            <li>Protein Data Bank (PDB) <a href="https://www.rcsb.org/"><i class="fi-link"></i></a></li>
+            <li>UniProt <a href="https://www.uniprot.org/"><i class="fi-link"></i></a></li>
+          </ul>
+        </div>
+        <div class="large-4 cell">
+          <h3>Drawing chemical structures</h3>
+          <ul>
+            <li>ChemAxon Marvin <a href="https://chemaxon.com/products/marvin"><i class="fi-link"></i></a></li>
+            <li>Open Babel <a href="http://openbabel.org/wiki/Category:Installation"><i class="fi-link"></i></a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="grid-x grid-padding-x orange">
         <a name="help"></a>
         <div class="large-12 cell">
           <h2>Tutorials, documentation, and help</h2>
@@ -319,17 +391,17 @@ sub_c: bpforms.ProteinForm(CA)</pre>
         </div>
       </div>
 
-      <div class="grid-x grid-padding-x orange">
+      <div class="grid-x grid-padding-x blue">
         <a name="contributing"></a>
         <div class="large-12 cell">
           <h2>Contributing to <i>BcForms</i></h2>
         </div>
         <div class="large-12 cell" style="margin-top: 1rem; padding-top: 0.2rem;">
-          To contribute to the software, please submit a Git pull request.
+          To contribute to the software, please submit a Git pull request <a href="https://github.com/karrlab/bcforms/pulls"><i class="fi-link"></i></a>.
         </div>
       </div>
 
-      <div class="grid-x grid-padding-x blue">
+      <div class="grid-x grid-padding-x orange">
         <a name="about"></a>
         <div class="large-12 cell">
           <h2>About <i>BcForms</i></h2>

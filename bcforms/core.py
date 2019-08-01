@@ -329,10 +329,10 @@ class Subunit(object):
         return None
 
     def get_structure(self):
-        """ Get an OpenBabel molecule of the structure
+        """ Get an Open Babel molecule of the structure
 
         Returns:
-            :obj:`openbabel.OBMol`: OpenBabel molecule of the structure
+            :obj:`openbabel.OBMol`: Open Babel molecule of the structure
             :obj:`dict` of obj:`dict`: dictionary which maps subunit_idx to
                 atom_maps
 
@@ -1400,10 +1400,10 @@ class BcForm(object):
         setattr(subunit, attribute, value)
 
     def get_structure(self):
-        """ Get an OpenBabel molecule of the structure
+        """ Get an Open Babel molecule of the structure
 
         Returns:
-            :obj:`openbabel.OBMol`: OpenBabel molecule of the structure
+            :obj:`openbabel.OBMol`: Open Babel molecule of the structure
 
         """
         mol = openbabel.OBMol()

@@ -133,7 +133,7 @@
           <p class="before_list"><i>BcForms</i> descriptions of complexes consist of two parts:</p>
           <ul>
             <li><b>Subunit composition of the complex:</b> The subunit composition of the complex, including the stoichiometry of each subunit, is described as a linear expression (e.g., <tt>3 * subunit_a + 2 * subunit_b</tt>).</li>
-            <li><b>Interchain crosslinks:</b> Each crosslink is described as indicated below (e.g., <tt> | crosslink: [...]</tt>).</li>
+            <li><b>Interchain crosslinks:</b> Each crosslink is described as indicated below (e.g., <tt> | x-link: [...]</tt>).</li>
           </ul>
 
           <p>The <i>BcForms</i> grammar <a href="https://raw.githubusercontent.com/KarrLab/bcforms/master/bcforms/grammar.lark"><i class="fi-link"></i></a> is defined in Lark syntax <a href="https://lark-parser.readthedocs.io"><i class="fi-link"></i></a>, which is based on EBNF syntax <a href="https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form"><i class="fi-link"></i></a>.</p>
@@ -176,9 +176,9 @@ sub_c: bpforms.ProteinForm(CA)</pre>
         <div class="large-5 cell grammar">
           <a name="crosslinks"></a>
           <h3>Crosslinks between subunits</h3>
-          <p>The <tt class="attribute">crosslink</tt> attribute can be used to indicate a bond between atoms from different subunits. For example, this attribute can describe interstrand disulfide bonds between cysteines in proteins and crosslinks in DNA.</p>
+          <p>The <tt class="attribute">x-link</tt> attribute can be used to indicate a bond between atoms from different subunits. For example, this attribute can describe interstrand disulfide bonds between cysteines in proteins and crosslinks in DNA.</p>
 
-          <p>Each crosslink can be described by enclosing attributes which indicate the atoms involved in the bond within square brackets and delimiting the attributes with pipes (e.g., "<tt>| crosslink: [l-bond-atom: sub_a(1)-1C1 | r-bond-atom: sub_b(1)-3C2 | ...]</tt>").</p>
+          <p>Each crosslink can be described by enclosing attributes which indicate the atoms involved in the bond within square brackets and delimiting the attributes with pipes (e.g., "<tt>| x-link: [l-bond-atom: sub_a(1)-1C1 | r-bond-atom: sub_b(1)-3C2 | ...]</tt>").</p>
 
           <p class="before_list">Each crosslink can be described using four types of attributes:</p>
           <ul>

@@ -7,14 +7,24 @@
 :License: MIT
 """
 
+import abc
 import itertools
 import lark
 import openbabel
+import os
 import pkg_resources
+from ruamel import yaml
+import wc_utils.cache
 from wc_utils.util.chem import EmpiricalFormula, OpenBabelUtils
 import bpforms
 import bpforms.core
 import bpforms.alphabet.protein
+
+# setup cache
+cache_dir = os.path.expanduser('~/.cache/bcforms')
+if not os.path.isdir(cache_dir):
+    os.makedirs(cache_dir)
+cache = wc_utils.cache.Cache(directory=cache_dir)
 
 class Subunit(object):
     """ Subunit in a BcForm macromolecular complex
@@ -650,9 +660,76 @@ class Atom(object):
 
         return True
 
+class Crosslink(abc.ABC):
+    """ Abstract class of a crosslink between subunits
 
-class Crosslink(object):
-    """ A crosslink between subunits
+    """
+
+    @abc.abstractmethod
+    def get_l_bond_atoms(self):
+        """ Get the left bond atoms
+
+        Returns:
+            :obj:`list` of :obj:`Atom`: left bond atoms
+
+        """
+        pass
+
+    @abc.abstractmethod
+    def get_r_bond_atoms(self):
+        """ Get the right bond atoms
+
+        Returns:
+            :obj:`list` of :obj:`Atom`: right bond atoms
+
+        """
+        pass
+
+    @abc.abstractmethod
+    def get_l_displaced_atoms(self):
+        """ Get the left displaced atoms
+
+        Returns:
+            :obj:`list` of :obj:`Atom`: left displaced atoms
+
+        """
+        pass
+
+    @abc.abstractmethod
+    def get_r_displaced_atoms(self):
+        """ Get the right displaced atoms
+
+        Returns:
+            :obj:`list` of :obj:`Atom`: right displaced atoms
+
+        """
+        pass
+
+    @abc.abstractmethod
+    def __str__(self):
+        """Generate a string representation
+
+        Returns:
+            :obj:`str`: string representation
+        """
+        pass
+
+    @abc.abstractmethod
+    def is_equal(self, other):
+        """ Check if two crosslinks are semantically equal (have the same bond atoms)
+
+        Args:
+            other (:obj:`Crosslink`): another crosslink
+
+        Returns:
+            :obj:`bool`: :obj:`True`, if the crosslinks are semantically equal
+
+        """
+        pass
+
+
+class InlineCrosslink(Crosslink):
+    """ A crosslink between subunits defined inline
 
     Attributes:
         l_bond_atoms (:obj:`list` of :obj:`Atom`): atoms from the left subunit that bond with the right subunit
@@ -835,6 +912,414 @@ class Crosslink(object):
 
         return True
 
+    def get_l_bond_atoms(self):
+        """ Get the left bond atoms
+
+        Returns:
+            :obj:`list` of :obj:`Atom`: left bond atoms
+
+        """
+        return self.l_bond_atoms
+
+    def get_r_bond_atoms(self):
+        """ Get the right bond atoms
+
+        Returns:
+            :obj:`list` of :obj:`Atom`: right bond atoms
+
+        """
+        return self.r_bond_atoms
+
+    def get_l_displaced_atoms(self):
+        """ Get the left displaced atoms
+
+        Returns:
+            :obj:`list` of :obj:`Atom`: left displaced atoms
+
+        """
+        return self.l_displaced_atoms
+
+    def get_r_displaced_atoms(self):
+        """ Get the right displaced atoms
+
+        Returns:
+            :obj:`list` of :obj:`Atom`: right displaced atoms
+
+        """
+        return self.r_displaced_atoms
+
+_xlink_filename = pkg_resources.resource_filename('bcforms', 'xlink/xlink.yml')
+
+@cache.memoize(typed=False, expire=30 * 24 * 60 * 60, filename_args=[0])
+def parse_yaml(path):
+    """ Read a YAML file
+
+    Args:
+        path (:obj:`str`): path to YAML file which defines alphabet
+
+    Returns:
+        :obj:`object`: content of file
+    """
+    yaml_reader = yaml.YAML()
+    with open(path, 'rb') as file:
+        return yaml_reader.load(file)
+
+class AbstractedCrosslink(Crosslink):
+    """ A pre-defined crosslink between subunits
+
+    Attributes:
+        type (:obj:`str`): type of the pre-defined crosslink
+        l_subunit (:obj:`str`): name of the left subunit
+        l_subunit_idx (:obj:`int`, optional): index of the left subunit, optional if only one copy of the subunit
+        l_monomer (:obj:`int`): index of the monomer from the left subunit
+        r_subunit (:obj:`str`): name of the left subunit
+        r_subunit_idx (:obj:`int`, optional): index of the left subunit, optional if only one copy of the subunit
+        r_monomer (:obj:`int`): index of the monomer from the right subunit
+        xlink_details (:obj:`tuple`): detailed information about the abstracted crosslink
+
+        _xlink_atom_parser (:obj:`lark.Lark`): lark grammar parser used to parse atom strings
+        _xlink_filename (obj:`str`): path to the xlink yml file
+
+    """
+
+    def __init__(self, type, l_subunit, l_monomer, r_subunit, r_monomer, l_subunit_idx=None, r_subunit_idx=None):
+        """
+
+        Args:
+            type (:obj:`str`): type of the pre-defined crosslink
+            l_subunit (:obj:`str`): name of the left subunit
+            l_subunit_idx (:obj:`int`, optional): index of the left subunit, optional if only one copy of the subunit
+            l_monomer (:obj:`int`): index of the monomer from the left subunit
+            r_subunit (:obj:`str`): name of the left subunit
+            r_subunit_idx (:obj:`int`, optional): index of the left subunit, optional if only one copy of the subunit
+            r_monomer (:obj:`int`): index of the monomer from the right subunit
+
+        """
+
+        self.type = type
+        self.l_subunit = l_subunit
+        self.l_subunit_idx = l_subunit_idx
+        self.l_monomer = l_monomer
+        self.r_subunit = r_subunit
+        self.r_subunit_idx = r_subunit_idx
+        self.r_monomer = r_monomer
+        self.xlink_details = self.get_details()
+
+    @property
+    def type(self):
+        """ Get the type of the abstracted crosslink
+
+        Returns:
+            :obj:`str`: type of the crosslink
+
+        """
+        return self._type
+
+    @type.setter
+    def type(self, value):
+        """ Set the type of the abstracted crosslink
+
+        Args:
+            value (:obj:`str`): type of the crosslink
+
+        Raises:
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`str`
+
+        """
+        if not isinstance(value, str):
+            raise ValueError('`value` must be an instance of `str`')
+        self._type = value
+
+    @property
+    def l_subunit(self):
+        """ Get the name of the left subunit in the crosslink
+
+        Returns:
+            :obj:`str`: name of the left subunit
+
+        """
+        return self._l_subunit
+
+    @l_subunit.setter
+    def l_subunit(self, value):
+        """ Set the name of the left subunit in the crosslink
+
+        Args:
+            value (:obj:`str`): name of the left subunit
+
+        Raises:
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`str`
+
+        """
+        if not isinstance(value, str):
+            raise ValueError('`value` must be an instance of `str`')
+        self._l_subunit = value
+
+    @property
+    def l_subunit_idx(self):
+        """ Get the index of the left subunit in the crosslink
+
+        Returns:
+            :obj:`int`: index of the left subunit
+
+        """
+        return self._l_subunit_idx
+
+    @l_subunit_idx.setter
+    def l_subunit_idx(self, value):
+        """ Set the index of the left subunit in the crosslink
+
+        Args:
+            value (:obj:`int` or None): index of the left subunit
+
+        Raises:
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`int` or None
+
+        """
+        if value is not None and (not isinstance(value, int) or value < 1):
+            raise ValueError('`value` must be an instance of `int` or None')
+        self._l_subunit_idx = value
+
+    @property
+    def l_monomer(self):
+        """ Get the index of the left monomer in the crosslink
+
+        Returns:
+            :obj:`int`: index of the left monomer
+
+        """
+        return self._l_monomer
+
+    @l_monomer.setter
+    def l_monomer(self, value):
+        """ Set the index of the left monomer in the crosslink
+
+        Args:
+            value (:obj:`int`): index of the left monomer
+
+        Raises:
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`int`
+
+        """
+        if not isinstance(value, int):
+            raise ValueError('`value` must be an instance of `int`')
+        self._l_monomer = value
+
+    @property
+    def r_subunit(self):
+        """ Get the name of the right subunit in the crosslink
+
+        Returns:
+            :obj:`str`: name of the right subunit
+
+        """
+        return self._r_subunit
+
+    @r_subunit.setter
+    def r_subunit(self, value):
+        """ Set the name of the right subunit in the crosslink
+
+        Args:
+            value (:obj:`str`): name of the right subunit
+
+        Raises:
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`str`
+
+        """
+        if not isinstance(value, str):
+            raise ValueError('`value` must be an instance of `str`')
+        self._r_subunit = value
+
+    @property
+    def r_subunit_idx(self):
+        """ Get the index of the right subunit in the crosslink
+
+        Returns:
+            :obj:`int`: index of the right subunit
+
+        """
+        return self._r_subunit_idx
+
+    @r_subunit_idx.setter
+    def r_subunit_idx(self, value):
+        """ Set the index of the right subunit in the crosslink
+
+        Args:
+            value (:obj:`int` or None): index of the right subunit
+
+        Raises:
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`int` or None
+
+        """
+        if value is not None and (not isinstance(value, int) or value < 1):
+            raise ValueError('`value` must be an instance of `int` or None')
+        self._r_subunit_idx = value
+
+    @property
+    def r_monomer(self):
+        """ Get the index of the right monomer in the crosslink
+
+        Returns:
+            :obj:`int`: index of the right monomer
+
+        """
+        return self._r_monomer
+
+    @r_monomer.setter
+    def r_monomer(self, value):
+        """ Set the index of the right monomer in the crosslink
+
+        Args:
+            value (:obj:`int`): index of the right monomer
+
+        Raises:
+            :obj:`ValueError`: if :obj:`value` is not an instance of :obj:`int`
+
+        """
+        if not isinstance(value, int):
+            raise ValueError('`value` must be an instance of `int`')
+        self._r_monomer = value
+
+
+    _xlink_atom_parser = lark.Lark("""
+        start: atom_element atom_position atom_charge?
+        atom_element: /[A-Z][a-z]?/
+        atom_position: /[0-9]+/
+        atom_charge: /[\+\-][0-9]+/
+    """)
+
+    class ParseTreeTransformer(lark.Transformer):
+        # Class that processes the parsetree
+
+        @lark.v_args(inline=True)
+        def start(self, *args):
+            atom_element = args[0][1]
+            atom_position = args[1][1]
+            if len(args) > 2:
+                atom_charge = args[2][1]
+            else:
+                atom_charge = 0
+            return atom_element, atom_position, atom_charge
+
+        @lark.v_args(inline=True)
+        def atom_element(self, *args):
+            return ('atom_element', args[0].value)
+
+        @lark.v_args(inline=True)
+        def atom_position(self, *args):
+            return ('atom_position', int(args[0].value))
+
+        @lark.v_args(inline=True)
+        def atom_charge(self, *args):
+            return ('atom_charge', args[0].value)
+
+
+    def get_l_bond_atoms(self):
+        """ Get the left bond atoms
+
+        Returns:
+            :obj:`list` of :obj:`Atom`: left bond atoms
+
+        """
+        atoms = []
+        for atom in self.xlink_details[1]['l_bond_atoms']:
+            tree = self._xlink_atom_parser.parse(atom)
+            parse_tree_transformer = self.ParseTreeTransformer()
+            element, position, charge = parse_tree_transformer.transform(tree)
+            atom = Atom(subunit=self.l_subunit, element=element, position=position, monomer=self.l_monomer, charge=charge, subunit_idx=self.l_subunit_idx)
+            atoms.append(atom)
+        return atoms
+
+    def get_r_bond_atoms(self):
+        """ Get the right bond atoms
+
+        Returns:
+            :obj:`list` of :obj:`Atom`: right bond atoms
+
+        """
+        atoms = []
+        for atom in self.xlink_details[1]['r_bond_atoms']:
+            tree = self._xlink_atom_parser.parse(atom)
+            parse_tree_transformer = self.ParseTreeTransformer()
+            element, position, charge = parse_tree_transformer.transform(tree)
+            atom = Atom(subunit=self.r_subunit, element=element, position=position, monomer=self.r_monomer, charge=charge, subunit_idx=self.r_subunit_idx)
+            atoms.append(atom)
+        return atoms
+
+    def get_l_displaced_atoms(self):
+        """ Get the left displaced atoms
+
+        Returns:
+            :obj:`list` of :obj:`Atom`: left displaced atoms
+
+        """
+        atoms = []
+        for atom in self.xlink_details[1]['l_displaced_atoms']:
+            tree = self._xlink_atom_parser.parse(atom)
+            parse_tree_transformer = self.ParseTreeTransformer()
+            element, position, charge = parse_tree_transformer.transform(tree)
+            atom = Atom(subunit=self.l_subunit, element=element, position=position, monomer=self.l_monomer, charge=charge, subunit_idx=self.l_subunit_idx)
+            atoms.append(atom)
+        return atoms
+
+    def get_r_displaced_atoms(self):
+        """ Get the right displaced atoms
+
+        Returns:
+            :obj:`list` of :obj:`Atom`: right displaced atoms
+
+        """
+        atoms = []
+        for atom in self.xlink_details[1]['r_displaced_atoms']:
+            tree = self._xlink_atom_parser.parse(atom)
+            parse_tree_transformer = self.ParseTreeTransformer()
+            element, position, charge = parse_tree_transformer.transform(tree)
+            atom = Atom(subunit=self.r_subunit, element=element, position=position, monomer=self.r_monomer, charge=charge, subunit_idx=self.r_subunit_idx)
+            atoms.append(atom)
+        return atoms
+
+    def __str__(self):
+        """Generate a string representation
+
+        Returns:
+            :obj:`str`: string representation
+        """
+        pass
+
+    def is_equal(self, other):
+        """ Check if two crosslinks are semantically equal (have the same bond atoms)
+
+        Args:
+            other (:obj:`Crosslink`): another crosslink
+
+        Returns:
+            :obj:`bool`: :obj:`True`, if the crosslinks are semantically equal
+
+        """
+        pass
+
+    def get_details(self):
+        """ Get the full details of the crosslink in a dictionary
+
+        Returns:
+            :obj:`dict`: detailed information of the crosslink
+
+        Raises:
+            :obj:`KeyError`: Unknown abstracted crosslink type
+
+        """
+        xlink_detail_dict = parse_yaml(_xlink_filename)
+        for xlink_name, xlink_details in xlink_detail_dict.items():
+            if self.type == xlink_name:
+                return (xlink_name, xlink_details)
+            if self.type in xlink_details['synonyms']:
+                return (xlink_name, xlink_details)
+            if 'common_name' in xlink_details and self.type == xlink_details['common_name']:
+                return (xlink_name, xlink_details)
+
+        raise KeyError('Unknown abstracted crosslink type')
+
+
 
 class BcForm(object):
     """ A form of a macromolecular complex
@@ -1001,7 +1486,7 @@ class BcForm(object):
 
             @lark.v_args(inline=True)
             def crosslink(self, *args):
-                bond = Crosslink()
+                bond = InlineCrosslink()
                 for arg in args:
                     if isinstance(arg, tuple):
                         atom_type, atom = arg
@@ -1180,7 +1665,7 @@ class BcForm(object):
 
         # crosslinks
         for crosslink in self.crosslinks:
-            for atom in itertools.chain(crosslink.l_displaced_atoms, crosslink.r_displaced_atoms):
+            for atom in itertools.chain(crosslink.get_l_displaced_atoms(), crosslink.get_r_displaced_atoms()):
                 formula[atom.element] -= 1
         return formula
 
@@ -1221,7 +1706,7 @@ class BcForm(object):
 
         # crosslinks
         for crosslink in self.crosslinks:
-            for atom in itertools.chain(crosslink.l_displaced_atoms, crosslink.r_displaced_atoms):
+            for atom in itertools.chain(crosslink.get_l_displaced_atoms(), crosslink.get_r_displaced_atoms()):
                 mol_wt -= EmpiricalFormula(atom.element).get_molecular_weight()
 
         return mol_wt
@@ -1263,7 +1748,7 @@ class BcForm(object):
 
         # crosslinks
         for crosslink in self.crosslinks:
-            for atom in itertools.chain(crosslink.l_displaced_atoms, crosslink.r_displaced_atoms):
+            for atom in itertools.chain(crosslink.get_l_displaced_atoms(), crosslink.get_r_displaced_atoms()):
                 charge -= atom.charge
 
         # return the total charge
@@ -1287,7 +1772,7 @@ class BcForm(object):
         atom_types = ['l_bond_atoms', 'l_displaced_atoms', 'r_bond_atoms', 'r_displaced_atoms']
         for i_crosslink, crosslink in enumerate(self.crosslinks):
             for atom_type in atom_types:
-                for i_atom, atom in enumerate(getattr(crosslink, atom_type)):
+                for i_atom, atom in enumerate(getattr(crosslink, 'get_'+atom_type)()):
                     # check if subunit is present
                     if atom.subunit not in [subunit.id for subunit in self_subunits_subunits]:
                         errors.append("'{}[{}]' of crosslink {} must belong to a subunit in self.subunits".format(
@@ -1435,7 +1920,7 @@ class BcForm(object):
             crosslinks_atoms.append(crosslink_atoms)
             for atom_type in ['l_bond_atoms', 'r_bond_atoms', 'l_displaced_atoms', 'r_displaced_atoms']:
                 crosslink_atoms[atom_type] = []
-                for atom_md in getattr(crosslink, atom_type):
+                for atom_md in getattr(crosslink, 'get_'+atom_type)():
                     i_subunit = [i for i in range(len(self.subunits)) if self.subunits[i].id == atom_md.subunit][0]
                     subunit_idx = 1 if atom_md.subunit_idx is None else atom_md.subunit_idx
                     atom = mol.GetAtom(atom_maps[i_subunit][subunit_idx][atom_md.monomer][atom_md.component_type][atom_md.position])

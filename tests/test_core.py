@@ -267,51 +267,51 @@ class AtomTestCase(unittest.TestCase):
         atom_5 = core.Atom(subunit='abc', subunit_idx=None, element='H', position=1, monomer=10, charge=0)
         self.assertFalse(atom_4.is_equal(atom_5))
 
-class CrosslinkTestCase(unittest.TestCase):
+class InlineCrosslinkTestCase(unittest.TestCase):
 
     def test_init(self):
-        crosslink = core.Crosslink()
+        crosslink = core.InlineCrosslink()
         self.assertEqual(crosslink.l_bond_atoms, [])
         self.assertEqual(crosslink.r_bond_atoms, [])
         self.assertEqual(crosslink.l_displaced_atoms, [])
         self.assertEqual(crosslink.r_displaced_atoms, [])
 
-        crosslink = core.Crosslink([], [], [], [])
+        crosslink = core.InlineCrosslink([], [], [], [])
         self.assertEqual(crosslink.l_bond_atoms, [])
         self.assertEqual(crosslink.r_bond_atoms, [])
         self.assertEqual(crosslink.l_displaced_atoms, [])
         self.assertEqual(crosslink.r_displaced_atoms, [])
 
     def test_set_l_bond_atoms(self):
-        crosslink = core.Crosslink()
+        crosslink = core.InlineCrosslink()
         atom = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
         crosslink.l_bond_atoms.append(atom)
         with self.assertRaises(ValueError):
             crosslink.l_bond_atoms = None
 
     def test_set_r_bond_atoms(self):
-        crosslink = core.Crosslink()
+        crosslink = core.InlineCrosslink()
         atom = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
         crosslink.r_bond_atoms.append(atom)
         with self.assertRaises(ValueError):
             crosslink.r_bond_atoms = None
 
     def test_set_l_displaced_atoms(self):
-        crosslink = core.Crosslink()
+        crosslink = core.InlineCrosslink()
         atom = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
         crosslink.l_displaced_atoms.append(atom)
         with self.assertRaises(ValueError):
             crosslink.l_displaced_atoms = None
 
     def test_set_r_displaced_atoms(self):
-        crosslink = core.Crosslink()
+        crosslink = core.InlineCrosslink()
         atom = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
         crosslink.r_displaced_atoms.append(atom)
         with self.assertRaises(ValueError):
             crosslink.r_displaced_atoms = None
 
     def test_str(self):
-        crosslink = core.Crosslink()
+        crosslink = core.InlineCrosslink()
         atom_1 = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
         crosslink.l_bond_atoms.append(atom_1)
         atom_2 = core.Atom(subunit='def', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
@@ -324,20 +324,20 @@ class CrosslinkTestCase(unittest.TestCase):
         atom_2 = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
         atom_3 = core.Atom(subunit='def', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
 
-        crosslink_1 = core.Crosslink()
+        crosslink_1 = core.InlineCrosslink()
         crosslink_1.l_bond_atoms.append(atom_1)
         crosslink_1.r_bond_atoms.append(atom_2)
 
-        crosslink_2 = core.Crosslink()
+        crosslink_2 = core.InlineCrosslink()
         crosslink_2.l_bond_atoms.append(atom_1)
         crosslink_2.r_bond_atoms.append(atom_2)
 
-        crosslink_3 = core.Crosslink()
+        crosslink_3 = core.InlineCrosslink()
         crosslink_3.l_bond_atoms.append(atom_1)
         crosslink_3.r_bond_atoms.append(atom_2)
         crosslink_3.r_bond_atoms.append(atom_3)
 
-        crosslink_4 = core.Crosslink()
+        crosslink_4 = core.InlineCrosslink()
         crosslink_4.l_bond_atoms.append(atom_1)
         crosslink_4.r_bond_atoms.append(atom_3)
 
@@ -346,6 +346,121 @@ class CrosslinkTestCase(unittest.TestCase):
         self.assertTrue(crosslink_1.is_equal(crosslink_2))
         self.assertFalse(crosslink_1.is_equal(crosslink_3))
         self.assertFalse(crosslink_1.is_equal(crosslink_4))
+
+class AbstractedCrosslinkTestCase(unittest.TestCase):
+
+    def test_init(self):
+        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
+        self.assertEqual(xlink_1.type, 'disulfide')
+        self.assertEqual(xlink_1.l_subunit, 'sub_1')
+        self.assertIsNone(xlink_1.l_subunit_idx)
+        self.assertEqual(xlink_1.l_monomer, 3)
+        self.assertEqual(xlink_1.r_subunit, 'sub_2')
+        self.assertIsNone(xlink_1.r_subunit_idx)
+        self.assertEqual(xlink_1.r_monomer, 1)
+
+        xlink_2 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=2, r_subunit='sub_2', r_subunit_idx=1, l_monomer=3, r_monomer=1)
+        self.assertEqual(xlink_2.l_subunit_idx, 2)
+        self.assertEqual(xlink_2.r_subunit_idx, 1)
+
+    def test_set_type(self):
+        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
+        xlink_1.type = 'glycyl_lysine_isopeptide'
+        self.assertEqual(xlink_1.type, 'glycyl_lysine_isopeptide')
+        with self.assertRaises(ValueError):
+            xlink_1.type = None
+
+    def test_set_l_subunit(self):
+        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
+        xlink_1.l_subunit = 'sub_3'
+        self.assertEqual(xlink_1.l_subunit, 'sub_3')
+        with self.assertRaises(ValueError):
+            xlink_1.l_subunit = None
+
+    def test_set_l_subunit_idx(self):
+        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
+        xlink_1.l_subunit_idx = 2
+        self.assertEqual(xlink_1.l_subunit_idx, 2)
+        with self.assertRaises(ValueError):
+            xlink_1.l_subunit_idx = 'AA'
+        with self.assertRaises(ValueError):
+            xlink_1.l_subunit_idx = -1
+
+    def test_set_l_monomer(self):
+        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
+        xlink_1.l_monomer = 2
+        self.assertEqual(xlink_1.l_monomer, 2)
+        with self.assertRaises(ValueError):
+            xlink_1.l_monomer = None
+
+    def test_set_r_subunit(self):
+        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
+        xlink_1.r_subunit = 'sub_3'
+        self.assertEqual(xlink_1.r_subunit, 'sub_3')
+        with self.assertRaises(ValueError):
+            xlink_1.r_subunit = None
+
+    def test_set_r_subunit_idx(self):
+        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
+        xlink_1.r_subunit_idx = 2
+        self.assertEqual(xlink_1.r_subunit_idx, 2)
+        with self.assertRaises(ValueError):
+            xlink_1.r_subunit_idx = 'AA'
+        with self.assertRaises(ValueError):
+            xlink_1.r_subunit_idx = -1
+
+    def test_set_r_monomer(self):
+        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
+        xlink_1.r_monomer = 2
+        self.assertEqual(xlink_1.r_monomer, 2)
+        with self.assertRaises(ValueError):
+            xlink_1.r_monomer = None
+
+    def test_str(self):
+        pass
+
+    def test_is_equal(self):
+        pass
+
+    def test_get_l_bond_atoms(self):
+        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=1, r_subunit='sub_1', r_subunit_idx=2, l_monomer=1, r_monomer=1)
+        self.assertEqual(len(xlink_1.get_l_bond_atoms()), 1)
+        self.assertEqual(xlink_1.get_l_bond_atoms()[0].subunit, 'sub_1')
+        self.assertEqual(xlink_1.get_l_bond_atoms()[0].subunit_idx, 1)
+        self.assertEqual(xlink_1.get_l_bond_atoms()[0].monomer, 1)
+        self.assertEqual(xlink_1.get_l_bond_atoms()[0].element, 'S')
+        self.assertEqual(xlink_1.get_l_bond_atoms()[0].position, 11)
+        self.assertEqual(xlink_1.get_l_bond_atoms()[0].charge, 0)
+
+    def test_get_r_bond_atoms(self):
+        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=1, r_subunit='sub_1', r_subunit_idx=2, l_monomer=1, r_monomer=1)
+        self.assertEqual(len(xlink_1.get_r_bond_atoms()), 1)
+        self.assertEqual(xlink_1.get_r_bond_atoms()[0].subunit, 'sub_1')
+        self.assertEqual(xlink_1.get_r_bond_atoms()[0].subunit_idx, 2)
+        self.assertEqual(xlink_1.get_r_bond_atoms()[0].monomer, 1)
+        self.assertEqual(xlink_1.get_r_bond_atoms()[0].element, 'S')
+        self.assertEqual(xlink_1.get_r_bond_atoms()[0].position, 11)
+        self.assertEqual(xlink_1.get_r_bond_atoms()[0].charge, 0)
+
+    def test_get_l_displaced_atoms(self):
+        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=1, r_subunit='sub_1', r_subunit_idx=2, l_monomer=1, r_monomer=1)
+        self.assertEqual(len(xlink_1.get_l_displaced_atoms()), 1)
+        self.assertEqual(xlink_1.get_l_displaced_atoms()[0].subunit, 'sub_1')
+        self.assertEqual(xlink_1.get_l_displaced_atoms()[0].subunit_idx, 1)
+        self.assertEqual(xlink_1.get_l_displaced_atoms()[0].monomer, 1)
+        self.assertEqual(xlink_1.get_l_displaced_atoms()[0].element, 'H')
+        self.assertEqual(xlink_1.get_l_displaced_atoms()[0].position, 11)
+        self.assertEqual(xlink_1.get_l_displaced_atoms()[0].charge, 0)
+
+    def test_get_r_displaced_atoms(self):
+        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=1, r_subunit='sub_1', r_subunit_idx=2, l_monomer=1, r_monomer=1)
+        self.assertEqual(len(xlink_1.get_r_displaced_atoms()), 1)
+        self.assertEqual(xlink_1.get_r_displaced_atoms()[0].subunit, 'sub_1')
+        self.assertEqual(xlink_1.get_r_displaced_atoms()[0].subunit_idx, 2)
+        self.assertEqual(xlink_1.get_r_displaced_atoms()[0].monomer, 1)
+        self.assertEqual(xlink_1.get_r_displaced_atoms()[0].element, 'H')
+        self.assertEqual(xlink_1.get_r_displaced_atoms()[0].position, 11)
+        self.assertEqual(xlink_1.get_r_displaced_atoms()[0].charge, 0)
 
 class BcFormTestCase(unittest.TestCase):
 
@@ -388,7 +503,7 @@ class BcFormTestCase(unittest.TestCase):
 
         bc_form_3 = core.BcForm()
         bc_form_3.subunits.append(core.Subunit(id='bmp2_a', stoichiometry=1))
-        bc_form_3.crosslinks.append(core.Crosslink(l_bond_atoms=[
+        bc_form_3.crosslinks.append(core.InlineCrosslink(l_bond_atoms=[
             core.Atom(subunit='bmp2_a', subunit_idx=None, element='H', position=1, monomer=10, charge=0)]))
         self.assertEqual(str(bc_form_3), '1 * bmp2_a | x-link: [ l-bond-atom: bmp2_a-10H1 ]')
 

@@ -13,6 +13,8 @@ package_data = {
     name: [
         'VERSION',
         'grammar.lark',
+        'xlink_atom_grammar.lark',
+        'xlink/xlink.yml'
     ],
 }
 

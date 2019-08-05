@@ -724,7 +724,7 @@ class Crosslink(abc.ABC):
             :obj:`bool`: :obj:`True`, if the crosslinks are semantically equal
 
         """
-        
+
         if self is other:
             return True
         if self.__class__ != other.__class__ and self.__class__.__bases__ != other.__class__.__bases__:

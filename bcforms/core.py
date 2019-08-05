@@ -1211,7 +1211,7 @@ class AbstractedCrosslink(Crosslink):
 
         @lark.v_args(inline=True)
         def atom_charge(self, *args):
-            return ('atom_charge', args[0].value)
+            return ('atom_charge', int(args[0].value))
 
 
     def get_l_bond_atoms(self):
@@ -1486,14 +1486,50 @@ class BcForm(object):
 
             @lark.v_args(inline=True)
             def crosslink(self, *args):
-                bond = InlineCrosslink()
-                for arg in args:
-                    if isinstance(arg, tuple):
-                        atom_type, atom = arg
-                        atom_type_list = getattr(bond, atom_type+"s")
-                        atom_type_list.append(atom)
-                return bond
+                # pre-defined abstracted crosslink
+                if args[2][0].strip() == ':':
+                    for arg in args:
+                        if arg[0] == 'l_monomer':
+                            l_subunit = arg[1][0]
+                            l_subunit_idx = arg[1][1]
+                            l_monomer = arg[1][2]
+                        elif arg[0] == 'r_monomer':
+                            r_subunit = arg[1][0]
+                            r_subunit_idx = arg[1][1]
+                            r_monomer = arg[1][2]
+                    bond = AbstractedCrosslink(type=args[3],
+                        l_subunit=l_subunit, l_subunit_idx=l_subunit_idx, l_monomer=l_monomer,
+                        r_subunit=r_subunit, r_subunit_idx=r_subunit_idx, r_monomer=r_monomer)
+                    return bond
+                # inline crosslink
+                else:
+                    bond = InlineCrosslink()
+                    for arg in args:
+                        if isinstance(arg, tuple):
+                            atom_type, atom = arg
+                            atom_type_list = getattr(bond, atom_type+"s")
+                            atom_type_list.append(atom)
+                    return bond
 
+            @lark.v_args(inline=True)
+            def crosslink_monomer(self, *args):
+                num_optional_args = 0
+                monomer_type = args[0][1]
+                subunit = args[2][1]
+                if args[3][0] == 'subunit_idx':
+                    subunit_idx = int(args[3][1])
+                else:
+                    subunit_idx = None
+                    num_optional_args += 1
+                monomer = int(args[4-num_optional_args][1])
+                return (monomer_type, (subunit, subunit_idx, monomer))
+
+
+            @lark.v_args(inline=True)
+            def crosslink_monomer_type(self, *args):
+                return ('crosslink_monomer_type', args[0]+'_monomer')
+
+            # inline crosslink
             @lark.v_args(inline=True)
             def crosslink_atom(self, *args):
                 num_optional_args = 0

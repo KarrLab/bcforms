@@ -552,6 +552,56 @@ class BcFormTestCase(unittest.TestCase):
         self.assertEqual(bc_form_5.crosslinks[0].r_displaced_atoms[1].component_type, 'backbone')
         self.assertEqual(bc_form_5.crosslinks[0].r_displaced_atoms[1].charge, -1)
 
+        bc_form_6_a = core.BcForm().from_str('2 * unit_2'
+                                          '| x-link: [ l-bond-atom: unit_2(1)-1S11 |'
+                                                     ' l-displaced-atom: unit_2(1)-1H11 |'
+                                                     ' r-bond-atom: unit_2(2)-1S11 |'
+                                                     ' r-displaced-atom: unit_2(2)-1H11 ]')
+        bc_form_6_a.set_subunit_attribute('unit_2', 'structure', bpforms.ProteinForm().from_str('C'))
+        bc_form_6_b = core.BcForm().from_str('2 * unit_2'
+                                          '| x-link: [ type: disulfide |'
+                                                     ' l-monomer: unit_2(1)-1 |'
+                                                     ' r-monomer: unit_2(2)-1 ]')
+        bc_form_6_b.set_subunit_attribute('unit_2', 'structure', bpforms.ProteinForm().from_str('C'))
+        self.assertEqual(bc_form_6_a.export(), bc_form_6_b.export())
+
+        bc_form_7_a = core.BcForm().from_str('2 * unit_2'
+                                          '| x-link: [ l-bond-atom: unit_2(1)-2S11 |'
+                                                     ' l-displaced-atom: unit_2(1)-2H11 |'
+                                                     ' r-bond-atom: unit_2(2)-4S11 |'
+                                                     ' r-displaced-atom: unit_2(2)-4H11 ]'
+                                          '| x-link: [ l-bond-atom: unit_2(1)-4S11 |'
+                                                     ' l-displaced-atom: unit_2(1)-4H11 |'
+                                                     ' r-bond-atom: unit_2(2)-2S11 |'
+                                                     ' r-displaced-atom: unit_2(2)-2H11 ]')
+        bc_form_7_a.set_subunit_attribute('unit_2', 'structure', bpforms.ProteinForm().from_str('ACAC'))
+        bc_form_7_b = core.BcForm().from_str('2 * unit_2'
+                                          '| x-link: [ type: disulfide |'
+                                                     ' l-monomer: unit_2(1)-2 |'
+                                                     ' r-monomer: unit_2(2)-4 ]'
+                                          '| x-link: [ type: disulfide |'
+                                                     ' l-monomer: unit_2(1)-4 |'
+                                                     ' r-monomer: unit_2(2)-2 ]')
+        bc_form_7_b.set_subunit_attribute('unit_2', 'structure', bpforms.ProteinForm().from_str('ACAC'))
+        self.assertEqual(bc_form_7_a.export(), bc_form_7_b.export())
+
+        bc_form_8_a = core.BcForm().from_str('unit_1 + unit_2'
+                                          '| x-link: [ l-bond-atom: unit_1-1C2 |'
+                                                     ' r-bond-atom: unit_2-2N1-1 |'
+                                                     ' l-displaced-atom: unit_1-1O1 |'
+                                                     ' l-displaced-atom: unit_1-1H1 |'
+                                                     ' r-displaced-atom: unit_2-2H1+1 |'
+                                                     ' r-displaced-atom: unit_2-2H1 ]')
+        bc_form_8_a.set_subunit_attribute('unit_1', 'structure', bpforms.ProteinForm().from_str('G'))
+        bc_form_8_a.set_subunit_attribute('unit_2', 'structure', bpforms.ProteinForm().from_str('CKA'))
+        bc_form_8_b = core.BcForm().from_str('unit_1 + unit_2'
+                                          '| x-link: [ type: glycyl_lysine_isopeptide |'
+                                                     ' l-monomer: unit_1-1 |'
+                                                     ' r-monomer: unit_2-2 ]')
+        bc_form_8_b.set_subunit_attribute('unit_1', 'structure', bpforms.ProteinForm().from_str('G'))
+        bc_form_8_b.set_subunit_attribute('unit_2', 'structure', bpforms.ProteinForm().from_str('CKA'))
+        self.assertEqual(bc_form_8_a.export(), bc_form_8_b.export())
+
 
     def test_from_set(self):
 

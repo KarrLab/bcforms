@@ -4,9 +4,14 @@ component: coefficient? subunit
 coefficient: INT STAR_SEP
 subunit: NAME
 global_attr: crosslink
-crosslink: "x-link" FIELD_SEP "[" WS* crosslink_atom (ATTR_SEP crosslink_atom)* WS* "]"
+crosslink: "x-link" FIELD_SEP "[" WS* crosslink_atom (ATTR_SEP crosslink_atom)* WS* "]" | "x-link" FIELD_SEP "[" WS* "type" FIELD_SEP NAME (ATTR_SEP crosslink_monomer)* WS* "]"
+
 crosslink_atom: crosslink_atom_type FIELD_SEP subunit subunit_idx? "-" monomer_position atom_element atom_position atom_component_type? atom_charge?
 crosslink_atom_type: /(l|r)/ "-" /(bond|displaced)/ "-atom"
+
+crosslink_monomer: crosslink_monomer_type FIELD_SEP subunit subunit_idx? "-" monomer_position
+crosslink_monomer_type: /(l|r)/ "-monomer"
+
 monomer_position: /[0-9]+/
 subunit_idx: /\([0-9]+\)/
 atom_element: /[A-Z][a-z]?/

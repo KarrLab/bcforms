@@ -347,6 +347,15 @@ class InlineCrosslinkTestCase(unittest.TestCase):
         self.assertFalse(crosslink_1.is_equal(crosslink_3))
         self.assertFalse(crosslink_1.is_equal(crosslink_4))
 
+        xlink_5_a = core.InlineCrosslink()
+        xlink_5_a.l_bond_atoms.append(core.Atom(subunit='sub_1', subunit_idx=None, element='S', position=11, monomer=1, charge=0))
+        xlink_5_a.l_displaced_atoms.append(core.Atom(subunit='sub_1', subunit_idx=None, element='H', position=11, monomer=1, charge=0))
+        xlink_5_a.r_bond_atoms.append(core.Atom(subunit='sub_2', subunit_idx=None, element='S', position=11, monomer=1, charge=0))
+        xlink_5_a.r_displaced_atoms.append(core.Atom(subunit='sub_2', subunit_idx=None, element='H', position=11, monomer=1, charge=0))
+
+        xlink_5_b = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=1, r_monomer=1)
+        self.assertTrue(xlink_5_a.is_equal(xlink_5_b))
+
 class AbstractedCrosslinkTestCase(unittest.TestCase):
 
     def test_init(self):
@@ -417,10 +426,27 @@ class AbstractedCrosslinkTestCase(unittest.TestCase):
             xlink_1.r_monomer = None
 
     def test_str(self):
-        pass
+        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
+        self.assertEqual(str(xlink_1), 'x-link: [ type: disulfide | l-monomer: sub_1-3 | r-monomer: sub_2-1 ]')
+
+        xlink_2 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=2, r_subunit='sub_2', r_subunit_idx=1, l_monomer=3, r_monomer=1)
+        self.assertEqual(str(xlink_2), 'x-link: [ type: disulfide | l-monomer: sub_1(2)-3 | r-monomer: sub_2(1)-1 ]')
 
     def test_is_equal(self):
-        pass
+        xlink_1_a = core.InlineCrosslink()
+        xlink_1_a.l_bond_atoms.append(core.Atom(subunit='sub_1', subunit_idx=None, element='S', position=11, monomer=1, charge=0))
+        xlink_1_a.l_displaced_atoms.append(core.Atom(subunit='sub_1', subunit_idx=None, element='H', position=11, monomer=1, charge=0))
+        xlink_1_a.r_bond_atoms.append(core.Atom(subunit='sub_2', subunit_idx=None, element='S', position=11, monomer=1, charge=0))
+        xlink_1_a.r_displaced_atoms.append(core.Atom(subunit='sub_2', subunit_idx=None, element='H', position=11, monomer=1, charge=0))
+
+        xlink_1_b = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=1, r_monomer=1)
+        self.assertTrue(xlink_1_b.is_equal(xlink_1_a))
+
+        xlink_1_c = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=1, r_monomer=1)
+        self.assertTrue(xlink_1_b.is_equal(xlink_1_c))
+
+        xlink_2 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_3', r_subunit='sub_2', l_monomer=1, r_monomer=1)
+        self.assertFalse(xlink_1_b.is_equal(xlink_2))
 
     def test_get_l_bond_atoms(self):
         xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=1, r_subunit='sub_1', r_subunit_idx=2, l_monomer=1, r_monomer=1)
@@ -481,7 +507,6 @@ class BcFormTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             bc_form.subunits = None
 
-
     def test_set_crosslinks(self):
 
         bc_form = core.BcForm()
@@ -506,6 +531,12 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_3.crosslinks.append(core.InlineCrosslink(l_bond_atoms=[
             core.Atom(subunit='bmp2_a', subunit_idx=None, element='H', position=1, monomer=10, charge=0)]))
         self.assertEqual(str(bc_form_3), '1 * bmp2_a | x-link: [ l-bond-atom: bmp2_a-10H1 ]')
+
+        bc_form_4 = core.BcForm().from_str('unit_1 + unit_2'
+                                          '| x-link: [ type: glycyl_lysine_isopeptide |'
+                                                     ' l-monomer: unit_1-1 |'
+                                                     ' r-monomer: unit_2-2 ]')
+        self.assertEqual(str(bc_form_4), '1 * unit_1 + 1 * unit_2 | x-link: [ type: glycyl_lysine_isopeptide | l-monomer: unit_1-1 | r-monomer: unit_2-2 ]')
 
     def test_from_str(self):
 

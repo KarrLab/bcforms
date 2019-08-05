@@ -714,7 +714,6 @@ class Crosslink(abc.ABC):
         """
         pass
 
-    @abc.abstractmethod
     def is_equal(self, other):
         """ Check if two crosslinks are semantically equal (have the same bond atoms)
 
@@ -725,7 +724,24 @@ class Crosslink(abc.ABC):
             :obj:`bool`: :obj:`True`, if the crosslinks are semantically equal
 
         """
-        pass
+        
+        if self is other:
+            return True
+        if self.__class__ != other.__class__ and self.__class__.__bases__ != other.__class__.__bases__:
+            return False
+
+        attrs = ['l_bond_atoms', 'l_displaced_atoms', 'r_bond_atoms', 'r_displaced_atoms']
+
+        for attr in attrs:
+            self_atoms = getattr(self, 'get_'+attr)()
+            other_atoms = getattr(other, 'get_'+attr)()
+            if len(self_atoms) != len(other_atoms):
+                return False
+            for self_atom, other_atom in zip(self_atoms, other_atoms):
+                if not self_atom.is_equal(other_atom):
+                    return False
+
+        return True
 
 
 class InlineCrosslink(Crosslink):
@@ -882,35 +898,6 @@ class InlineCrosslink(Crosslink):
 
         s = s[:-1]+']'
         return s
-
-    def is_equal(self, other):
-        """ Check if two crosslinks are semantically equal (have the same bond atoms)
-
-        Args:
-            other (:obj:`Crosslink`): another crosslink
-
-        Returns:
-            :obj:`bool`: :obj:`True`, if the crosslinks are semantically equal
-
-        """
-
-        if self is other:
-            return True
-        if self.__class__ != other.__class__:
-            return False
-
-        attrs = ['l_bond_atoms', 'l_displaced_atoms', 'r_bond_atoms', 'r_displaced_atoms']
-
-        for attr in attrs:
-            self_atoms = getattr(self, attr)
-            other_atoms = getattr(other, attr)
-            if len(self_atoms) != len(other_atoms):
-                return False
-            for self_atom, other_atom in zip(self_atoms, other_atoms):
-                if not self_atom.is_equal(other_atom):
-                    return False
-
-        return True
 
     def get_l_bond_atoms(self):
         """ Get the left bond atoms
@@ -1284,19 +1271,22 @@ class AbstractedCrosslink(Crosslink):
         Returns:
             :obj:`str`: string representation
         """
-        pass
+        s = 'x-link: [ type: {} |'.format(self.type)
 
-    def is_equal(self, other):
-        """ Check if two crosslinks are semantically equal (have the same bond atoms)
+        if self.l_subunit_idx is None:
+            str_l_subunit_idx = ''
+        else:
+            str_l_subunit_idx = '({})'.format(self.l_subunit_idx)
+        s += ' l-monomer: {}{}-{} |'.format(self.l_subunit, str_l_subunit_idx, self.l_monomer)
 
-        Args:
-            other (:obj:`Crosslink`): another crosslink
+        if self.r_subunit_idx is None:
+            str_r_subunit_idx = ''
+        else:
+            str_r_subunit_idx = '({})'.format(self.r_subunit_idx)
+        s += ' r-monomer: {}{}-{} |'.format(self.r_subunit, str_r_subunit_idx, self.r_monomer)
 
-        Returns:
-            :obj:`bool`: :obj:`True`, if the crosslinks are semantically equal
-
-        """
-        pass
+        s = s[:-1]+']'
+        return s
 
     def get_details(self):
         """ Get the full details of the crosslink in a dictionary

@@ -38,7 +38,12 @@
                   <li><a href="#grammar">Grammar</a>
                     <ul>
                       <li><a href="#grammar">Subunit composition</a></li>
-                      <li><a href="#crosslinks">Crosslinks</a></li>
+                      <li><a href="#crosslinks">Crosslinks</a>
+                          <ul>
+                              <li><a href="#inline_xlink">Inline definition</a></li>
+                              <li><a href="#onto_xlink">Ontology definition</a></li>
+                          </ul>
+                      </li>
                     </ul>
                   </li>
                   <li><a href="#interfaces">User interfaces</a>
@@ -52,7 +57,7 @@
                 </ul>
               </div>
               <div class="large-6 cell">
-                <ul>                  
+                <ul>
                   <li><a href="#integration">Integration with standards for kinetic models</a>
                     <ul>
                       <li><a href="#cellml">CellML</a></li>
@@ -180,17 +185,28 @@ sub_c: bpforms.ProteinForm(CA)</pre>
 
           <p>Each crosslink can be described by enclosing attributes which indicate the atoms involved in the bond within square brackets and delimiting the attributes with pipes (e.g., "<tt>| x-link: [l-bond-atom: sub_a(1)-1C1 | r-bond-atom: sub_b(1)-3C2 | ...]</tt>").</p>
 
+          <p><i>BcForms</i> allows two ways of defining inter-subunit crosslinks: inline definition and definition using our ontology of crosslinks.</p>
+
+        </div>
+
+        <div class="large-7 cell example">
+            <h3>Examples</h3>
+        </div>
+
+        <div class="large-5 cell grammar">
+          <a name="inline_xlink"></a>
+          <h4>Inline definition of crosslinks</h4>
           <p class="before_list">Each crosslink can be described using four types of attributes:</p>
           <ul>
             <li><tt>l-bond-atom</tt> and <tt>r-bond-atom</tt>: These attributes indicate the atoms involved in the bond. The values of these attributes are the position of the monomeric form within the sequence of the subunit, the element of the atom, the position of the atom within the monomeric form, and the charge of the atom (e.g., <tt>sub_a(1)-8N3+1</tt>). Open Babel can be used to display the numbers of the atoms within monomeric forms.</li>
             <li><tt>l-displaced-atom</tt> and <tt>r-displaced-atom</tt>: These attributes indicate the atoms displaced by the formation of the bond. The values of these attributes are also the position of the monomeric form within the sequence of the subunit, the element of the atom, the position of the atom within the monomeric form, and the charge of the atom.</li>
           </ul>
 
-          <p>Complexes can have zero, one, or more crosslinks. Each crosslink can have one or more left and right bond atoms, and zero or more left and right displaced atoms. Each crosslink must have the same number of left and right bond atoms.</p>
+          <p>Each crosslink can have one or more left and right bond atoms, and zero or more left and right displaced atoms. Each crosslink must have the same number of left and right bond atoms.</p>
         </div>
 
         <div class="large-7 cell example">
-          <h3>Examples</h3>
+          <h4>Examples</h4>
           <div class="grid-x grid-padding-x">
             <div class="large-12 cell">
                 <h5>Interchain disulfide bond</h5>
@@ -203,12 +219,46 @@ sub_c: bpforms.ProteinForm(CA)</pre>
           <div class="grid-x grid-padding-x">
             <div class="large-12 cell">
                 <h5>Interchain isopeptide bond</h5>
-                <pre>| x-link: [ l-bond-atom: a(2)-1N1-1 |
-            r-bond-atom: b(1)-4C2 |
-            l-displaced-atom: a(2)-1H1+1 |
-            l-displaced-atom: a(2)-1H1 |
-            r-displaced-atom: b(1)-4O1 |
-            r-displaced-atom: b(1)-4H1 ]</pre>
+                <pre>| x-link: [ l-bond-atom: b(1)-4C2 |
+            r-bond-atom: a(2)-1N1-1  |
+            l-displaced-atom: b(1)-4O1 |
+            l-displaced-atom: b(1)-4H1 |
+            r-displaced-atom: a(2)-1H1+1 |
+            r-displaced-atom: a(2)-1H1 ]</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="large-5 cell grammar">
+          <a name="onto_xlink"></a>
+          <h4>Ontology definition of crosslinks</h4>
+          <p class="before_list">Each crosslink can alternatively be described by using our ontology with three attributes. The list of crosslinks defined in the ontology is available at bpforms.org/crosslink <a href="https://www.bpforms.org/crosslink"><i class="fi-link"></i></a>.</p>
+          <ul>
+            <li><tt>type</tt>: This attributes indicates the type of the crosslink.</li>
+            <li><tt>l-monomer</tt> and <tt>r-monomer</tt>: These attributes indicate the position of the monomeric form within the sequence of the subunit.</li>
+          </ul>
+
+          <p>Each crosslink must have one type, one l-monomer, and one r-monomer.</p>
+
+          <p>Complexes can have zero, one, or more crosslinks.</p>
+        </div>
+
+        <div class="large-7 cell example">
+          <h4>Examples</h4>
+          <div class="grid-x grid-padding-x">
+            <div class="large-12 cell">
+                <h5>Interchain disulfide bond</h5>
+                <pre>| x-link: [ type: disulfide |
+            l-monomer: sub_c(1)-1 |
+            r-monomer: sub_c(2)-1 ]</pre>
+            </div>
+          </div>
+          <div class="grid-x grid-padding-x">
+            <div class="large-12 cell">
+                <h5>Interchain isopeptide bond</h5>
+                <pre>| x-link: [ type: glycyl_lysine_isopeptide |
+            l-monomer: b(1)-4 |
+            r-monomer: a(2)-1 ]</pre>
             </div>
           </div>
         </div>

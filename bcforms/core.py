@@ -15,10 +15,9 @@ import os
 import pkg_resources
 from ruamel import yaml
 import wc_utils.cache
-from wc_utils.util.chem import EmpiricalFormula, OpenBabelUtils
+from wc_utils.util.chem import EmpiricalFormula, OpenBabelUtils, draw_molecule
 import bpforms
 import bpforms.core
-import bpforms.alphabet.protein
 
 # setup cache
 cache_dir = os.path.expanduser('~/.cache/bcforms')
@@ -965,7 +964,6 @@ class AbstractedCrosslink(Crosslink):
         xlink_details (:obj:`tuple`): detailed information about the abstracted crosslink
 
         _xlink_atom_parser (:obj:`lark.Lark`): lark grammar parser used to parse atom strings
-        _xlink_filename (obj:`str`): path to the xlink yml file
 
     """
 
@@ -1931,6 +1929,15 @@ class BcForm(object):
                             atom_type[i_atom] = atom+n_atoms[i_subunit]
             atom_maps.append(atom_map)
 
+        print(atom_maps)
+
+        for atom_map in atom_maps:
+            for subunit_map in atom_map.values():
+                for monomer in subunit_map.values():
+                    for atom_type in monomer.values():
+                        for i_atom, atom in atom_type.items():
+                            atom_type[i_atom] = mol.GetAtom(atom)
+
         # mol.AddHydrogens()
 
         # print(atom_maps)
@@ -1949,21 +1956,24 @@ class BcForm(object):
                 for atom_md in getattr(crosslink, 'get_'+atom_type)():
                     i_subunit = [i for i in range(len(self.subunits)) if self.subunits[i].id == atom_md.subunit][0]
                     subunit_idx = 1 if atom_md.subunit_idx is None else atom_md.subunit_idx
-                    atom = mol.GetAtom(atom_maps[i_subunit][subunit_idx][atom_md.monomer][atom_md.component_type][atom_md.position])
+                    atom = atom_maps[i_subunit][subunit_idx][atom_md.monomer][atom_md.component_type][atom_md.position]
                     if atom_md.element == 'H' and atom.GetAtomicNum() != 1:
                         atom = get_hydrogen_atom(atom, bonding_hydrogens, (i_subunit, subunit_idx-1, atom_md.monomer-1, atom_md.component_type))
-                    crosslink_atoms[atom_type].append((atom, atom_md.charge))
+                    crosslink_atoms[atom_type].append((atom, i_subunit, subunit_idx, atom_md.monomer, atom_md.position, atom_md.charge))
 
         # print(OpenBabelUtils.export(mol, format='smiles', options=[]))
 
         # make the crosslink bonds
         for atoms in crosslinks_atoms:
 
-            for atom, atom_charge in itertools.chain(atoms['l_displaced_atoms'], atoms['r_displaced_atoms']):
+            for atom, i_subunit, subunit_idx, i_monomer, i_position, atom_charge in itertools.chain(atoms['l_displaced_atoms'], atoms['r_displaced_atoms']):
                 if atom:
+                    atom_2 = atom_maps[i_subunit][subunit_idx][i_monomer]['monomer'].get(i_position, None)
+                    if atom_2 and atom_2.GetIdx() == atom.GetIdx():
+                        atom_maps[i_subunit][subunit_idx][i_monomer]['monomer'].pop(i_position)
                     assert mol.DeleteAtom(atom, True)
 
-            for (l_atom, l_atom_charge), (r_atom, r_atom_charge) in zip(atoms['l_bond_atoms'], atoms['r_bond_atoms']):
+            for (l_atom, _, _, _, _, l_atom_charge), (r_atom, _, _, _, _, r_atom_charge) in zip(atoms['l_bond_atoms'], atoms['r_bond_atoms']):
                 bond = openbabel.OBBond()
                 bond.SetBegin(l_atom)
                 bond.SetEnd(r_atom)
@@ -1976,7 +1986,14 @@ class BcForm(object):
                 if r_atom_charge:
                     r_atom.SetFormalCharge(r_atom.GetFormalCharge() + r_atom_charge)
 
-        return mol
+        for atom_map in atom_maps:
+            for subunit_map in atom_map.values():
+                for monomer in subunit_map.values():
+                    for atom_type in monomer.values():
+                        for i_atom, atom in atom_type.items():
+                            atom_type[i_atom] = atom.GetIdx()
+
+        return mol, atom_maps
 
     def export(self, format='smiles', options=[]):
         """ Export the structure to string
@@ -1989,7 +2006,7 @@ class BcForm(object):
             :obj:`str`: exported string representation of the structure
 
         """
-        return OpenBabelUtils.export(self.get_structure(), format=format, options=options)
+        return OpenBabelUtils.export(self.get_structure()[0], format=format, options=options)
 
 
 def get_hydrogen_atom(parent_atom, bonding_hydrogens, i_monomer):
@@ -2008,3 +2025,83 @@ def get_hydrogen_atom(parent_atom, bonding_hydrogens, i_monomer):
                 bonding_hydrogens.append(tmp)
                 return other_atom
     return None
+
+def draw_xlink(xlink_name):
+    """ return png of crosslink for webpage
+
+    Args:
+        xlink_name (:obj:`str`): name of xlink
+    Returns:
+        :obj:`object`: image
+    Raises:
+        :obj:`KeyError`: Unknown crosslink id
+        :obj:`ValueError`: Unknown monomer alphabet
+    """
+    xlink_detail_dict = parse_yaml(_xlink_filename)
+    if xlink_name in xlink_detail_dict:
+        xlink_details = xlink_detail_dict[xlink_name]
+    else:
+        raise KeyError('Unknown crosslink id')
+
+    # create the bcform
+    form = BcForm()
+
+    l_monomer_alphabet = xlink_details['l_monomer_alphabet']
+    if l_monomer_alphabet == 'bpforms.ProteinForm':
+        l_monomer = bpforms.ProteinForm().from_str(xlink_details['l_monomer'])
+    elif l_monomer_alphabet == 'bpforms.DnaForm':
+        l_monomer = bpforms.DnaForm().from_str(xlink_details['l_monomer'])
+    elif l_monomer_alphabet == 'bpforms.RnaForm':
+        l_monomer = bpforms.RnaForm().from_str(xlink_details['l_monomer'])
+    else:
+        raise ValueError('Unknown monomer alphabet')
+
+    r_monomer_alphabet = xlink_details['r_monomer_alphabet']
+    if r_monomer_alphabet == 'bpforms.ProteinForm':
+        r_monomer = bpforms.ProteinForm().from_str(xlink_details['r_monomer'])
+    elif r_monomer_alphabet == 'bpforms.DnaForm':
+        r_monomer = bpforms.DnaForm().from_str(xlink_details['r_monomer'])
+    elif r_monomer_alphabet == 'bpforms.RnaForm':
+        r_monomer = bpforms.RnaForm().from_str(xlink_details['r_monomer'])
+    else:
+        raise ValueError('Unknown monomer alphabet')
+
+    form.subunits.append(Subunit(id='l', stoichiometry=1, structure=l_monomer))
+    form.subunits.append(Subunit(id='r', stoichiometry=1, structure=r_monomer))
+    form.crosslinks.append(AbstractedCrosslink(type=xlink_name, l_subunit='l', l_monomer=1, r_subunit='r', r_monomer=1))
+
+    cml = form.export(format='cml')
+    structure, atom_maps = form.get_structure()
+
+    el_table = openbabel.OBElementTable()
+
+    atom_labels = []
+    i_atom = 1
+    atom_labels.append({'position': i_atom,
+                'element': el_table.GetSymbol(structure.GetAtom(i_atom).GetAtomicNum()),
+                'label': xlink_details['l_monomer'],
+                'color': 0x000000})
+
+    i_atom = structure.NumAtoms()
+    atom_labels.append({'position': i_atom,
+                'element': el_table.GetSymbol(structure.GetAtom(i_atom).GetAtomicNum()),
+                'label': xlink_details['r_monomer'],
+                'color': 0x000000})
+
+    i_l_atom = atom_maps[0][1][1]['monomer'][form.crosslinks[0].get_l_bond_atoms()[0].position]
+    i_r_atom = atom_maps[1][1][1]['monomer'][form.crosslinks[0].get_r_bond_atoms()[0].position]
+
+    bond_sets=[{
+        'positions': [[i_l_atom, i_r_atom]],
+        'elements': [[
+                    el_table.GetSymbol(structure.GetAtom(i_l_atom).GetAtomicNum()),
+                    el_table.GetSymbol(structure.GetAtom(i_r_atom).GetAtomicNum()),
+            ]],
+        'color': 0xff0000,
+        }]
+
+
+    return draw_molecule(cml, 'cml', image_format='png',
+                             atom_labels=atom_labels, atom_sets=[], bond_sets=bond_sets,
+                             show_atom_nums=False,
+                             width=300, height=200, include_xml_header=False)

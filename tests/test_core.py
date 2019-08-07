@@ -849,14 +849,14 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_1 = core.BcForm().from_str('2*a')
         self.assertTrue(len(bc_form_1.validate())==0)
         bc_form_1.set_subunit_attribute('a', 'structure', bpforms.ProteinForm().from_str('A'))
-        self.assertEqual(OpenBabelUtils.export(bc_form_1.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)O.C[C@H]([NH3+])C(=O)O')
+        self.assertEqual(OpenBabelUtils.export(bc_form_1.get_structure()[0], 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)O.C[C@H]([NH3+])C(=O)O')
 
         # mini "homodimer" AA
         # linking C[C@H]([NH3+])C(=O)[O-] and C[C@H]([NH3+])C(=O)[O-]
         bc_form_2 = core.BcForm().from_str('2*a | x-link: [l-bond-atom: a(1)-1C8 | l-displaced-atom: a(1)-1O10 | l-displaced-atom: a(1)-1H10 | r-bond-atom: a(2)-1N4-1 | r-displaced-atom: a(2)-1H4+1 | r-displaced-atom: a(2)-1H4]')
         self.assertTrue(len(bc_form_2.validate())==0)
         bc_form_2.set_subunit_attribute('a', 'structure', bpforms.ProteinForm().from_str('A'))
-        self.assertEqual(OpenBabelUtils.export(bc_form_2.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)O')
+        self.assertEqual(OpenBabelUtils.export(bc_form_2.get_structure()[0], 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)N[C@@H](C)C(=O)O')
 
         # mini "heterodimer" AG
         # linking C[C@H]([NH3+])C(=O)[O-] and C([NH3+])C(=O)[O-]
@@ -864,7 +864,7 @@ class BcFormTestCase(unittest.TestCase):
         self.assertTrue(len(bc_form_3.validate())==0)
         bc_form_3.set_subunit_attribute('a', 'structure', bpforms.ProteinForm().from_str('A'))
         bc_form_3.set_subunit_attribute('g', 'structure', bpforms.ProteinForm().from_str('G'))
-        self.assertEqual(OpenBabelUtils.export(bc_form_3.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)NCC(=O)O')
+        self.assertEqual(OpenBabelUtils.export(bc_form_3.get_structure()[0], 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)NCC(=O)O')
 
         # a more realistic example AGGA, where subunits are composed of multiple monomers
         # linking C[C@H]([NH3+])C(=O)NCC(=O)[O-] and C([NH3+])C(=O)N[C@@H](C)C(=O)[O-]
@@ -872,7 +872,7 @@ class BcFormTestCase(unittest.TestCase):
         self.assertTrue(len(bc_form_4.validate())==0)
         bc_form_4.set_subunit_attribute('ag', 'structure', bpforms.ProteinForm().from_str('AG'))
         bc_form_4.set_subunit_attribute('ga', 'structure', bpforms.ProteinForm().from_str('GA'))
-        self.assertEqual(OpenBabelUtils.export(bc_form_4.get_structure(), 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)NCC(=O)NCC(=O)N[C@@H](C)C(=O)O')
+        self.assertEqual(OpenBabelUtils.export(bc_form_4.get_structure()[0], 'smiles', options=[]), 'C[C@H]([NH3+])C(=O)NCC(=O)NCC(=O)N[C@@H](C)C(=O)O')
 
         # a more realistic example ACCMGAGA, where subunits are composed of multiple monomers
         # linking ACCM and 2*GA
@@ -880,7 +880,7 @@ class BcFormTestCase(unittest.TestCase):
         self.assertTrue(len(bc_form_5.validate())==0)
         bc_form_5.set_subunit_attribute('accm', 'structure', bpforms.ProteinForm().from_str('ACCM'))
         bc_form_5.set_subunit_attribute('ga', 'structure', bpforms.ProteinForm().from_str('GA'))
-        self.assertEqual(OpenBabelUtils.export(bc_form_5.get_structure(), 'smiles', options=['canonical']), OpenBabelUtils.export(bpforms.ProteinForm().from_str('ACCMGAGA').get_structure()[0], 'smiles', options=['canonical']))
+        self.assertEqual(OpenBabelUtils.export(bc_form_5.get_structure()[0], 'smiles', options=['canonical']), OpenBabelUtils.export(bpforms.ProteinForm().from_str('ACCMGAGA').get_structure()[0], 'smiles', options=['canonical']))
 
         # mini "heterodimer" + small molecule AG+CH4
         bc_form_6 = core.BcForm().from_str('a+g+small | x-link: [l-bond-atom: a-1C8 | l-displaced-atom: a-1O10 | l-displaced-atom: a-1H10 | r-bond-atom: g-1N5-1 | r-displaced-atom: g-1H5+1 | r-displaced-atom: g-1H5] | x-link: [l-bond-atom: g-1C4 | l-displaced-atom: g-1H4 | r-bond-atom: small-1C1 | r-displaced-atom: small-1H1 ]')
@@ -892,7 +892,7 @@ class BcFormTestCase(unittest.TestCase):
         conversion.SetInFormat('smi')
         conversion.ReadString(ob_mol, 'C')
         bc_form_6.set_subunit_attribute('small', 'structure', ob_mol)
-        self.assertEqual(OpenBabelUtils.export(bc_form_6.get_structure(), 'smiles', options=['canonical']), OpenBabelUtils.export(bpforms.ProteinForm().from_str('AA').get_structure()[0], 'smiles', options=['canonical']))
+        self.assertEqual(OpenBabelUtils.export(bc_form_6.get_structure()[0], 'smiles', options=['canonical']), OpenBabelUtils.export(bpforms.ProteinForm().from_str('AA').get_structure()[0], 'smiles', options=['canonical']))
 
     def test_export(self):
         bc_form_3 = core.BcForm().from_str('a+g | x-link: [l-bond-atom: a-1C8 | l-displaced-atom: a-1O10 | l-displaced-atom: a(1)-1H10 | r-bond-atom: g-1N5-1 | r-displaced-atom: g-1H5+1 | r-displaced-atom: g-1H5]')
@@ -900,3 +900,11 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_3.set_subunit_attribute('a', 'structure', bpforms.ProteinForm().from_str('A'))
         bc_form_3.set_subunit_attribute('g', 'structure', bpforms.ProteinForm().from_str('G'))
         self.assertEqual(bc_form_3.export(), 'C[C@H]([NH3+])C(=O)NCC(=O)O')
+
+class MiscellaneousTestCase(unittest.TestCase):
+
+    def test_draw_xlink(self):
+
+        xlinks = list(core.parse_yaml(core._xlink_filename).keys())
+        for xlink in xlinks:
+            img = core.draw_xlink(xlink)

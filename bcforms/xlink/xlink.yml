@@ -567,9 +567,9 @@ V,Y:
   l_monomer_alphabet: bpforms.ProteinForm
   l_monomer: V
   l_bond_atoms:
-  - C11
+  - C9
   l_displaced_atoms:
-  - H11
+  - H9
   r_monomer_alphabet: bpforms.ProteinForm
   r_monomer: Y
   r_bond_atoms:

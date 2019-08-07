@@ -906,5 +906,6 @@ class MiscellaneousTestCase(unittest.TestCase):
     def test_draw_xlink(self):
 
         xlinks = list(core.parse_yaml(core._xlink_filename).keys())
-        for xlink in xlinks:
-            img = core.draw_xlink(xlink)
+        img = core.draw_xlink(xlinks[0])
+        with open('test.png', 'wb') as file:
+            file.write(img)

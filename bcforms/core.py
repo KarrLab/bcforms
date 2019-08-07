@@ -2080,13 +2080,13 @@ def draw_xlink(xlink_name):
     atom_labels.append({'position': i_atom,
                 'element': el_table.GetSymbol(structure.GetAtom(i_atom).GetAtomicNum()),
                 'label': xlink_details['l_monomer'],
-                'color': 0x000000})
+                'color': 0x00ff00})
 
     i_atom = structure.NumAtoms()
     atom_labels.append({'position': i_atom,
                 'element': el_table.GetSymbol(structure.GetAtom(i_atom).GetAtomicNum()),
                 'label': xlink_details['r_monomer'],
-                'color': 0x000000})
+                'color': 0x0000ff})
 
     i_l_atom = atom_maps[0][1][1]['monomer'][form.crosslinks[0].get_l_bond_atoms()[0].position]
     i_r_atom = atom_maps[1][1][1]['monomer'][form.crosslinks[0].get_r_bond_atoms()[0].position]
@@ -2102,6 +2102,7 @@ def draw_xlink(xlink_name):
 
 
     return draw_molecule(cml, 'cml', image_format='png',
-                             atom_labels=atom_labels, atom_sets=[], bond_sets=bond_sets,
+                             atom_labels=atom_labels, atom_label_font_size=0.6, 
+                             atom_sets=[], bond_sets=bond_sets,
                              show_atom_nums=False,
                              width=300, height=200, include_xml_header=False)

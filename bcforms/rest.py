@@ -209,5 +209,35 @@ class Bcform(flask_restplus.Resource):
 
         return ret
 
+xlink_ns = flask_restplus.Namespace('crosslink', description='List crosslinks and get information about crosslinks')
+api.add_namespace(xlink_ns)
+
+@xlink_ns.route("/")
+@xlink_ns.doc(params={})
+
+class CrosslinkResource(flask_restplus.Resource):
+    """ Get crosslinks """
+
+    def get(self):
+        """ Get crosslinks
+
+        Returns:
+            :obj:`dict`: dictionary representation of all crosslinks
+        """
+        return get_crosslinks()
+
+
+@bcforms.core.cache.memoize(typed=False, expire=30 * 24 * 60 * 60)
+def get_crosslinks():
+    """ Get an alphabet
+
+    Returns:
+        :obj:`dict`: dictionary representation of crosslinks
+    """
+
+    crosslink_dict = dict(bcforms.core.parse_yaml(bcforms.core._xlink_filename))
+
+    return crosslink_dict
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

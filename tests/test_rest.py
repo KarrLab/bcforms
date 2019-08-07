@@ -456,3 +456,9 @@ class RestTestCase(unittest.TestCase):
           ]
         })
         self.assertEqual(rv.status_code, 400)
+
+    def test_get_crosslinks(self):
+
+        client = rest.app.test_client()
+        rv = client.get('/api/crosslink/')
+        self.assertEqual(rv.status_code, 200)

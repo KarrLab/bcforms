@@ -1929,7 +1929,7 @@ class BcForm(object):
                             atom_type[i_atom] = atom+n_atoms[i_subunit]
             atom_maps.append(atom_map)
 
-        print(atom_maps)
+        # print(atom_maps)
 
         for atom_map in atom_maps:
             for subunit_map in atom_map.values():

@@ -2106,8 +2106,10 @@ def draw_xlink(xlink_name, include_all_hydrogens=False, show_atom_nums=False,
         positions = []
         elements = []
         for i_atom in monomer_atom_map[1][1]['monomer'].values():
-            positions.append(i_atom)
-            elements.append(el_table.GetSymbol(structure.GetAtom(i_atom).GetAtomicNum()))
+            atom = structure.GetAtom(i_atom)
+            if atom:
+                positions.append(i_atom)
+                elements.append(el_table.GetSymbol(structure.GetAtom(i_atom).GetAtomicNum()))
         atom_sets.append({'positions': positions, 'elements': elements, 'color': color})
 
     i_l_atom = atom_maps[0][1][1]['monomer'][form.crosslinks[0].get_l_bond_atoms()[0].position]

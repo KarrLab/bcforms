@@ -2026,11 +2026,18 @@ def get_hydrogen_atom(parent_atom, bonding_hydrogens, i_monomer):
                 return other_atom
     return None
 
-def draw_xlink(xlink_name):
-    """ return png of crosslink for webpage
+def draw_xlink(xlink_name, width=300, height=200, atom_label_font_size=0.6,
+        image_format='png', include_xml_header=False):
+    """ Generate an image of a crosslink
 
     Args:
         xlink_name (:obj:`str`): name of xlink
+        width (:obj:`int`, optional): width
+        height (:obj:`int`, optional): height
+        atom_label_font_size (:obj:`float`, optional): relative font size of atom labels
+        image_format (:obj:`str`, optional): format of image
+        include_xml_header (:obj:`bool`, optional): if :obj:`True`, include XML header for SVG image
+        
     Returns:
         :obj:`object`: image
     Raises:
@@ -2101,8 +2108,8 @@ def draw_xlink(xlink_name):
         }]
 
 
-    return draw_molecule(cml, 'cml', image_format='png',
-                             atom_labels=atom_labels, atom_label_font_size=0.6, 
+    return draw_molecule(cml, 'cml', image_format=image_format,
+                             atom_labels=atom_labels, atom_label_font_size=atom_label_font_size, 
                              atom_sets=[], bond_sets=bond_sets,
-                             show_atom_nums=False,
-                             width=300, height=200, include_xml_header=False)
+                             show_atom_nums=show_atom_nums,
+                             width=width, height=height, include_xml_header=include_xml_header)

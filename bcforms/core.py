@@ -2026,13 +2026,19 @@ def get_hydrogen_atom(parent_atom, bonding_hydrogens, i_monomer):
                 return other_atom
     return None
 
-def draw_xlink(xlink_name, show_atom_nums=False, width=300, height=200, atom_label_font_size=0.6,
+def draw_xlink(xlink_name, include_all_hydrogens=False, show_atom_nums=False, 
+        l_color=0xed9e00, r_color=0x00adef, bond_color=0x00ea4e,
+        width=300, height=200, atom_label_font_size=0.6,
         image_format='png', include_xml_header=False):
     """ Generate an image of a crosslink
 
     Args:
         xlink_name (:obj:`str`): name of xlink
+        include_all_hydrogens (:obj:`bool`, optional): if :obj:`True`, show all hydrogens
         show_atom_nums (:obj:`bool`, optional): if :obj:`True`, show atom numbers
+        l_color (:obj:`int`, optional): color of left monomer
+        r_color (:obj:`int`, optional): color of right monomer
+        bond_color (:obj:`int`, optional): color of crosslinking bond
         width (:obj:`int`, optional): width
         height (:obj:`int`, optional): height
         atom_label_font_size (:obj:`float`, optional): relative font size of atom labels
@@ -2077,8 +2083,7 @@ def draw_xlink(xlink_name, show_atom_nums=False, width=300, height=200, atom_lab
     form.subunits.append(Subunit(id='l', stoichiometry=1, structure=l_monomer))
     form.subunits.append(Subunit(id='r', stoichiometry=1, structure=r_monomer))
     form.crosslinks.append(AbstractedCrosslink(type=xlink_name, l_subunit='l', l_monomer=1, r_subunit='r', r_monomer=1))
-
-    cml = form.export(format='cml')
+    
     structure, atom_maps = form.get_structure()
 
     el_table = openbabel.OBElementTable()
@@ -2088,29 +2093,43 @@ def draw_xlink(xlink_name, show_atom_nums=False, width=300, height=200, atom_lab
     atom_labels.append({'position': i_atom,
                 'element': el_table.GetSymbol(structure.GetAtom(i_atom).GetAtomicNum()),
                 'label': xlink_details['l_monomer'],
-                'color': 0x00ff00})
+                'color': l_color})
 
     i_atom = structure.NumAtoms()
     atom_labels.append({'position': i_atom,
                 'element': el_table.GetSymbol(structure.GetAtom(i_atom).GetAtomicNum()),
                 'label': xlink_details['r_monomer'],
-                'color': 0x0000ff})
+                'color': r_color})
+
+    atom_sets = []
+    for monomer_atom_map, color in zip(atom_maps, [l_color, r_color]):
+        positions = []
+        elements = []
+        for i_atom in monomer_atom_map[1][1]['monomer'].values():
+            positions.append(i_atom)
+            elements.append(el_table.GetSymbol(structure.GetAtom(i_atom).GetAtomicNum()))
+        atom_sets.append({'positions': positions, 'elements': elements, 'color': color})
 
     i_l_atom = atom_maps[0][1][1]['monomer'][form.crosslinks[0].get_l_bond_atoms()[0].position]
     i_r_atom = atom_maps[1][1][1]['monomer'][form.crosslinks[0].get_r_bond_atoms()[0].position]
 
-    bond_sets=[{
+    bond_sets = [{
         'positions': [[i_l_atom, i_r_atom]],
         'elements': [[
                     el_table.GetSymbol(structure.GetAtom(i_l_atom).GetAtomicNum()),
                     el_table.GetSymbol(structure.GetAtom(i_r_atom).GetAtomicNum()),
             ]],
-        'color': 0xff0000,
+        'color': bond_color,
         }]
+    
+    if include_all_hydrogens:
+        structure.AddHydrogens()
+
+    cml = OpenBabelUtils.export(structure, 'cml')
 
 
     return draw_molecule(cml, 'cml', image_format=image_format,
                              atom_labels=atom_labels, atom_label_font_size=atom_label_font_size, 
-                             atom_sets=[], bond_sets=bond_sets,
+                             atom_sets=atom_sets, bond_sets=bond_sets,
                              show_atom_nums=show_atom_nums,
                              width=width, height=height, include_xml_header=include_xml_header)

@@ -2026,7 +2026,7 @@ def get_hydrogen_atom(parent_atom, bonding_hydrogens, i_monomer):
                 return other_atom
     return None
 
-def draw_xlink(xlink_name, include_all_hydrogens=False, show_atom_nums=False, 
+def draw_xlink(xlink_name, include_all_hydrogens=False, remove_hydrogens=True, show_atom_nums=False, 
         l_color=0x00ea4e, r_color=0x00adef, bond_color=0xea4200,
         width=300, height=200, atom_label_font_size=0.6,
         image_format='png', include_xml_header=False):
@@ -2035,6 +2035,7 @@ def draw_xlink(xlink_name, include_all_hydrogens=False, show_atom_nums=False,
     Args:
         xlink_name (:obj:`str`): name of xlink
         include_all_hydrogens (:obj:`bool`, optional): if :obj:`True`, show all hydrogens
+        remove_hydrogens (:obj:`bool`, optional): if :obj:`True`, remove all hydrogens
         show_atom_nums (:obj:`bool`, optional): if :obj:`True`, show atom numbers
         l_color (:obj:`int`, optional): color of left monomer
         r_color (:obj:`int`, optional): color of right monomer
@@ -2089,14 +2090,20 @@ def draw_xlink(xlink_name, include_all_hydrogens=False, show_atom_nums=False,
     el_table = openbabel.OBElementTable()
 
     atom_labels = []
-    i_atom = 1
-    atom_labels.append({'position': i_atom,
+    for i_atom in atom_maps[0][1][1]['monomer'].values():
+        if structure.GetAtom(i_atom).GetAtomicNum() > 1:
+            break
+    atom_labels.append({
+                'position': i_atom,
                 'element': el_table.GetSymbol(structure.GetAtom(i_atom).GetAtomicNum()),
                 'label': xlink_details['l_monomer'],
                 'color': l_color})
 
-    i_atom = structure.NumAtoms()
-    atom_labels.append({'position': i_atom,
+    for i_atom in atom_maps[1][1][1]['monomer'].values():
+        if structure.GetAtom(i_atom).GetAtomicNum() > 1:
+            break
+    atom_labels.append({
+                'position': i_atom,
                 'element': el_table.GetSymbol(structure.GetAtom(i_atom).GetAtomicNum()),
                 'label': xlink_details['r_monomer'],
                 'color': r_color})
@@ -2127,8 +2134,26 @@ def draw_xlink(xlink_name, include_all_hydrogens=False, show_atom_nums=False,
     if include_all_hydrogens:
         structure.AddHydrogens()
 
-    cml = OpenBabelUtils.export(structure, 'cml')
+    if remove_hydrogens:
+        atom_refs = {}
+        for i_atom in range(1, structure.NumAtoms() + 1):
+            atom_refs[i_atom] = structure.GetAtom(i_atom)
 
+        structure.DeleteHydrogens()
+
+        atoms = [atom for atom in openbabel.OBMolAtomIter(structure)]
+        
+        for label in atom_labels:
+            label['position'] = atom_refs[label['position']].GetIdx()
+
+        for atom_set in atom_sets:
+            atom_set['positions'] = [atom_refs[position].GetIdx() for position in atom_set['positions'] if atom_refs[position] in atoms]
+            atom_set['elements'] = [el_table.GetSymbol(structure.GetAtom(position).GetAtomicNum()) for position in atom_set['positions']]
+
+        for bond_set in bond_sets:
+            bond_set['positions'] = [[atom_refs[position[0]].GetIdx(), atom_refs[position[1]].GetIdx()] for position in bond_set['positions']]
+
+    cml = OpenBabelUtils.export(structure, 'cml')
 
     return draw_molecule(cml, 'cml', image_format=image_format,
                              atom_labels=atom_labels, atom_label_font_size=atom_label_font_size, 

@@ -2027,7 +2027,7 @@ def get_hydrogen_atom(parent_atom, bonding_hydrogens, i_monomer):
     return None
 
 def draw_xlink(xlink_name, include_all_hydrogens=False, show_atom_nums=False, 
-        l_color=0xed9e00, r_color=0x00adef, bond_color=0x00ea4e,
+        l_color=0x00ea4e, r_color=0x00adef, bond_color=0xea4200,
         width=300, height=200, atom_label_font_size=0.6,
         image_format='png', include_xml_header=False):
     """ Generate an image of a crosslink

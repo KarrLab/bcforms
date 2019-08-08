@@ -2026,12 +2026,13 @@ def get_hydrogen_atom(parent_atom, bonding_hydrogens, i_monomer):
                 return other_atom
     return None
 
-def draw_xlink(xlink_name, width=300, height=200, atom_label_font_size=0.6,
+def draw_xlink(xlink_name, show_atom_nums=False, width=300, height=200, atom_label_font_size=0.6,
         image_format='png', include_xml_header=False):
     """ Generate an image of a crosslink
 
     Args:
         xlink_name (:obj:`str`): name of xlink
+        show_atom_nums (:obj:`bool`, optional): if :obj:`True`, show atom numbers
         width (:obj:`int`, optional): width
         height (:obj:`int`, optional): height
         atom_label_font_size (:obj:`float`, optional): relative font size of atom labels

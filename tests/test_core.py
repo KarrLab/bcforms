@@ -353,13 +353,13 @@ class InlineCrosslinkTestCase(unittest.TestCase):
         xlink_5_a.r_bond_atoms.append(core.Atom(subunit='sub_2', subunit_idx=None, element='S', position=11, monomer=1, charge=0))
         xlink_5_a.r_displaced_atoms.append(core.Atom(subunit='sub_2', subunit_idx=None, element='H', position=11, monomer=1, charge=0))
 
-        xlink_5_b = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=1, r_monomer=1)
+        xlink_5_b = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=1, r_monomer=1)
         self.assertTrue(xlink_5_a.is_equal(xlink_5_b))
 
-class AbstractedCrosslinkTestCase(unittest.TestCase):
+class OntologyCrosslinkTestCase(unittest.TestCase):
 
     def test_init(self):
-        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
+        xlink_1 = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
         self.assertEqual(xlink_1.type, 'disulfide')
         self.assertEqual(xlink_1.l_subunit, 'sub_1')
         self.assertIsNone(xlink_1.l_subunit_idx)
@@ -368,26 +368,26 @@ class AbstractedCrosslinkTestCase(unittest.TestCase):
         self.assertIsNone(xlink_1.r_subunit_idx)
         self.assertEqual(xlink_1.r_monomer, 1)
 
-        xlink_2 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=2, r_subunit='sub_2', r_subunit_idx=1, l_monomer=3, r_monomer=1)
+        xlink_2 = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=2, r_subunit='sub_2', r_subunit_idx=1, l_monomer=3, r_monomer=1)
         self.assertEqual(xlink_2.l_subunit_idx, 2)
         self.assertEqual(xlink_2.r_subunit_idx, 1)
 
     def test_set_type(self):
-        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
+        xlink_1 = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
         xlink_1.type = 'glycyl_lysine_isopeptide'
         self.assertEqual(xlink_1.type, 'glycyl_lysine_isopeptide')
         with self.assertRaises(ValueError):
             xlink_1.type = None
 
     def test_set_l_subunit(self):
-        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
+        xlink_1 = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
         xlink_1.l_subunit = 'sub_3'
         self.assertEqual(xlink_1.l_subunit, 'sub_3')
         with self.assertRaises(ValueError):
             xlink_1.l_subunit = None
 
     def test_set_l_subunit_idx(self):
-        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
+        xlink_1 = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
         xlink_1.l_subunit_idx = 2
         self.assertEqual(xlink_1.l_subunit_idx, 2)
         with self.assertRaises(ValueError):
@@ -396,21 +396,21 @@ class AbstractedCrosslinkTestCase(unittest.TestCase):
             xlink_1.l_subunit_idx = -1
 
     def test_set_l_monomer(self):
-        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
+        xlink_1 = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
         xlink_1.l_monomer = 2
         self.assertEqual(xlink_1.l_monomer, 2)
         with self.assertRaises(ValueError):
             xlink_1.l_monomer = None
 
     def test_set_r_subunit(self):
-        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
+        xlink_1 = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
         xlink_1.r_subunit = 'sub_3'
         self.assertEqual(xlink_1.r_subunit, 'sub_3')
         with self.assertRaises(ValueError):
             xlink_1.r_subunit = None
 
     def test_set_r_subunit_idx(self):
-        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
+        xlink_1 = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
         xlink_1.r_subunit_idx = 2
         self.assertEqual(xlink_1.r_subunit_idx, 2)
         with self.assertRaises(ValueError):
@@ -419,17 +419,17 @@ class AbstractedCrosslinkTestCase(unittest.TestCase):
             xlink_1.r_subunit_idx = -1
 
     def test_set_r_monomer(self):
-        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
+        xlink_1 = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
         xlink_1.r_monomer = 2
         self.assertEqual(xlink_1.r_monomer, 2)
         with self.assertRaises(ValueError):
             xlink_1.r_monomer = None
 
     def test_str(self):
-        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
+        xlink_1 = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
         self.assertEqual(str(xlink_1), 'x-link: [ type: disulfide | l-monomer: sub_1-3 | r-monomer: sub_2-1 ]')
 
-        xlink_2 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=2, r_subunit='sub_2', r_subunit_idx=1, l_monomer=3, r_monomer=1)
+        xlink_2 = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=2, r_subunit='sub_2', r_subunit_idx=1, l_monomer=3, r_monomer=1)
         self.assertEqual(str(xlink_2), 'x-link: [ type: disulfide | l-monomer: sub_1(2)-3 | r-monomer: sub_2(1)-1 ]')
 
     def test_is_equal(self):
@@ -439,17 +439,17 @@ class AbstractedCrosslinkTestCase(unittest.TestCase):
         xlink_1_a.r_bond_atoms.append(core.Atom(subunit='sub_2', subunit_idx=None, element='S', position=11, monomer=1, charge=0))
         xlink_1_a.r_displaced_atoms.append(core.Atom(subunit='sub_2', subunit_idx=None, element='H', position=11, monomer=1, charge=0))
 
-        xlink_1_b = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=1, r_monomer=1)
+        xlink_1_b = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=1, r_monomer=1)
         self.assertTrue(xlink_1_b.is_equal(xlink_1_a))
 
-        xlink_1_c = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=1, r_monomer=1)
+        xlink_1_c = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=1, r_monomer=1)
         self.assertTrue(xlink_1_b.is_equal(xlink_1_c))
 
-        xlink_2 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_3', r_subunit='sub_2', l_monomer=1, r_monomer=1)
+        xlink_2 = core.OntologyCrosslink(type='disulfide', l_subunit='sub_3', r_subunit='sub_2', l_monomer=1, r_monomer=1)
         self.assertFalse(xlink_1_b.is_equal(xlink_2))
 
     def test_get_l_bond_atoms(self):
-        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=1, r_subunit='sub_1', r_subunit_idx=2, l_monomer=1, r_monomer=1)
+        xlink_1 = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=1, r_subunit='sub_1', r_subunit_idx=2, l_monomer=1, r_monomer=1)
         self.assertEqual(len(xlink_1.get_l_bond_atoms()), 1)
         self.assertEqual(xlink_1.get_l_bond_atoms()[0].subunit, 'sub_1')
         self.assertEqual(xlink_1.get_l_bond_atoms()[0].subunit_idx, 1)
@@ -459,7 +459,7 @@ class AbstractedCrosslinkTestCase(unittest.TestCase):
         self.assertEqual(xlink_1.get_l_bond_atoms()[0].charge, 0)
 
     def test_get_r_bond_atoms(self):
-        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=1, r_subunit='sub_1', r_subunit_idx=2, l_monomer=1, r_monomer=1)
+        xlink_1 = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=1, r_subunit='sub_1', r_subunit_idx=2, l_monomer=1, r_monomer=1)
         self.assertEqual(len(xlink_1.get_r_bond_atoms()), 1)
         self.assertEqual(xlink_1.get_r_bond_atoms()[0].subunit, 'sub_1')
         self.assertEqual(xlink_1.get_r_bond_atoms()[0].subunit_idx, 2)
@@ -469,7 +469,7 @@ class AbstractedCrosslinkTestCase(unittest.TestCase):
         self.assertEqual(xlink_1.get_r_bond_atoms()[0].charge, 0)
 
     def test_get_l_displaced_atoms(self):
-        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=1, r_subunit='sub_1', r_subunit_idx=2, l_monomer=1, r_monomer=1)
+        xlink_1 = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=1, r_subunit='sub_1', r_subunit_idx=2, l_monomer=1, r_monomer=1)
         self.assertEqual(len(xlink_1.get_l_displaced_atoms()), 1)
         self.assertEqual(xlink_1.get_l_displaced_atoms()[0].subunit, 'sub_1')
         self.assertEqual(xlink_1.get_l_displaced_atoms()[0].subunit_idx, 1)
@@ -479,7 +479,7 @@ class AbstractedCrosslinkTestCase(unittest.TestCase):
         self.assertEqual(xlink_1.get_l_displaced_atoms()[0].charge, 0)
 
     def test_get_r_displaced_atoms(self):
-        xlink_1 = core.AbstractedCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=1, r_subunit='sub_1', r_subunit_idx=2, l_monomer=1, r_monomer=1)
+        xlink_1 = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=1, r_subunit='sub_1', r_subunit_idx=2, l_monomer=1, r_monomer=1)
         self.assertEqual(len(xlink_1.get_r_displaced_atoms()), 1)
         self.assertEqual(xlink_1.get_r_displaced_atoms()[0].subunit, 'sub_1')
         self.assertEqual(xlink_1.get_r_displaced_atoms()[0].subunit_idx, 2)
@@ -632,6 +632,16 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_8_b.set_subunit_attribute('unit_1', 'structure', bpforms.ProteinForm().from_str('G'))
         bc_form_8_b.set_subunit_attribute('unit_2', 'structure', bpforms.ProteinForm().from_str('CKA'))
         self.assertEqual(bc_form_8_a.export(), bc_form_8_b.export())
+
+        bc_form_9 = core.BcForm().from_str('unit_1 + unit_2'
+                                          '| x-link: [ l-bond-atom: unit_1-1C2 |'
+                                                     ' r-bond-atom: unit_2-2N1-1 |'
+                                                     ' l-displaced-atom: unit_1-1O1 |'
+                                                     ' l-displaced-atom: unit_1-1H1 |'
+                                                     ' r-displaced-atom: unit_2-2H1+1 |'
+                                                     ' r-displaced-atom: unit_2-2H1 | '
+                                                     ' comments: "a comment"]')
+        self.assertEqual(list(bc_form_9.crosslinks)[0].comments, 'a comment')
 
 
     def test_from_set(self):

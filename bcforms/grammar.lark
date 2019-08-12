@@ -4,13 +4,19 @@ component: coefficient? subunit
 coefficient: INT STAR_SEP
 subunit: NAME
 global_attr: crosslink
-crosslink: "x-link" FIELD_SEP "[" WS* crosslink_atom (ATTR_SEP crosslink_atom)* WS* "]" | "x-link" FIELD_SEP "[" WS* "type" FIELD_SEP NAME (ATTR_SEP crosslink_monomer)* WS* "]"
+crosslink: "x-link" FIELD_SEP "[" WS* (onto_crosslink | inline_crosslink) WS* "]"
 
-crosslink_atom: crosslink_atom_type FIELD_SEP subunit subunit_idx? "-" monomer_position atom_element atom_position atom_component_type? atom_charge?
-crosslink_atom_type: /(l|r)/ "-" /(bond|displaced)/ "-atom"
+onto_crosslink: onto_crosslink_attr (ATTR_SEP onto_crosslink_attr)*
+onto_crosslink_attr: onto_crosslink_type | onto_crosslink_monomer
+onto_crosslink_type: "type" FIELD_SEP NAME
+onto_crosslink_monomer: onto_crosslink_monomer_type FIELD_SEP subunit subunit_idx? "-" monomer_position
+onto_crosslink_monomer_type: /(l|r)/ "-monomer"
 
-crosslink_monomer: crosslink_monomer_type FIELD_SEP subunit subunit_idx? "-" monomer_position
-crosslink_monomer_type: /(l|r)/ "-monomer"
+inline_crosslink: inline_crosslink_attr (ATTR_SEP inline_crosslink_attr)*
+inline_crosslink_attr: inline_crosslink_atom | inline_crosslink_comments
+inline_crosslink_atom: inline_crosslink_atom_type FIELD_SEP subunit subunit_idx? "-" monomer_position atom_element atom_position atom_component_type? atom_charge?
+inline_crosslink_atom_type: /(l|r)/ "-" /(bond|displaced)/ "-atom"
+inline_crosslink_comments: "comments" FIELD_SEP ESCAPED_STRING
 
 monomer_position: /[0-9]+/
 subunit_idx: /\([0-9]+\)/
@@ -25,5 +31,6 @@ STAR_SEP: WS* "*" WS*
 ATTR_SEP: WS* "|" WS*
 FIELD_SEP: WS* ":" WS*
 
-%import common.INT
-%import common.WS
+WS: /[ \t\f\r\n]+/
+INT: /[0-9]+/
+ESCAPED_STRING: /"(?:[^"\\]|\\.)*"/

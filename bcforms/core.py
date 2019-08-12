@@ -751,9 +751,11 @@ class InlineCrosslink(Crosslink):
         r_bond_atoms (:obj:`list` of :obj:`Atom`): atoms from the right subunit that bond with the left subunit
         l_displaced_atoms (:obj:`list` of :obj:`Atom`): atoms from the left subunit displaced by the crosslink
         r_displaced_atoms (:obj:`list` of :obj:`Atom`): atoms from the right subunit displaced by the crosslink
+        comments (:obj:`str`): comments
     """
 
-    def __init__(self, l_bond_atoms=None, r_bond_atoms=None, l_displaced_atoms=None, r_displaced_atoms=None):
+    def __init__(self, l_bond_atoms=None, r_bond_atoms=None, l_displaced_atoms=None, r_displaced_atoms=None,
+                 comments=None):
         """
 
         Args:
@@ -761,7 +763,7 @@ class InlineCrosslink(Crosslink):
             r_bond_atoms (:obj:`list`): atoms from the right subunit that bond with the left subunit
             l_displaced_atoms (:obj:`list`): atoms from the left subunit displaced by the crosslink
             r_displaced_atoms (:obj:`list`): atoms from the right subunit displaced by the crosslink
-
+            comments (:obj:`str`): comments
         """
         if l_bond_atoms is None:
             self.l_bond_atoms = []
@@ -782,6 +784,8 @@ class InlineCrosslink(Crosslink):
             self.r_displaced_atoms = []
         else:
             self.r_displaced_atoms = r_bond_atoms
+
+        self.comments = comments
 
     @property
     def l_bond_atoms(self):
@@ -883,6 +887,29 @@ class InlineCrosslink(Crosslink):
             raise ValueError('`value` must be an instance of `list`')
         self._r_displaced_atoms = value
 
+    @property
+    def comments(self):
+        """ Get comments
+
+        Returns:
+            :obj:`str`: comments
+        """
+        return self._comments
+
+    @comments.setter
+    def comments(self, value):
+        """ Set comments
+
+        Args:
+            value (:obj:`str`): comments
+
+        Raises:
+            :obj:`ValueError`: if value is not a str or None
+        """
+        if value and not isinstance(value, str):
+            raise ValueError('`comments` must be a string or None')
+        self._comments = value
+
     def __str__(self):
         """Generate a string representation
 
@@ -890,12 +917,16 @@ class InlineCrosslink(Crosslink):
             :obj:`str`: string representation
         """
         s = 'x-link: ['
+        
         atom_types = ['l_bond_atoms', 'l_displaced_atoms', 'r_bond_atoms', 'r_displaced_atoms']
         for atom_type in atom_types:
             for atom in getattr(self, atom_type):
                 s += ' {}: {} |'.format(atom_type[:-1].replace('_', '-'), str(atom))
 
-        s = s[:-1]+']'
+        if self.comments:
+            s += ' comments: "{}" |'.format(self.comments.replace('"', '\\"'))
+
+        s = s[:-1] + ']'
         return s
 
     def get_l_bond_atoms(self):
@@ -950,7 +981,7 @@ def parse_yaml(path):
     with open(path, 'rb') as file:
         return yaml_reader.load(file)
 
-class AbstractedCrosslink(Crosslink):
+class OntologyCrosslink(Crosslink):
     """ A pre-defined crosslink between subunits
 
     Attributes:
@@ -1408,7 +1439,6 @@ class BcForm(object):
         return s
 
     # read the grammar file
-    # _grammar_filename = 'grammar.lark'
     _grammar_filename = pkg_resources.resource_filename('bcforms', 'grammar.lark')
 
     with open(_grammar_filename, 'r') as file:
@@ -1474,33 +1504,38 @@ class BcForm(object):
 
             @lark.v_args(inline=True)
             def crosslink(self, *args):
-                # pre-defined abstracted crosslink
-                if args[2][0].strip() == ':':
-                    for arg in args:
-                        if arg[0] == 'l_monomer':
-                            l_subunit = arg[1][0]
-                            l_subunit_idx = arg[1][1]
-                            l_monomer = arg[1][2]
-                        elif arg[0] == 'r_monomer':
-                            r_subunit = arg[1][0]
-                            r_subunit_idx = arg[1][1]
-                            r_monomer = arg[1][2]
-                    bond = AbstractedCrosslink(type=args[3],
-                        l_subunit=l_subunit, l_subunit_idx=l_subunit_idx, l_monomer=l_monomer,
-                        r_subunit=r_subunit, r_subunit_idx=r_subunit_idx, r_monomer=r_monomer)
-                    return bond
-                # inline crosslink
-                else:
-                    bond = InlineCrosslink()
-                    for arg in args:
-                        if isinstance(arg, tuple):
-                            atom_type, atom = arg
-                            atom_type_list = getattr(bond, atom_type+"s")
-                            atom_type_list.append(atom)
-                    return bond
+                for arg in args:
+                    if isinstance(arg, Crosslink):
+                        return arg
+
+            # ontology-defined crosslink
+            @lark.v_args(inline=True)
+            def onto_crosslink(self, *args):
+                for arg in args:
+                    if isinstance(arg, lark.tree.Tree):
+                        attr = arg.children[0][0]
+                        val = arg.children[0][1]
+                        if attr == 'type':
+                            type = val
+                        elif attr == 'l_monomer':
+                            l_subunit = val[0]
+                            l_subunit_idx = val[1]
+                            l_monomer = val[2]
+                        elif attr == 'r_monomer':
+                            r_subunit = val[0]
+                            r_subunit_idx = val[1]
+                            r_monomer = val[2]
+                bond = OntologyCrosslink(type=type,
+                    l_subunit=l_subunit, l_subunit_idx=l_subunit_idx, l_monomer=l_monomer,
+                    r_subunit=r_subunit, r_subunit_idx=r_subunit_idx, r_monomer=r_monomer)
+                return bond
 
             @lark.v_args(inline=True)
-            def crosslink_monomer(self, *args):
+            def onto_crosslink_type(self, *args):
+                return ('type', args[1].value)
+
+            @lark.v_args(inline=True)
+            def onto_crosslink_monomer(self, *args):
                 num_optional_args = 0
                 monomer_type = args[0][1]
                 subunit = args[2][1]
@@ -1509,17 +1544,29 @@ class BcForm(object):
                 else:
                     subunit_idx = None
                     num_optional_args += 1
-                monomer = int(args[4-num_optional_args][1])
+                monomer = int(args[4 - num_optional_args][1])
                 return (monomer_type, (subunit, subunit_idx, monomer))
 
-
             @lark.v_args(inline=True)
-            def crosslink_monomer_type(self, *args):
-                return ('crosslink_monomer_type', args[0]+'_monomer')
+            def onto_crosslink_monomer_type(self, *args):
+                return ('onto_crosslink_monomer_type', args[0] + '_monomer')
 
             # inline crosslink
             @lark.v_args(inline=True)
-            def crosslink_atom(self, *args):
+            def inline_crosslink(self, *args):
+                bond = InlineCrosslink()
+                for arg in args:              
+                    if isinstance(arg, lark.tree.Tree):
+                        attr, val = arg.children[0]
+                        if attr == 'comments':
+                            setattr(bond, attr, val)
+                        else:
+                            attr_val_list = getattr(bond, attr + "s")
+                            attr_val_list.append(val)
+                return bond
+            
+            @lark.v_args(inline=True)
+            def inline_crosslink_atom(self, *args):
                 num_optional_args = 0
                 atom_type = args[0][1]
                 subunit = args[2][1]
@@ -1551,8 +1598,12 @@ class BcForm(object):
                                         position=position, monomer=monomer, charge=charge, component_type=atom_component_type))
 
             @lark.v_args(inline=True)
-            def crosslink_atom_type(self, *args):
-                return ('crosslink_atom_type', args[0].value + '_' + args[1].value + '_atom')
+            def inline_crosslink_atom_type(self, *args):
+                return ('inline_crosslink_atom_type', args[0].value + '_' + args[1].value + '_atom')
+
+            @lark.v_args(inline=True)
+            def inline_crosslink_comments(self, *args):
+                return ('comments', args[1].value[1:-1])
 
             @lark.v_args(inline=True)
             def monomer_position(self, *args):
@@ -1991,7 +2042,8 @@ class BcForm(object):
                 for monomer in subunit_map.values():
                     for atom_type in monomer.values():
                         for i_atom, atom in atom_type.items():
-                            atom_type[i_atom] = atom.GetIdx()
+                            if atom is not None:
+                                atom_type[i_atom] = atom.GetIdx()
 
         return mol, atom_maps
 
@@ -2083,7 +2135,7 @@ def draw_xlink(xlink_name, include_all_hydrogens=False, remove_hydrogens=True, s
 
     form.subunits.append(Subunit(id='l', stoichiometry=1, structure=l_monomer))
     form.subunits.append(Subunit(id='r', stoichiometry=1, structure=r_monomer))
-    form.crosslinks.append(AbstractedCrosslink(type=xlink_name, l_subunit='l', l_monomer=1, r_subunit='r', r_monomer=1))
+    form.crosslinks.append(OntologyCrosslink(type=xlink_name, l_subunit='l', l_monomer=1, r_subunit='r', r_monomer=1))
     
     structure, atom_maps = form.get_structure()
 

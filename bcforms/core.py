@@ -2114,21 +2114,21 @@ def draw_xlink(xlink_name, include_all_hydrogens=False, remove_hydrogens=True, s
     form = BcForm()
 
     l_monomer_alphabet = xlink_details['l_monomer_alphabet']
-    if l_monomer_alphabet == 'bpforms.ProteinForm':
+    if l_monomer_alphabet == 'protein':
         l_monomer = bpforms.ProteinForm().from_str(xlink_details['l_monomer'])
-    elif l_monomer_alphabet == 'bpforms.DnaForm':
+    elif l_monomer_alphabet == 'dna':
         l_monomer = bpforms.DnaForm().from_str(xlink_details['l_monomer'])
-    elif l_monomer_alphabet == 'bpforms.RnaForm':
+    elif l_monomer_alphabet == 'rna':
         l_monomer = bpforms.RnaForm().from_str(xlink_details['l_monomer'])
     else:
         raise ValueError('Unknown monomer alphabet')
 
     r_monomer_alphabet = xlink_details['r_monomer_alphabet']
-    if r_monomer_alphabet == 'bpforms.ProteinForm':
+    if r_monomer_alphabet == 'protein':
         r_monomer = bpforms.ProteinForm().from_str(xlink_details['r_monomer'])
-    elif r_monomer_alphabet == 'bpforms.DnaForm':
+    elif r_monomer_alphabet == 'dna':
         r_monomer = bpforms.DnaForm().from_str(xlink_details['r_monomer'])
-    elif r_monomer_alphabet == 'bpforms.RnaForm':
+    elif r_monomer_alphabet == 'rna':
         r_monomer = bpforms.RnaForm().from_str(xlink_details['r_monomer'])
     else:
         raise ValueError('Unknown monomer alphabet')

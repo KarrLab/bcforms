@@ -9,6 +9,7 @@
 
 from bcforms import core
 import openbabel
+import os
 import unittest
 from wc_utils.util.chem import EmpiricalFormula, OpenBabelUtils
 import bpforms
@@ -919,3 +920,5 @@ class MiscellaneousTestCase(unittest.TestCase):
         img = core.draw_xlink(xlinks[0])
         with open('test.png', 'wb') as file:
             file.write(img)
+
+        os.remove('test.png')

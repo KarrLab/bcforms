@@ -965,7 +965,7 @@ class InlineCrosslink(Crosslink):
         """
         return self.r_displaced_atoms
 
-_xlink_filename = pkg_resources.resource_filename('bcforms', 'xlink/xlink.yml')
+_xlink_filename = pkg_resources.resource_filename('bpforms', 'xlink/xlink.yml')
 
 @cache.memoize(typed=False, expire=30 * 24 * 60 * 60, filename_args=[0])
 def parse_yaml(path):

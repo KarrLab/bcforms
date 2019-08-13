@@ -10,7 +10,7 @@ onto_crosslink: onto_crosslink_attr (ATTR_SEP onto_crosslink_attr)*
 onto_crosslink_attr: onto_crosslink_type | onto_crosslink_monomer
 onto_crosslink_type: "type" FIELD_SEP NAME
 onto_crosslink_monomer: onto_crosslink_monomer_type FIELD_SEP subunit subunit_idx? "-" monomer_position
-onto_crosslink_monomer_type: /(l|r)/ "-monomer"
+onto_crosslink_monomer_type: /(l|r)/
 
 inline_crosslink: inline_crosslink_attr (ATTR_SEP inline_crosslink_attr)*
 inline_crosslink_attr: inline_crosslink_atom | inline_crosslink_comments

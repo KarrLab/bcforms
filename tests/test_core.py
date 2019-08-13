@@ -428,10 +428,10 @@ class OntologyCrosslinkTestCase(unittest.TestCase):
 
     def test_str(self):
         xlink_1 = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', r_subunit='sub_2', l_monomer=3, r_monomer=1)
-        self.assertEqual(str(xlink_1), 'x-link: [ type: disulfide | l-monomer: sub_1-3 | r-monomer: sub_2-1 ]')
+        self.assertEqual(str(xlink_1), 'x-link: [ type: disulfide | l: sub_1-3 | r: sub_2-1 ]')
 
         xlink_2 = core.OntologyCrosslink(type='disulfide', l_subunit='sub_1', l_subunit_idx=2, r_subunit='sub_2', r_subunit_idx=1, l_monomer=3, r_monomer=1)
-        self.assertEqual(str(xlink_2), 'x-link: [ type: disulfide | l-monomer: sub_1(2)-3 | r-monomer: sub_2(1)-1 ]')
+        self.assertEqual(str(xlink_2), 'x-link: [ type: disulfide | l: sub_1(2)-3 | r: sub_2(1)-1 ]')
 
     def test_is_equal(self):
         xlink_1_a = core.InlineCrosslink()
@@ -535,9 +535,9 @@ class BcFormTestCase(unittest.TestCase):
 
         bc_form_4 = core.BcForm().from_str('unit_1 + unit_2'
                                           '| x-link: [ type: glycyl_lysine_isopeptide |'
-                                                     ' l-monomer: unit_1-1 |'
-                                                     ' r-monomer: unit_2-2 ]')
-        self.assertEqual(str(bc_form_4), '1 * unit_1 + 1 * unit_2 | x-link: [ type: glycyl_lysine_isopeptide | l-monomer: unit_1-1 | r-monomer: unit_2-2 ]')
+                                                     ' l: unit_1-1 |'
+                                                     ' r: unit_2-2 ]')
+        self.assertEqual(str(bc_form_4), '1 * unit_1 + 1 * unit_2 | x-link: [ type: glycyl_lysine_isopeptide | l: unit_1-1 | r: unit_2-2 ]')
 
     def test_from_str(self):
 
@@ -592,8 +592,8 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_6_a.set_subunit_attribute('unit_2', 'structure', bpforms.ProteinForm().from_str('C'))
         bc_form_6_b = core.BcForm().from_str('2 * unit_2'
                                           '| x-link: [ type: disulfide |'
-                                                     ' l-monomer: unit_2(1)-1 |'
-                                                     ' r-monomer: unit_2(2)-1 ]')
+                                                     ' l: unit_2(1)-1 |'
+                                                     ' r: unit_2(2)-1 ]')
         bc_form_6_b.set_subunit_attribute('unit_2', 'structure', bpforms.ProteinForm().from_str('C'))
         self.assertEqual(bc_form_6_a.export(), bc_form_6_b.export())
 
@@ -609,11 +609,11 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_7_a.set_subunit_attribute('unit_2', 'structure', bpforms.ProteinForm().from_str('ACAC'))
         bc_form_7_b = core.BcForm().from_str('2 * unit_2'
                                           '| x-link: [ type: disulfide |'
-                                                     ' l-monomer: unit_2(1)-2 |'
-                                                     ' r-monomer: unit_2(2)-4 ]'
+                                                     ' l: unit_2(1)-2 |'
+                                                     ' r: unit_2(2)-4 ]'
                                           '| x-link: [ type: disulfide |'
-                                                     ' l-monomer: unit_2(1)-4 |'
-                                                     ' r-monomer: unit_2(2)-2 ]')
+                                                     ' l: unit_2(1)-4 |'
+                                                     ' r: unit_2(2)-2 ]')
         bc_form_7_b.set_subunit_attribute('unit_2', 'structure', bpforms.ProteinForm().from_str('ACAC'))
         self.assertEqual(bc_form_7_a.export(), bc_form_7_b.export())
 
@@ -628,8 +628,8 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_8_a.set_subunit_attribute('unit_2', 'structure', bpforms.ProteinForm().from_str('CKA'))
         bc_form_8_b = core.BcForm().from_str('unit_1 + unit_2'
                                           '| x-link: [ type: glycyl_lysine_isopeptide |'
-                                                     ' l-monomer: unit_1-1 |'
-                                                     ' r-monomer: unit_2-2 ]')
+                                                     ' l: unit_1-1 |'
+                                                     ' r: unit_2-2 ]')
         bc_form_8_b.set_subunit_attribute('unit_1', 'structure', bpforms.ProteinForm().from_str('G'))
         bc_form_8_b.set_subunit_attribute('unit_2', 'structure', bpforms.ProteinForm().from_str('CKA'))
         self.assertEqual(bc_form_8_a.export(), bc_form_8_b.export())

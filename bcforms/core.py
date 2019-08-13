@@ -1306,13 +1306,13 @@ class OntologyCrosslink(Crosslink):
             str_l_subunit_idx = ''
         else:
             str_l_subunit_idx = '({})'.format(self.l_subunit_idx)
-        s += ' l-monomer: {}{}-{} |'.format(self.l_subunit, str_l_subunit_idx, self.l_monomer)
+        s += ' l: {}{}-{} |'.format(self.l_subunit, str_l_subunit_idx, self.l_monomer)
 
         if self.r_subunit_idx is None:
             str_r_subunit_idx = ''
         else:
             str_r_subunit_idx = '({})'.format(self.r_subunit_idx)
-        s += ' r-monomer: {}{}-{} |'.format(self.r_subunit, str_r_subunit_idx, self.r_monomer)
+        s += ' r: {}{}-{} |'.format(self.r_subunit, str_r_subunit_idx, self.r_monomer)
 
         s = s[:-1]+']'
         return s

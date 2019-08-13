@@ -235,10 +235,10 @@ sub_c: bpforms.ProteinForm(CA)</pre>
           <p class="before_list">Each crosslink can alternatively be described by using our ontology with three attributes. The list of crosslinks defined in the ontology is available at bpforms.org/crosslink <a href="https://www.bpforms.org/crosslink"><i class="fi-link"></i></a>.</p>
           <ul>
             <li><tt>type</tt>: This attributes indicates the type of the crosslink.</li>
-            <li><tt>l-monomer</tt> and <tt>r-monomer</tt>: These attributes indicate the position of the monomeric form within the sequence of the subunit.</li>
+            <li><tt>l</tt> and <tt>r</tt>: These attributes indicate the position of the monomeric form within the sequence of the subunit.</li>
           </ul>
 
-          <p>Each crosslink must have one type, one l-monomer, and one r-monomer.</p>
+          <p>Each crosslink must have one type, one left monomeric form, and one right monomeric form.</p>
 
           <p>Complexes can have zero, one, or more crosslinks.</p>
         </div>
@@ -249,16 +249,16 @@ sub_c: bpforms.ProteinForm(CA)</pre>
             <div class="large-12 cell">
                 <h5>Interchain disulfide bond</h5>
                 <pre>| x-link: [ type: disulfide |
-            l-monomer: sub_c(1)-1 |
-            r-monomer: sub_c(2)-1 ]</pre>
+            l: sub_c(1)-1 |
+            r: sub_c(2)-1 ]</pre>
             </div>
           </div>
           <div class="grid-x grid-padding-x">
             <div class="large-12 cell">
                 <h5>Interchain isopeptide bond</h5>
                 <pre>| x-link: [ type: glycyl_lysine_isopeptide |
-            l-monomer: b(1)-4 |
-            r-monomer: a(2)-1 ]</pre>
+            l: b(1)-4 |
+            r: a(2)-1 ]</pre>
             </div>
           </div>
         </div>

@@ -7,11 +7,11 @@
 :License: MIT
 """
 
+from bpforms.util import gen_genomic_viz
 from ruamel import yaml
 from wc_utils.util.chem import EmpiricalFormula, OpenBabelUtils, draw_molecule
 import abc
 import bpforms
-import bpforms.core
 import itertools
 import lark
 import openbabel
@@ -2066,6 +2066,81 @@ class BcForm(object):
 
         """
         return OpenBabelUtils.export(self.get_structure()[0], format=format, options=options)
+
+    def get_genomic_image(self, seq_features=None, width=1200, cols=2, nt_per_track=80, **kwargs):
+        """ Get a genomic visualization of the :obj:`BpForm`
+
+        Args:
+            seq_features (:obj:`dict`): list of features each
+                represented by a dictionary with three keys
+
+                * label (:obj:`str`): description of the type of feature
+                * color (:obj:`str`): color
+                * positions (:obj:`list` of :obj:`list` of :obj:`int`): list of position
+                  ranges of the type of feature
+            width (:obj:`int`, optional): width
+            cols (:obj:`int`, optional): number of columns of polymers
+            nt_per_track (:obj:`int`, optional): number of nucleotides per track
+
+        The method also accepts the same arguments as 
+            :obj:`bpforms.util.gen_genomic_viz`.
+
+        Returns:
+            :obj:`str`: SVG image
+        """
+        polymers = []
+        polymer_labels = {}
+        polymer_idxs = {}
+        i_tot_subunit = 0
+        for subunit in self.subunits:
+            if isinstance(subunit.structure, bpforms.BpForm):
+                for i_repeat in range(subunit.stoichiometry):
+                    polymers.append(subunit.structure)
+                    if subunit.stoichiometry == 1:
+                        polymer_labels[i_tot_subunit] = subunit.id
+                    else:
+                        polymer_labels[i_tot_subunit] = '{} ({})'.format(subunit.id, i_repeat + 1)
+                    polymer_idxs[(subunit.id, i_repeat)] = len(polymer_idxs)
+                    i_tot_subunit += 1
+
+        inter_crosslinks = []
+        for crosslink in self.crosslinks:
+            if len(crosslink.get_l_bond_atoms()) >= 1:
+                l = crosslink.get_l_bond_atoms()[0]
+                r = crosslink.get_r_bond_atoms()[0]
+
+                l_subunit = polymer_idxs[(l.subunit, l.subunit_idx - 1)]
+                r_subunit = polymer_idxs[(r.subunit, r.subunit_idx - 1)]
+
+                if isinstance(crosslink, OntologyCrosslink):
+                    tooltip = crosslink.type
+                else:
+                    tooltip = None
+
+                inter_crosslinks.append(InlineCrosslink(
+                    l_bond_atoms=[Atom(str(l_subunit), l.element, l.position, l.monomer)],
+                    r_bond_atoms=[Atom(str(r_subunit), r.element, r.position, r.monomer)],
+                    comments=tooltip))
+
+        seq_features = seq_features or []
+        flat_seq_features = []
+        for seq_feature in seq_features:
+            flat_seq_feature = {
+                'label': seq_feature['label'],
+                'color': seq_feature['color'],
+                'positions': {},
+            }
+            flat_seq_features.append(flat_seq_feature)
+            for subunit in self.subunits:
+                if subunit.id in seq_feature['positions']:
+                    for i_repeat in range(subunit.stoichiometry):
+                        flat_seq_feature['positions'][polymer_idxs[(subunit.id, i_repeat)]] = \
+                            seq_feature['positions'][subunit.id]
+
+        return gen_genomic_viz(polymers, inter_crosslinks=inter_crosslinks,
+                               polymer_labels=polymer_labels, seq_features=flat_seq_features,
+                               width=width, cols=cols, nt_per_track=nt_per_track,
+                               **kwargs)
 
 
 def get_hydrogen_atom(parent_atom, bonding_hydrogens, i_monomer):

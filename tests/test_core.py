@@ -912,6 +912,32 @@ class BcFormTestCase(unittest.TestCase):
         bc_form_3.set_subunit_attribute('g', 'structure', bpforms.ProteinForm().from_str('G'))
         self.assertEqual(bc_form_3.export(), 'C[C@H]([NH3+])C(=O)NCC(=O)O')
 
+    def test_get_genomic_image(self):        
+        form = core.BcForm().from_str(
+            '2 * a + 2 * b '
+            '| x-link: [l-bond-atom: a(1)-1C1 | r-bond-atom: a(2)-5C1]'
+            '| x-link: [l-bond-atom: a(1)-1C1 | r-bond-atom: a(2)-102C1]'
+            '| x-link: [l-bond-atom: a(1)-1C1 | r-bond-atom: b(1)-2C1]'
+            '| x-link: [type: disulfide | l: a(1)-103 | r: b(2)-5]'
+            )
+        form.set_subunit_attribute('a', 'structure', bpforms.ProteinForm().from_str(
+            'ARC{SEC}E' * 50 + (
+            ' | x-link: [type: "disulfide" | l: 23 | r: 48]'
+            ' | x-link: [type: "disulfide" | l: 43 | r: 63]'
+            ' | x-link: [type: "disulfide" | l: 68 | r: 203]')
+            ))
+        form.set_subunit_attribute('b', 'structure', bpforms.ProteinForm().from_str('DF{004}GC' * 40))
+
+        seq_features = [{
+            'label': 'Processed',
+            'color': '#cccccc',
+            'positions': {'a': [[1, 30], [50, 85]]},
+        }]
+        svg = form.get_genomic_image(seq_features=seq_features)
+
+        # with open('test.svg', 'w') as file:
+        #     file.write(svg)
+
 class MiscellaneousTestCase(unittest.TestCase):
 
     def test_draw_xlink(self):

@@ -7,23 +7,24 @@
 :License: MIT
 """
 
+from ruamel import yaml
+from wc_utils.util.chem import EmpiricalFormula, OpenBabelUtils, draw_molecule
 import abc
+import bpforms
+import bpforms.core
 import itertools
 import lark
 import openbabel
 import os
 import pkg_resources
-from ruamel import yaml
 import wc_utils.cache
-from wc_utils.util.chem import EmpiricalFormula, OpenBabelUtils, draw_molecule
-import bpforms
-import bpforms.core
 
 # setup cache
 cache_dir = os.path.expanduser('~/.cache/bcforms')
 if not os.path.isdir(cache_dir):
     os.makedirs(cache_dir)
 cache = wc_utils.cache.Cache(directory=cache_dir)
+
 
 class Subunit(object):
     """ Subunit in a BcForm macromolecular complex
@@ -184,7 +185,6 @@ class Subunit(object):
 
         if isinstance(self._formula, EmpiricalFormula):
             self._mol_wt = self._formula.get_molecular_weight()
-
 
     @property
     def mol_wt(self):
@@ -400,6 +400,7 @@ class Subunit(object):
             return ''
 
         return OpenBabelUtils.export(self.get_structure()[0], format=format, options=options)
+
 
 class Atom(object):
     """ Atom in a crosslink
@@ -659,6 +660,7 @@ class Atom(object):
 
         return True
 
+
 class Crosslink(abc.ABC):
     """ Abstract class of a crosslink between subunits
 
@@ -917,7 +919,7 @@ class InlineCrosslink(Crosslink):
             :obj:`str`: string representation
         """
         s = 'x-link: ['
-        
+
         atom_types = ['l_bond_atoms', 'l_displaced_atoms', 'r_bond_atoms', 'r_displaced_atoms']
         for atom_type in atom_types:
             for atom in getattr(self, atom_type):
@@ -965,7 +967,9 @@ class InlineCrosslink(Crosslink):
         """
         return self.r_displaced_atoms
 
+
 _xlink_filename = pkg_resources.resource_filename('bpforms', 'xlink/xlink.yml')
+
 
 @cache.memoize(typed=False, expire=30 * 24 * 60 * 60, filename_args=[0])
 def parse_yaml(path):
@@ -980,6 +984,7 @@ def parse_yaml(path):
     yaml_reader = yaml.YAML()
     with open(path, 'rb') as file:
         return yaml_reader.load(file)
+
 
 class OntologyCrosslink(Crosslink):
     """ A pre-defined crosslink between subunits
@@ -1196,7 +1201,6 @@ class OntologyCrosslink(Crosslink):
             raise ValueError('`value` must be an instance of `int`')
         self._r_monomer = value
 
-
     _xlink_atom_parser = lark.Lark("""
         start: atom_element atom_position atom_charge?
         atom_element: /[A-Z][a-z]?/
@@ -1229,7 +1233,6 @@ class OntologyCrosslink(Crosslink):
         def atom_charge(self, *args):
             return ('atom_charge', int(args[0].value))
 
-
     def get_l_bond_atoms(self):
         """ Get the left bond atoms
 
@@ -1242,7 +1245,8 @@ class OntologyCrosslink(Crosslink):
             tree = self._xlink_atom_parser.parse(atom)
             parse_tree_transformer = self.ParseTreeTransformer()
             element, position, charge = parse_tree_transformer.transform(tree)
-            atom = Atom(subunit=self.l_subunit, element=element, position=position, monomer=self.l_monomer, charge=charge, subunit_idx=self.l_subunit_idx)
+            atom = Atom(subunit=self.l_subunit, element=element, position=position,
+                        monomer=self.l_monomer, charge=charge, subunit_idx=self.l_subunit_idx)
             atoms.append(atom)
         return atoms
 
@@ -1258,7 +1262,8 @@ class OntologyCrosslink(Crosslink):
             tree = self._xlink_atom_parser.parse(atom)
             parse_tree_transformer = self.ParseTreeTransformer()
             element, position, charge = parse_tree_transformer.transform(tree)
-            atom = Atom(subunit=self.r_subunit, element=element, position=position, monomer=self.r_monomer, charge=charge, subunit_idx=self.r_subunit_idx)
+            atom = Atom(subunit=self.r_subunit, element=element, position=position,
+                        monomer=self.r_monomer, charge=charge, subunit_idx=self.r_subunit_idx)
             atoms.append(atom)
         return atoms
 
@@ -1274,7 +1279,8 @@ class OntologyCrosslink(Crosslink):
             tree = self._xlink_atom_parser.parse(atom)
             parse_tree_transformer = self.ParseTreeTransformer()
             element, position, charge = parse_tree_transformer.transform(tree)
-            atom = Atom(subunit=self.l_subunit, element=element, position=position, monomer=self.l_monomer, charge=charge, subunit_idx=self.l_subunit_idx)
+            atom = Atom(subunit=self.l_subunit, element=element, position=position,
+                        monomer=self.l_monomer, charge=charge, subunit_idx=self.l_subunit_idx)
             atoms.append(atom)
         return atoms
 
@@ -1290,7 +1296,8 @@ class OntologyCrosslink(Crosslink):
             tree = self._xlink_atom_parser.parse(atom)
             parse_tree_transformer = self.ParseTreeTransformer()
             element, position, charge = parse_tree_transformer.transform(tree)
-            atom = Atom(subunit=self.r_subunit, element=element, position=position, monomer=self.r_monomer, charge=charge, subunit_idx=self.r_subunit_idx)
+            atom = Atom(subunit=self.r_subunit, element=element, position=position,
+                        monomer=self.r_monomer, charge=charge, subunit_idx=self.r_subunit_idx)
             atoms.append(atom)
         return atoms
 
@@ -1337,7 +1344,6 @@ class OntologyCrosslink(Crosslink):
                 return (xlink_name, xlink_details)
 
         raise KeyError('Unknown abstracted crosslink type')
-
 
 
 class BcForm(object):
@@ -1526,8 +1532,8 @@ class BcForm(object):
                             r_subunit_idx = val[1]
                             r_monomer = val[2]
                 bond = OntologyCrosslink(type=type,
-                    l_subunit=l_subunit, l_subunit_idx=l_subunit_idx, l_monomer=l_monomer,
-                    r_subunit=r_subunit, r_subunit_idx=r_subunit_idx, r_monomer=r_monomer)
+                                         l_subunit=l_subunit, l_subunit_idx=l_subunit_idx, l_monomer=l_monomer,
+                                         r_subunit=r_subunit, r_subunit_idx=r_subunit_idx, r_monomer=r_monomer)
                 return bond
 
             @lark.v_args(inline=True)
@@ -1555,7 +1561,7 @@ class BcForm(object):
             @lark.v_args(inline=True)
             def inline_crosslink(self, *args):
                 bond = InlineCrosslink()
-                for arg in args:              
+                for arg in args:
                     if isinstance(arg, lark.tree.Tree):
                         attr, val = arg.children[0]
                         if attr == 'comments':
@@ -1564,7 +1570,7 @@ class BcForm(object):
                             attr_val_list = getattr(bond, attr + "s")
                             attr_val_list.append(val)
                 return bond
-            
+
             @lark.v_args(inline=True)
             def inline_crosslink_atom(self, *args):
                 num_optional_args = 0
@@ -1841,8 +1847,8 @@ class BcForm(object):
         errors = []
 
         # crosslinks
-        self_subunits_subunits = [subunit for subunit in self.subunits if isinstance(subunit,Subunit)]
-        self_subunits_bcforms = [subunit for subunit in self.subunits if isinstance(subunit,BcForm)]
+        self_subunits_subunits = [subunit for subunit in self.subunits if isinstance(subunit, Subunit)]
+        self_subunits_bcforms = [subunit for subunit in self.subunits if isinstance(subunit, BcForm)]
 
         atom_types = ['l_bond_atoms', 'l_displaced_atoms', 'r_bond_atoms', 'r_displaced_atoms']
         for i_crosslink, crosslink in enumerate(self.crosslinks):
@@ -1856,7 +1862,7 @@ class BcForm(object):
                     elif atom.subunit_idx is None:
                         if next(subunit for subunit in self_subunits_subunits if subunit.id == atom.subunit).stoichiometry > 1:
                             errors.append("crosslink {} contains multiple subunit '{}', so the subunit_idx of atom '{}[{}]' cannot be None".format(
-                            i_crosslink + 1, atom.subunit, atom_type, i_atom))
+                                i_crosslink + 1, atom.subunit, atom_type, i_atom))
                     elif atom.subunit_idx > next(subunit for subunit in self_subunits_subunits if subunit.id == atom.subunit).stoichiometry:
                         errors.append("'{}[{}]' of crosslink {} must belong to a subunit whose index is "
                                       "valid in terms of the stoichiometry of the subunit".format(
@@ -2009,7 +2015,8 @@ class BcForm(object):
                     subunit_idx = 1 if atom_md.subunit_idx is None else atom_md.subunit_idx
                     atom = atom_maps[i_subunit][subunit_idx][atom_md.monomer][atom_md.component_type][atom_md.position]
                     if atom_md.element == 'H' and atom.GetAtomicNum() != 1:
-                        atom = get_hydrogen_atom(atom, bonding_hydrogens, (i_subunit, subunit_idx-1, atom_md.monomer-1, atom_md.component_type))
+                        atom = get_hydrogen_atom(atom, bonding_hydrogens, (i_subunit, subunit_idx -
+                                                                           1, atom_md.monomer-1, atom_md.component_type))
                     crosslink_atoms[atom_type].append((atom, i_subunit, subunit_idx, atom_md.monomer, atom_md.position, atom_md.charge))
 
         # print(OpenBabelUtils.export(mol, format='smiles', options=[]))
@@ -2078,10 +2085,11 @@ def get_hydrogen_atom(parent_atom, bonding_hydrogens, i_monomer):
                 return other_atom
     return None
 
-def draw_xlink(xlink_name, include_all_hydrogens=False, remove_hydrogens=True, show_atom_nums=False, 
-        l_color=0x00ea4e, r_color=0x00adef, bond_color=0xea4200,
-        width=300, height=200, atom_label_font_size=0.6,
-        image_format='png', include_xml_header=False):
+
+def draw_xlink(xlink_name, include_all_hydrogens=False, remove_hydrogens=True, show_atom_nums=False,
+               l_color=0x00ea4e, r_color=0x00adef, bond_color=0xea4200,
+               width=300, height=200, atom_label_font_size=0.6,
+               image_format='png', include_xml_header=False):
     """ Generate an image of a crosslink
 
     Args:
@@ -2097,7 +2105,7 @@ def draw_xlink(xlink_name, include_all_hydrogens=False, remove_hydrogens=True, s
         atom_label_font_size (:obj:`float`, optional): relative font size of atom labels
         image_format (:obj:`str`, optional): format of image
         include_xml_header (:obj:`bool`, optional): if :obj:`True`, include XML header for SVG image
-        
+
     Returns:
         :obj:`object`: image
     Raises:
@@ -2136,7 +2144,7 @@ def draw_xlink(xlink_name, include_all_hydrogens=False, remove_hydrogens=True, s
     form.subunits.append(Subunit(id='l', stoichiometry=1, structure=l_monomer))
     form.subunits.append(Subunit(id='r', stoichiometry=1, structure=r_monomer))
     form.crosslinks.append(OntologyCrosslink(type=xlink_name, l_subunit='l', l_monomer=1, r_subunit='r', r_monomer=1))
-    
+
     structure, atom_maps = form.get_structure()
 
     el_table = openbabel.OBElementTable()
@@ -2146,19 +2154,19 @@ def draw_xlink(xlink_name, include_all_hydrogens=False, remove_hydrogens=True, s
         if structure.GetAtom(i_atom).GetAtomicNum() > 1:
             break
     atom_labels.append({
-                'position': i_atom,
-                'element': el_table.GetSymbol(structure.GetAtom(i_atom).GetAtomicNum()),
-                'label': xlink_details['l_monomer'],
-                'color': l_color})
+        'position': i_atom,
+        'element': el_table.GetSymbol(structure.GetAtom(i_atom).GetAtomicNum()),
+        'label': xlink_details['l_monomer'],
+        'color': l_color})
 
     for i_atom in atom_maps[1][1][1]['monomer'].values():
         if structure.GetAtom(i_atom).GetAtomicNum() > 1:
             break
     atom_labels.append({
-                'position': i_atom,
-                'element': el_table.GetSymbol(structure.GetAtom(i_atom).GetAtomicNum()),
-                'label': xlink_details['r_monomer'],
-                'color': r_color})
+        'position': i_atom,
+        'element': el_table.GetSymbol(structure.GetAtom(i_atom).GetAtomicNum()),
+        'label': xlink_details['r_monomer'],
+        'color': r_color})
 
     atom_sets = []
     for monomer_atom_map, color in zip(atom_maps, [l_color, r_color]):
@@ -2177,12 +2185,12 @@ def draw_xlink(xlink_name, include_all_hydrogens=False, remove_hydrogens=True, s
     bond_sets = [{
         'positions': [[i_l_atom, i_r_atom]],
         'elements': [[
-                    el_table.GetSymbol(structure.GetAtom(i_l_atom).GetAtomicNum()),
-                    el_table.GetSymbol(structure.GetAtom(i_r_atom).GetAtomicNum()),
-            ]],
+            el_table.GetSymbol(structure.GetAtom(i_l_atom).GetAtomicNum()),
+            el_table.GetSymbol(structure.GetAtom(i_r_atom).GetAtomicNum()),
+        ]],
         'color': bond_color,
-        }]
-    
+    }]
+
     if include_all_hydrogens:
         structure.AddHydrogens()
 
@@ -2194,7 +2202,7 @@ def draw_xlink(xlink_name, include_all_hydrogens=False, remove_hydrogens=True, s
         structure.DeleteHydrogens()
 
         atoms = [atom for atom in openbabel.OBMolAtomIter(structure)]
-        
+
         for label in atom_labels:
             label['position'] = atom_refs[label['position']].GetIdx()
 
@@ -2203,12 +2211,13 @@ def draw_xlink(xlink_name, include_all_hydrogens=False, remove_hydrogens=True, s
             atom_set['elements'] = [el_table.GetSymbol(structure.GetAtom(position).GetAtomicNum()) for position in atom_set['positions']]
 
         for bond_set in bond_sets:
-            bond_set['positions'] = [[atom_refs[position[0]].GetIdx(), atom_refs[position[1]].GetIdx()] for position in bond_set['positions']]
+            bond_set['positions'] = [[atom_refs[position[0]].GetIdx(), atom_refs[position[1]].GetIdx()]
+                                     for position in bond_set['positions']]
 
     cml = OpenBabelUtils.export(structure, 'cml')
 
     return draw_molecule(cml, 'cml', image_format=image_format,
-                             atom_labels=atom_labels, atom_label_font_size=atom_label_font_size, 
-                             atom_sets=atom_sets, bond_sets=bond_sets,
-                             show_atom_nums=show_atom_nums,
-                             width=width, height=height, include_xml_header=include_xml_header)
+                         atom_labels=atom_labels, atom_label_font_size=atom_label_font_size,
+                         atom_sets=atom_sets, bond_sets=bond_sets,
+                         show_atom_nums=show_atom_nums,
+                         width=width, height=height, include_xml_header=include_xml_header)

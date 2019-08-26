@@ -1340,7 +1340,7 @@ class OntologyCrosslink(Crosslink):
                 return (xlink_name, xlink_details)
             if self.type in xlink_details['synonyms']:
                 return (xlink_name, xlink_details)
-            if 'common_name' in xlink_details and self.type == xlink_details['common_name']:
+            if 'name' in xlink_details and self.type == xlink_details['name']:
                 return (xlink_name, xlink_details)
 
         raise KeyError('Unknown abstracted crosslink type')

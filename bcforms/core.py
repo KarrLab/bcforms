@@ -7,6 +7,7 @@
 :License: MIT
 """
 
+from bpforms import BondOrder, BondStereo
 from bpforms.util import gen_genomic_viz
 from ruamel import yaml
 from wc_utils.util.chem import EmpiricalFormula, OpenBabelUtils, draw_molecule
@@ -707,6 +708,26 @@ class Crosslink(abc.ABC):
         pass
 
     @abc.abstractmethod
+    def get_order(self):
+        """ Get the order
+
+        Returns:
+            :obj:`BondOrder`: order
+
+        """
+        pass
+
+    @abc.abstractmethod
+    def get_stereo(self):
+        """ Get the stereochemistry
+
+        Returns:
+            :obj:`BondStereo`: stereochemistry
+
+        """
+        pass
+
+    @abc.abstractmethod
     def __str__(self):
         """Generate a string representation
 
@@ -742,6 +763,9 @@ class Crosslink(abc.ABC):
                 if not self_atom.is_equal(other_atom):
                     return False
 
+        if self.get_order() != other.get_order() or self.get_stereo() != other.get_stereo():
+            return False
+
         return True
 
 
@@ -753,10 +777,13 @@ class InlineCrosslink(Crosslink):
         r_bond_atoms (:obj:`list` of :obj:`Atom`): atoms from the right subunit that bond with the left subunit
         l_displaced_atoms (:obj:`list` of :obj:`Atom`): atoms from the left subunit displaced by the crosslink
         r_displaced_atoms (:obj:`list` of :obj:`Atom`): atoms from the right subunit displaced by the crosslink
+        order (:obj:`BondOrder`): order
+        stereo (:obj:`BondStereo`): stereochemistry
         comments (:obj:`str`): comments
     """
 
     def __init__(self, l_bond_atoms=None, r_bond_atoms=None, l_displaced_atoms=None, r_displaced_atoms=None,
+                 order=BondOrder.single, stereo=None,
                  comments=None):
         """
 
@@ -765,6 +792,8 @@ class InlineCrosslink(Crosslink):
             r_bond_atoms (:obj:`list`): atoms from the right subunit that bond with the left subunit
             l_displaced_atoms (:obj:`list`): atoms from the left subunit displaced by the crosslink
             r_displaced_atoms (:obj:`list`): atoms from the right subunit displaced by the crosslink
+            order (:obj:`BondOrder`, optional): order
+            stereo (:obj:`BondStereo`, optional): stereochemistry
             comments (:obj:`str`): comments
         """
         if l_bond_atoms is None:
@@ -786,6 +815,9 @@ class InlineCrosslink(Crosslink):
             self.r_displaced_atoms = []
         else:
             self.r_displaced_atoms = r_bond_atoms
+
+        self.order = order
+        self.stereo = stereo
 
         self.comments = comments
 
@@ -890,6 +922,52 @@ class InlineCrosslink(Crosslink):
         self._r_displaced_atoms = value
 
     @property
+    def order(self):
+        """ Get the order
+
+        Returns:
+            :obj:`BondOrder`: order
+        """
+        return self._order
+
+    @order.setter
+    def order(self, value):
+        """ Set the order
+
+        Args:
+            value (:obj:`BondOrder`): order
+
+        Raises:
+            :obj:`ValueError`: if `order` is not an instance of `BondOrder`
+        """
+        if not isinstance(value, BondOrder):
+            raise ValueError('`order` must be an instance of `BondOrder`')
+        self._order = value
+
+    @property
+    def stereo(self):
+        """ Get the stereochemistry
+
+        Returns:
+            :obj:`BondStereo`: stereochemistry
+        """
+        return self._stereo
+
+    @stereo.setter
+    def stereo(self, value):
+        """ Set the stereo
+
+        Args:
+            value (:obj:`BondStereo`): stereochemistry
+
+        Raises:
+            :obj:`ValueError`: if `stereo` is not an instance of `BondStereo`
+        """
+        if value is not None and not isinstance(value, BondStereo):
+            raise ValueError('`stereo` must be an instance of `BondStereo` or `None`')
+        self._stereo = value
+
+    @property
     def comments(self):
         """ Get comments
 
@@ -924,6 +1002,11 @@ class InlineCrosslink(Crosslink):
         for atom_type in atom_types:
             for atom in getattr(self, atom_type):
                 s += ' {}: {} |'.format(atom_type[:-1].replace('_', '-'), str(atom))
+
+        if self.order != BondOrder.single:
+            s += ' order: "{}" |'.format(self.order.name)
+        if self.stereo is not None:
+            s += ' stereo: "{}" |'.format(self.stereo.name)
 
         if self.comments:
             s += ' comments: "{}" |'.format(self.comments.replace('"', '\\"'))
@@ -966,6 +1049,22 @@ class InlineCrosslink(Crosslink):
 
         """
         return self.r_displaced_atoms
+
+    def get_order(self):
+        """ Get the order
+
+        Returns:
+            :obj:`BondOrder`: order
+        """
+        return self.order
+
+    def get_stereo(self):
+        """ Get the stereochemistry
+
+        Returns:
+            :obj:`BondStereo`: stereochemistry
+        """
+        return self.stereo
 
 
 _xlink_filename = pkg_resources.resource_filename('bpforms', 'xlink/xlink.yml')
@@ -1301,6 +1400,26 @@ class OntologyCrosslink(Crosslink):
             atoms.append(atom)
         return atoms
 
+    def get_order(self):
+        """ Get the order
+
+        Returns:
+            :obj:`BondOrder`: order
+        """
+        return BondOrder[self.xlink_details[1].get('order' , 'single')]
+
+    def get_stereo(self):
+        """ Get the stereochemistry
+
+        Returns:
+            :obj:`BondStereo`: stereochemistry
+        """
+        val = self.xlink_details[1].get('stereo', None)
+        if val is None:
+            return None
+        else:
+            return BondStereo[val]
+
     def __str__(self):
         """Generate a string representation
 
@@ -1564,7 +1683,7 @@ class BcForm(object):
                 for arg in args:
                     if isinstance(arg, lark.tree.Tree):
                         attr, val = arg.children[0]
-                        if attr == 'comments':
+                        if attr in ['order', 'stereo', 'comments']:
                             setattr(bond, attr, val)
                         else:
                             attr_val_list = getattr(bond, attr + "s")
@@ -1606,6 +1725,14 @@ class BcForm(object):
             @lark.v_args(inline=True)
             def inline_crosslink_atom_type(self, *args):
                 return ('inline_crosslink_atom_type', args[0].value + '_' + args[1].value + '_atom')
+
+            @lark.v_args(inline=True)
+            def inline_crosslink_order(self, *args):
+                return ('order', BondOrder[args[-2].value])
+
+            @lark.v_args(inline=True)
+            def inline_crosslink_stereo(self, *args):
+                return ('stereo', BondStereo[args[-2].value])
 
             @lark.v_args(inline=True)
             def inline_crosslink_comments(self, *args):
@@ -2022,7 +2149,7 @@ class BcForm(object):
         # print(OpenBabelUtils.export(mol, format='smiles', options=[]))
 
         # make the crosslink bonds
-        for atoms in crosslinks_atoms:
+        for crosslink, atoms in zip(self.crosslinks, crosslinks_atoms):
 
             for atom, i_subunit, subunit_idx, i_monomer, i_position, atom_charge in itertools.chain(atoms['l_displaced_atoms'], atoms['r_displaced_atoms']):
                 if atom:
@@ -2035,7 +2162,18 @@ class BcForm(object):
                 bond = openbabel.OBBond()
                 bond.SetBegin(l_atom)
                 bond.SetEnd(r_atom)
-                bond.SetBondOrder(1)
+                bond.SetBondOrder(crosslink.get_order().value)
+                stereo = crosslink.get_stereo()
+                if stereo is None:
+                    pass
+                elif stereo == BondStereo.wedge:
+                    bond.SetWedge()
+                elif stereo == BondStereo.hash:
+                    bond.SetHash()
+                elif stereo == BondStereo.up:
+                    bond.SetUp()
+                elif stereo == BondStereo.down:
+                    bond.SetDown()
                 assert mol.AddBond(bond)
 
                 if l_atom_charge:

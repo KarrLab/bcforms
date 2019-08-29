@@ -195,11 +195,14 @@ sub_c: bpforms.ProteinForm(CA)</pre>
 
         <div class="large-5 cell grammar">
           <a name="inline_xlink"></a>
-          <h4>Inline definition of crosslinks</h4>
-          <p class="before_list">Each crosslink can be described using four types of attributes:</p>
+          <h4>User-defined crosslinks</h4>
+          <p class="before_list">Each crosslink can be described using the following attributes:</p>
           <ul>
             <li><tt>l-bond-atom</tt> and <tt>r-bond-atom</tt>: These attributes indicate the atoms involved in the bond. The values of these attributes are the position of the monomeric form within the sequence of the subunit, the element of the atom, the position of the atom within the monomeric form, and the charge of the atom (e.g., <tt>sub_a(1)-8N3+1</tt>). Open Babel can be used to display the numbers of the atoms within monomeric forms.</li>
             <li><tt>l-displaced-atom</tt> and <tt>r-displaced-atom</tt>: These attributes indicate the atoms displaced by the formation of the bond. The values of these attributes are also the position of the monomeric form within the sequence of the subunit, the element of the atom, the position of the atom within the monomeric form, and the charge of the atom.</li>
+            <li><tt>order</tt>: This attribute can indicate the order (single, double, triple, aromatic) of the bond.</li>
+            <li><tt>stereo</tt>: This attribute can indicate the stereochemistry of the bond (wedge, hash, up, down).</li>
+            <li><tt>comments</tt>: This attribute can indicate comments about the crosslink, such as uncertainty about its location or structure.</li>
           </ul>
 
           <p>Each crosslink can have one or more left and right bond atoms, and zero or more left and right displaced atoms. Each crosslink must have the same number of left and right bond atoms.</p>

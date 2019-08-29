@@ -311,6 +311,19 @@ class InlineCrosslinkTestCase(unittest.TestCase):
         with self.assertRaises(ValueError):
             crosslink.r_displaced_atoms = None
 
+    def test_set_order(self):
+        crosslink = core.InlineCrosslink()
+        crosslink.order = bpforms.BondOrder.double
+        with self.assertRaises(ValueError):
+            crosslink.order = None
+
+    def test_set_stereo(self):
+        crosslink = core.InlineCrosslink()
+        crosslink.stereo = None
+        crosslink.stereo = bpforms.BondStereo.wedge
+        with self.assertRaises(ValueError):
+            crosslink.stereo = 1
+
     def test_str(self):
         crosslink = core.InlineCrosslink()
         atom_1 = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
@@ -319,6 +332,12 @@ class InlineCrosslinkTestCase(unittest.TestCase):
         crosslink.r_bond_atoms.append(atom_2)
 
         self.assertEqual(str(crosslink), 'x-link: [ l-bond-atom: abc(1)-10H1 | r-bond-atom: def(1)-10H1 ]')
+
+        crosslink = core.InlineCrosslink(order=bpforms.BondOrder.double)
+        self.assertEqual(str(crosslink), 'x-link: [ order: "double" ]')
+
+        crosslink = core.InlineCrosslink(stereo=bpforms.BondStereo.wedge)
+        self.assertEqual(str(crosslink), 'x-link: [ stereo: "wedge" ]')
 
     def test_is_equal(self):
         atom_1 = core.Atom(subunit='abc', subunit_idx=1, element='H', position=1, monomer=10, charge=0)
@@ -643,6 +662,19 @@ class BcFormTestCase(unittest.TestCase):
                                                      ' r-displaced-atom: unit_2-2H1 | '
                                                      ' comments: "a comment"]')
         self.assertEqual(list(bc_form_9.crosslinks)[0].comments, 'a comment')
+
+        bc_form_10 = core.BcForm().from_str('unit_1 + unit_2'
+                                          '| x-link: [ l-bond-atom: unit_1-1C2 |'
+                                                     ' r-bond-atom: unit_2-2N1-1 |'
+                                                     ' l-displaced-atom: unit_1-1O1 |'
+                                                     ' l-displaced-atom: unit_1-1H1 |'
+                                                     ' r-displaced-atom: unit_2-2H1+1 |'
+                                                     ' r-displaced-atom: unit_2-2H1 | '
+                                                     ' order: "triple" |'
+                                                     ' stereo: "wedge"'
+                                                     ']')
+        self.assertEqual(list(bc_form_10.crosslinks)[0].order, bpforms.BondOrder.triple)
+        self.assertEqual(list(bc_form_10.crosslinks)[0].stereo, bpforms.BondStereo.wedge)
 
 
     def test_from_set(self):

@@ -37,13 +37,14 @@
                   <li><a href="#calculator">Web application</a></li>
                   <li><a href="#grammar">Grammar</a>
                     <ul>
-                      <li><a href="#grammar">Subunit composition</a></li>
+                      <li><a href="#subunit-composition">Subunit composition</a></li>
                       <li><a href="#crosslinks">Crosslinks</a>
                           <ul>
                               <li><a href="#inline_xlink">Inline definition</a></li>
                               <li><a href="#onto_xlink">Ontology definition</a></li>
                           </ul>
                       </li>
+                      <li><a href="#coordinate-system">Subunit composition</a></li>
                     </ul>
                   </li>
                   <li><a href="#interfaces">User interfaces</a>
@@ -127,6 +128,7 @@
 
       <div class="grid-x grid-padding-x orange">
         <a name="grammar"></a>
+        <a name="subunit-composition"></a>
         <div class="large-12 cell">
             <h2><i>BcForms</i> grammar</h2>
         </div>
@@ -262,6 +264,40 @@ sub_c: bpforms.ProteinForm(CA)</pre>
                 <pre>| x-link: [ type: glycyl_lysine_isopeptide |
             l: b(1)-4 |
             r: a(2)-1 ]</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="large-5 cell grammar">
+          <a name="coordinate-system"></a>
+          <h3>Coordinate system</h3>
+          <p>Each subunit, residue, and atom represented by <i>BcForms</i> has a unique coordinate. The coordinates of repeated subunits range from one to the stoichiometry of the subunit. The coordinate of each residue is a two-tuple of the coordinate of its parent subunit and its position within the residue sequence of its parent subunit. The coordinate of each atom is a three-tuple of the coordinate of its parent subunit, the position of its parent residue within the residue sequence of its parent polymer, and its position within the canonical SMILES ordering of its parent residue (which can be displayed by Open Babel).</p>
+        </div>
+        <div class="large-7 cell example">
+          <h3>Example</h3>
+          <div class="grid-x grid-padding-x">
+            <div class="large-12 cell">
+              <p>The example below illustrates the atom coordinates for the modified amino acid N<sup>5</sup>-methyl-L-arginine.</p>
+            </div>
+            <div class="large-8 cell syntax">
+              <pre>[id: "AA0305"
+  | name: "N5-methyl-L-arginine"
+  | structure: "OC(=O)[C@H](CCCN(C(=[NH2])N)C)
+                [NH3+]"
+  | l-bond-atom: N16-1
+  | l-displaced-atom: H16+1
+  | l-displaced-atom: H16
+  | r-bond-atom: C2
+  | r-displaced-atom: O1
+  | r-displaced-atom: H1
+  ]</pre>
+            </div>
+            <div class="large-4 cell image">
+              <a data-fancybox="gallery"
+                href="https://bpforms.org/img/example/left-right-bonds-AA0305.svg"
+                data-width="600">
+                <img src="https://bpforms.org/img/example/left-right-bonds-AA0305.svg"/>
+              </a>
             </div>
           </div>
         </div>

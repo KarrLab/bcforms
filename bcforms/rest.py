@@ -43,7 +43,7 @@ app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix='/api')
 api = flask_restplus.Api(app,
                          title='bcforms JSON REST API',
                          description='JSON REST API for calculating properties of biocomplex forms',
-                         contact='karr@mssm.edu',
+                         contact='info@karrlab.org',
                          version=bcforms.__version__,
                          license='MIT',
                          license_url='https://github.com/KarrLab/bcforms/blob/master/LICENSE',

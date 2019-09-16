@@ -13,6 +13,9 @@ package_data = {
     name: [
         'VERSION',
         'grammar.lark',
+        'web/app.css',
+        'web/app.js',
+        'web/index.html',
     ],
 }
 

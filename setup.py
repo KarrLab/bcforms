@@ -16,7 +16,6 @@ name = 'bcforms'
 dirname = os.path.dirname(__file__)
 package_data = {
     name: [
-        'VERSION',
         'grammar.lark',
         'web/app.css',
         'web/app.js',

@@ -30,19 +30,42 @@
   * A Python API. See the [documentation](https://docs.karrlab.org/bcforms/master/0.0.1/) for more information.
 
 ## Installation
-1. Install dependencies
-  * [Open Babel](http://openbabel.org)
-  * [Pip](https://pip.pypa.io) >= 19.0
-  * [Python](https://www.python.org) >= 3.6
+The following is a brief guide to installing `BcForms`. The [Dockerfile](https://github.com/KarrLab/bpforms/blob/master/Dockerfile) in the `BpForms` repository contains detailed instructions for how to install `BcForms` in Ubuntu Linux.
 
-2. Install the latest release from PyPI
-  ```
-  pip install bcforms.git[all]
-  ```
-3. Install the latest revision from GitHub
-  ```
-  pip install git+https://github.com/KarrLab/bcforms.git#egg=bcforms[all]
-  ```
+1. Install dependencies
+
+   * [ChemAxon Marvin](https://chemaxon.com/products/marvin): optional to calculate major protonation and tautomerization states and draw molecules
+     * [Java](https://www.java.com) >= 1.8
+   * [Open Babel](http://openbabel.org)
+   * [Pip](https://pip.pypa.io) >= 19.0
+   * [Python](https://www.python.org) >= 3.6
+
+2. Install this package
+
+    * Install the latest release from PyPI
+      ```
+      pip install bcforms[all]
+      ```
+
+    * Install the latest revision from GitHub
+      ```
+      pip install git+https://github.com/KarrLab/pkg_utils.git#egg=pkg_utils
+      pip install git+https://github.com/KarrLab/wc_utils.git#egg=wc_utils[chem, protonation]
+      pip install git+https://github.com/KarrLab/bpforms.git#egg=bpforms
+      pip install git+https://github.com/KarrLab/bcforms.git#egg=bcforms[all]
+      ```
+
+    * To draw molecules, `BcForms` must be installed with the `[draw]` option:
+      ```
+      pip install bcforms[draw]
+      pip install git+https://github.com/KarrLab/bcforms.git#egg=bcforms[draw]
+      ```
+
+    * To install the REST API, `BcForms` must be installed with the `[rest_api option]`:
+      ```
+      pip install bcforms[rest_api]
+      pip install git+https://github.com/KarrLab/bcforms.git#egg=bcforms[rest_api]
+      ```
 
 ## Documentation
 Please see the [API documentation](https://docs.karrlab.org/bcforms).

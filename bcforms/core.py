@@ -11,10 +11,7 @@ from bpforms import BondOrder, BondStereo
 from bpforms.util import gen_genomic_viz
 from ruamel import yaml
 from wc_utils.util.chem import EmpiricalFormula, OpenBabelUtils
-try:
-    from wc_utils.util.chem.marvin import draw_molecule
-except ImportError:
-    draw_molecule = None
+from wc_utils.util.chem.marvin import draw_molecule
 import abc
 import bpforms
 import itertools

@@ -11,7 +11,10 @@ from bpforms import BondOrder, BondStereo
 from bpforms.util import gen_genomic_viz
 from ruamel import yaml
 from wc_utils.util.chem import EmpiricalFormula, OpenBabelUtils
-from wc_utils.util.chem.marvin import draw_molecule
+try:
+    from wc_utils.util.chem.marvin import draw_molecule
+except ImportError:
+    draw_molecule = None
 import abc
 import bpforms
 import itertools
@@ -2430,6 +2433,8 @@ def draw_xlink(xlink_name, include_all_hydrogens=False, remove_hydrogens=True, s
 
     cml = OpenBabelUtils.export(structure, 'cml')
 
+    if not draw_molecule:
+        raise ImportError("ChemAxon Marvin must be installed")
     return draw_molecule(cml, 'cml', image_format=image_format,
                          atom_labels=atom_labels, atom_label_font_size=atom_label_font_size,
                          atom_sets=atom_sets, bond_sets=bond_sets,

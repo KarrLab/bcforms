@@ -1,3 +1,6 @@
+[draw]
+wc_utils[protonation] >= 0.0.13
+
 [rest_api]
 flask
 flask_restplus

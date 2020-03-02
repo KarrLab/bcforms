@@ -13,6 +13,7 @@ Contents
    :numbered:
 
    installation.rst
+   cli.rst
    API documentation <source/modules.rst>
    about.rst
    references.rst

@@ -1,5 +1,8 @@
 static_analyses:
   ignore_files: []
+  ignore_unused_requirements: []
+  ignore_missing_requirements:
+    - configobj
 downstream_dependencies:
 - wc_kb
 - wc_lang

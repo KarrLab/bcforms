@@ -1,6 +1,6 @@
 bpforms >= 0.0.15
 cement >= 3.0.0 # for command line programs
 lark_parser >= 0.6.6
-openbabel
+openbabel < 3
 setuptools # for pkg_resources module
 wc_utils[chem] >= 0.0.14
